@@ -25,9 +25,20 @@ export interface WaveWarningStakeState {
   y: number;
 }
 
+export interface SunTrailParticleState {
+  visible: boolean;
+  opacity: number;
+  x: number;
+  y: number;
+  z: number;
+  scale: number;
+}
+
 const SEED_PACKET_FLIP_MS = 720;
 const GARDEN_TOOL_PULSE_MS = 620;
 const WAVE_WARNING_STAKE_MS = 860;
+const SUN_TRAIL_PARTICLE_MS = 760;
+const SUN_TRAIL_PARTICLE_DELAY_MS = 48;
 
 export function getSeedPacketFlipState(ageMs: number, mode: SeedPacketFlipMode): SeedPacketFlipState {
   if (ageMs < 0 || ageMs > SEED_PACKET_FLIP_MS) {
@@ -90,5 +101,39 @@ export function getWaveWarningStakeState(ageMs: number): WaveWarningStakeState {
     rotationZ: wobble * 0.16,
     scale: 0.55 + pop * 0.48,
     y: -0.42 + pop * 0.16
+  };
+}
+
+export function getSunTrailParticleState(ageMs: number, index: number): SunTrailParticleState {
+  const particleIndex = Math.max(0, index);
+  const localAge = ageMs - particleIndex * SUN_TRAIL_PARTICLE_DELAY_MS;
+  const startX = 1.04 - (particleIndex % 3) * 0.14;
+  const startY = -0.7 + (particleIndex % 2) * 0.18;
+  const startZ = -0.1 + (particleIndex % 4) * 0.04;
+
+  if (ageMs < 0 || localAge < 0 || localAge > SUN_TRAIL_PARTICLE_MS) {
+    return {
+      visible: false,
+      opacity: 0,
+      x: startX,
+      y: startY,
+      z: startZ,
+      scale: 0.1
+    };
+  }
+
+  const progress = localAge / SUN_TRAIL_PARTICLE_MS;
+  const eased = 1 - (1 - progress) ** 3;
+  const arc = Math.sin(progress * Math.PI) * (0.28 + (particleIndex % 3) * 0.04);
+  const fadeIn = Math.min(1, progress * 5 + 0.18);
+  const fadeOut = Math.max(0, 1 - Math.max(0, progress - 0.58) / 0.42);
+
+  return {
+    visible: true,
+    opacity: fadeIn * fadeOut,
+    x: startX * (1 - eased),
+    y: startY * (1 - eased) + arc,
+    z: startZ * (1 - eased) + Math.sin(progress * Math.PI * 2 + particleIndex) * 0.04,
+    scale: 0.42 + Math.sin(progress * Math.PI) * 0.42
   };
 }

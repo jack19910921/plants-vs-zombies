@@ -193,6 +193,7 @@ Delivered so far:
 - Added a test-backed 3D seed-packet flip for plant selection and planting.
 - Added a persistent 3D garden tool prop that idles and swings on planting.
 - Added a 3D wave warning stake that pops up during incoming waves.
+- Added a test-backed 3D sun collection trail that flies into the sun coin when sun is produced.
 
 Architecture:
 

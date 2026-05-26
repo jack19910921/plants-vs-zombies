@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { getGardenToolState, getSeedPacketFlipState, getWaveWarningStakeState } from "./threePresentation";
+import {
+  getGardenToolState,
+  getSeedPacketFlipState,
+  getSunTrailParticleState,
+  getWaveWarningStakeState
+} from "./threePresentation";
 
 describe("three presentation helpers", () => {
   it("keeps the seed packet visible during the flip", () => {
@@ -52,5 +57,32 @@ describe("three presentation helpers", () => {
 
   it("hides the wave warning stake after the alert", () => {
     expect(getWaveWarningStakeState(1000)).toMatchObject({ visible: false, opacity: 0 });
+  });
+
+  it("keeps sun trail particles visible during collection", () => {
+    expect(getSunTrailParticleState(0, 0)).toMatchObject({ visible: true });
+    expect(getSunTrailParticleState(360, 0)).toMatchObject({ visible: true });
+  });
+
+  it("moves sun trail particles toward the coin", () => {
+    const start = getSunTrailParticleState(0, 0);
+    const middle = getSunTrailParticleState(360, 0);
+    const startDistance = Math.hypot(start.x, start.y);
+    const middleDistance = Math.hypot(middle.x, middle.y);
+
+    expect(middleDistance).toBeLessThan(startDistance);
+    expect(middle.opacity).toBeGreaterThan(0);
+  });
+
+  it("staggers sun trail particles by index", () => {
+    const first = getSunTrailParticleState(220, 0);
+    const later = getSunTrailParticleState(220, 4);
+
+    expect(later.x).not.toBe(first.x);
+    expect(later.opacity).toBeLessThan(first.opacity);
+  });
+
+  it("hides sun trail particles after collection", () => {
+    expect(getSunTrailParticleState(1000, 0)).toMatchObject({ visible: false, opacity: 0 });
   });
 });

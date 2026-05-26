@@ -2,6 +2,7 @@ import * as THREE from "three";
 import {
   getGardenToolState,
   getSeedPacketFlipState,
+  getSunTrailParticleState,
   getWaveWarningStakeState,
   type SeedPacketFlipMode
 } from "./threePresentation";
@@ -12,6 +13,7 @@ export class ThreeStage {
   private readonly camera = new THREE.PerspectiveCamera(38, 1, 0.1, 20);
   private readonly coin = new THREE.Group();
   private readonly burst = new THREE.Group();
+  private readonly sunTrail = new THREE.Group();
   private readonly waveRing = new THREE.Group();
   private readonly statusBadge = new THREE.Group();
   private readonly seedPacket = new THREE.Group();
@@ -45,6 +47,8 @@ export class ThreeStage {
     this.scene.add(this.coin);
     this.buildBurst();
     this.scene.add(this.burst);
+    this.buildSunTrail();
+    this.scene.add(this.sunTrail);
     this.buildWaveRing();
     this.scene.add(this.waveRing);
     this.buildWaveWarningStake();
@@ -125,6 +129,24 @@ export class ThreeStage {
       this.burst.add(sparkle);
     }
     this.burst.visible = false;
+  }
+
+  private buildSunTrail(): void {
+    const beadGeometry = new THREE.SphereGeometry(0.07, 16, 10);
+    for (let index = 0; index < 6; index += 1) {
+      const material = new THREE.MeshStandardMaterial({
+        color: index % 2 === 0 ? 0xfff1a3 : 0xffd34f,
+        emissive: 0xffc547,
+        emissiveIntensity: 0.7,
+        metalness: 0.12,
+        roughness: 0.28,
+        transparent: true,
+        opacity: 0
+      });
+      const bead = new THREE.Mesh(beadGeometry, material);
+      this.sunTrail.add(bead);
+    }
+    this.sunTrail.visible = false;
   }
 
   private buildWaveRing(): void {
@@ -321,6 +343,7 @@ export class ThreeStage {
     this.coin.position.y = Math.sin(seconds * 2.2) * 0.08 + pulseEase * 0.1;
     this.coin.scale.setScalar(1 + pulseEase * 0.24);
     this.animateBurst(pulseAge);
+    this.animateSunTrail(now);
     this.animateWaveRing(now);
     this.animateWaveWarningStake(now);
     this.animateStatusBadge(now);
@@ -343,6 +366,29 @@ export class ThreeStage {
       sparkle.scale.setScalar(1 + pulseAge * 1.6);
       sparkle.material.opacity = opacity;
     });
+  }
+
+  private animateSunTrail(now: number): void {
+    const ageMs = now - this.sunPulseStartedAt;
+    let hasVisibleParticle = false;
+
+    this.sunTrail.children.forEach((child, index) => {
+      const bead = child as THREE.Mesh<THREE.SphereGeometry, THREE.MeshStandardMaterial>;
+      const state = getSunTrailParticleState(ageMs, index);
+      bead.visible = state.visible;
+
+      if (!state.visible) {
+        bead.material.opacity = 0;
+        return;
+      }
+
+      hasVisibleParticle = true;
+      bead.position.set(state.x, state.y, state.z);
+      bead.scale.setScalar(state.scale);
+      bead.material.opacity = state.opacity;
+    });
+
+    this.sunTrail.visible = hasVisibleParticle;
   }
 
   private animateWaveRing(now: number): void {
