@@ -45,7 +45,7 @@ describe("dom overlay", () => {
     const scene = {
       uiEvents: {
         on: vi.fn((_eventName: string, handler: (state: GameState) => void) => {
-          stateHandler = handler;
+          if (_eventName === "state-changed") stateHandler = handler;
         })
       },
       setSelectedPlant: vi.fn(),
@@ -79,5 +79,49 @@ describe("dom overlay", () => {
 
     expect(html).toContain('data-action="restart"');
     expect(html).toContain("再玩一次");
+  });
+
+  it("renders the initial tutorial prompt", () => {
+    const html = createDomOverlayMarkup({
+      sun: 250,
+      waveText: "第 1 波 / 8",
+      status: "playing",
+      selectedPlantId: null,
+      cooldownReadyAt: {
+        sunflower: 0,
+        peashooter: 0,
+        wallnut: 0,
+        snowpea: 0,
+        potatomine: 0
+      },
+      nowMs: 0,
+      plantsCount: 0,
+      recentFeedback: null,
+      recentEvents: []
+    });
+
+    expect(html).toContain("先选一张植物卡片");
+  });
+
+  it("renders specific invalid action feedback", () => {
+    const html = createDomOverlayMarkup({
+      sun: 250,
+      waveText: "第 1 波 / 8",
+      status: "playing",
+      selectedPlantId: "sunflower",
+      cooldownReadyAt: {
+        sunflower: 0,
+        peashooter: 0,
+        wallnut: 0,
+        snowpea: 0,
+        potatomine: 0
+      },
+      nowMs: 0,
+      plantsCount: 0,
+      recentFeedback: { type: "planting", reason: "occupied" },
+      recentEvents: []
+    });
+
+    expect(html).toContain("这个格子已经有植物啦");
   });
 });

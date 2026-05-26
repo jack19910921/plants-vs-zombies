@@ -6,6 +6,7 @@ import type {
   LevelConfig,
   PlantConfig,
   PlantId,
+  PlantingResult,
   ProjectileEntity,
   ZombieConfig
 } from "./types";
@@ -50,17 +51,31 @@ export function selectPlant(state: GameState, plantId: PlantId): GameState {
   return { ...state, selectedPlantId: plantId };
 }
 
+export function getPlantingResult(
+  state: GameState,
+  plantConfigs: Record<PlantId, PlantConfig>,
+  lane: LaneIndex,
+  column: ColumnIndex
+): PlantingResult {
+  if (!state.selectedPlantId) return { ok: false, reason: "no-selection" };
+  const plantConfig = plantConfigs[state.selectedPlantId];
+  const occupied = state.plants.some((plant) => plant.lane === lane && plant.column === column);
+  if (occupied) return { ok: false, reason: "occupied" };
+  if (state.sun < plantConfig.cost) return { ok: false, reason: "not-enough-sun" };
+  const readyAt = state.cooldownReadyAt[state.selectedPlantId];
+  if (state.nowMs < readyAt) return { ok: false, reason: "cooldown" };
+  return { ok: true, plantId: state.selectedPlantId };
+}
+
 export function plantAt(
   state: GameState,
   plantConfigs: Record<PlantId, PlantConfig>,
   lane: LaneIndex,
   column: ColumnIndex
 ): GameState {
-  if (!state.selectedPlantId) return state;
-  const plantConfig = plantConfigs[state.selectedPlantId];
-  const occupied = state.plants.some((plant) => plant.lane === lane && plant.column === column);
-  const readyAt = state.cooldownReadyAt[state.selectedPlantId];
-  if (occupied || state.sun < plantConfig.cost || state.nowMs < readyAt) return state;
+  const plantingResult = getPlantingResult(state, plantConfigs, lane, column);
+  if (!plantingResult.ok) return state;
+  const plantConfig = plantConfigs[plantingResult.plantId];
 
   return {
     ...state,
@@ -68,7 +83,7 @@ export function plantAt(
     selectedPlantId: null,
     cooldownReadyAt: {
       ...state.cooldownReadyAt,
-      [state.selectedPlantId]: state.nowMs + plantConfig.cooldownMs
+      [plantingResult.plantId]: state.nowMs + plantConfig.cooldownMs
     },
     plants: [
       ...state.plants,

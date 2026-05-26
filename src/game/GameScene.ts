@@ -1,7 +1,15 @@
 import Phaser from "phaser";
 import { PLANT_TEXTURES, ZOMBIE_TEXTURE } from "./assets";
 import { LEVEL_ONE, PLANTS, ZOMBIES } from "./config";
-import { advanceCombat, createInitialState, plantAt, selectPlant, spawnDueZombies, updateStatus } from "./rules";
+import {
+  advanceCombat,
+  createInitialState,
+  getPlantingResult,
+  plantAt,
+  selectPlant,
+  spawnDueZombies,
+  updateStatus
+} from "./rules";
 import type { CombatEvent, ColumnIndex, GameState, LaneIndex, PlantEntity, PlantId, ZombieEntity } from "./types";
 
 const BOARD = {
@@ -93,7 +101,15 @@ export class GameScene extends Phaser.Scene {
   private handlePointer(pointer: Phaser.Input.Pointer): void {
     const column = Math.floor(((pointer.x - BOARD.x) / BOARD.width) * BOARD.columns);
     const lane = Math.floor(((pointer.y - BOARD.y) / BOARD.height) * BOARD.lanes);
-    if (column < 0 || column > 8 || lane < 0 || lane > 4) return;
+    if (column < 0 || column > 8 || lane < 0 || lane > 4) {
+      this.uiEvents.emit("feedback-changed", { type: "planting", reason: "outside-board" });
+      return;
+    }
+    const plantingResult = getPlantingResult(this.state, PLANTS, lane as LaneIndex, column as ColumnIndex);
+    if (!plantingResult.ok) {
+      this.uiEvents.emit("feedback-changed", { type: "planting", reason: plantingResult.reason });
+      return;
+    }
     this.state = plantAt(this.state, PLANTS, lane as LaneIndex, column as ColumnIndex);
     this.uiEvents.emit("state-changed", this.state);
   }

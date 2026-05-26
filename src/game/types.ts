@@ -5,6 +5,17 @@ export type PlantId = "sunflower" | "peashooter" | "wallnut" | "snowpea" | "pota
 export type ZombieId = "basic" | "cone" | "bucket";
 export type DifficultyId = "easy" | "normal";
 export type GameStatus = "menu" | "playing" | "paused" | "victory" | "failure";
+export type PlantingFailureReason = "no-selection" | "occupied" | "not-enough-sun" | "cooldown";
+
+export type PlantingResult =
+  | {
+      ok: true;
+      plantId: PlantId;
+    }
+  | {
+      ok: false;
+      reason: PlantingFailureReason;
+    };
 
 export interface PlantConfig {
   id: PlantId;

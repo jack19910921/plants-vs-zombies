@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { LEVEL_ONE, PLANTS, ZOMBIES } from "./config";
-import { advanceCombat, createInitialState, plantAt, selectPlant, spawnDueZombies, updateStatus } from "./rules";
+import {
+  advanceCombat,
+  createInitialState,
+  getPlantingResult,
+  plantAt,
+  selectPlant,
+  spawnDueZombies,
+  updateStatus
+} from "./rules";
 
 describe("game rules", () => {
   it("spends sun and occupies a grid cell when planting succeeds", () => {
@@ -23,6 +31,23 @@ describe("game rules", () => {
     const second = plantAt(selectPlant(first, "peashooter"), PLANTS, 1, 1);
     expect(second.plants).toHaveLength(1);
     expect(second.sun).toBe(first.sun);
+  });
+
+  it("reports why planting cannot happen", () => {
+    const empty = createInitialState(LEVEL_ONE);
+    expect(getPlantingResult(empty, PLANTS, 0, 0)).toMatchObject({ ok: false, reason: "no-selection" });
+
+    const lowSun = selectPlant({ ...empty, sun: 20 }, "peashooter");
+    expect(getPlantingResult(lowSun, PLANTS, 0, 0)).toMatchObject({ ok: false, reason: "not-enough-sun" });
+
+    const planted = plantAt(selectPlant(empty, "sunflower"), PLANTS, 0, 0);
+    expect(getPlantingResult(selectPlant(planted, "wallnut"), PLANTS, 0, 0)).toMatchObject({
+      ok: false,
+      reason: "occupied"
+    });
+
+    const coolingDown = selectPlant({ ...planted, nowMs: planted.nowMs + 1000 }, "sunflower");
+    expect(getPlantingResult(coolingDown, PLANTS, 1, 1)).toMatchObject({ ok: false, reason: "cooldown" });
   });
 
   it("spawns each wave entry once", () => {

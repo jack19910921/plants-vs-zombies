@@ -1,7 +1,12 @@
 import type { GameScene } from "../game/GameScene";
 import { PLANT_TEXTURES } from "../game/assets";
 import { LEVEL_ONE, PLANTS } from "../game/config";
-import type { GameState, PlantId } from "../game/types";
+import type { CombatEvent, GameState, PlantId, PlantingFailureReason } from "../game/types";
+
+export interface OverlayPlantingFeedback {
+  type: "planting";
+  reason: PlantingFailureReason | "outside-board";
+}
 
 interface OverlayRenderState {
   sun: number;
@@ -10,9 +15,30 @@ interface OverlayRenderState {
   selectedPlantId: PlantId | null;
   cooldownReadyAt: GameState["cooldownReadyAt"];
   nowMs: number;
+  plantsCount?: number;
+  recentFeedback?: OverlayPlantingFeedback | null;
+  recentEvents?: CombatEvent[];
 }
 
 const plantOrder: PlantId[] = ["sunflower", "peashooter", "wallnut", "snowpea", "potatomine"];
+
+const plantingFeedbackText: Record<OverlayPlantingFeedback["reason"], string> = {
+  "no-selection": "先选一张植物卡片。",
+  occupied: "这个格子已经有植物啦。",
+  "not-enough-sun": "阳光不够，等向日葵产阳光。",
+  cooldown: "这张卡还在准备。",
+  "outside-board": "点彩色草坪格子来种植物。"
+};
+
+function getTutorialText(state: OverlayRenderState): string {
+  if (state.status === "victory") return "守住啦，点“再玩一次”可以重来。";
+  if (state.status === "failure") return "没关系，换个位置再试一次。";
+  if (state.status === "paused") return "休息一下，准备好了就继续。";
+  if (state.recentEvents?.some((event) => event.type === "wave-spawned")) return "僵尸来了，守住基地！";
+  if ((state.plantsCount ?? 0) > 0) return "很好！用 W/S 或方向键移动小队长。";
+  if (state.selectedPlantId) return "点草坪格子，把植物放上去。";
+  return "先选一张植物卡片。";
+}
 
 export function createDomOverlayMarkup(state: OverlayRenderState): string {
   const cards = plantOrder
@@ -27,6 +53,9 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
       </button>`;
     })
     .join("");
+  const tutorialText = getTutorialText(state);
+  const feedbackText = state.recentFeedback ? plantingFeedbackText[state.recentFeedback.reason] : "";
+  const feedbackMarkup = feedbackText ? `<span class="feedback-pill">${feedbackText}</span>` : "";
 
   const modalClass =
     state.status === "paused" || state.status === "victory" || state.status === "failure"
@@ -48,7 +77,7 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
       <div class="chip">${state.waveText}</div>
       <button class="chip" data-action="pause">暂停</button>
     </div>
-    <div></div>
+    <div class="tutorial-strip"><span>${tutorialText}</span>${feedbackMarkup}</div>
     <div class="plant-tray">${cards}</div>
   </div>
   <div class="${modalClass}">
@@ -67,15 +96,22 @@ function getWaveText(state: GameState): string {
 
 export function createDomOverlay(root: Element, scene: GameScene): void {
   let lastMarkup = "";
+  let lastState: GameState | null = null;
+  let recentFeedback: OverlayPlantingFeedback | null = null;
+  let feedbackTimer: ReturnType<typeof setTimeout> | null = null;
 
   function render(state: GameState): void {
+    lastState = state;
     const nextMarkup = createDomOverlayMarkup({
       sun: state.sun,
       waveText: getWaveText(state),
       status: state.status,
       selectedPlantId: state.selectedPlantId,
       cooldownReadyAt: state.cooldownReadyAt,
-      nowMs: state.nowMs
+      nowMs: state.nowMs,
+      plantsCount: state.plants.length,
+      recentFeedback,
+      recentEvents: state.events
     });
     if (nextMarkup === lastMarkup) return;
     root.innerHTML = nextMarkup;
@@ -83,6 +119,15 @@ export function createDomOverlay(root: Element, scene: GameScene): void {
   }
 
   scene.uiEvents.on("state-changed", render);
+  scene.uiEvents.on("feedback-changed", (feedback: OverlayPlantingFeedback) => {
+    recentFeedback = feedback;
+    if (feedbackTimer) clearTimeout(feedbackTimer);
+    feedbackTimer = setTimeout(() => {
+      recentFeedback = null;
+      if (lastState) render(lastState);
+    }, 1800);
+    if (lastState) render(lastState);
+  });
   root.addEventListener("click", (event) => {
     const target = event.target as HTMLElement;
     const plantButton = target.closest("[data-plant]") as HTMLElement | null;
