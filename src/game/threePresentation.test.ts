@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getSeedPacketFlipState } from "./threePresentation";
+import { getGardenToolState, getSeedPacketFlipState } from "./threePresentation";
 
 describe("three presentation helpers", () => {
   it("keeps the seed packet visible during the flip", () => {
@@ -17,5 +17,24 @@ describe("three presentation helpers", () => {
 
   it("hides after the flip duration", () => {
     expect(getSeedPacketFlipState(900, "plant")).toMatchObject({ visible: false, opacity: 0 });
+  });
+
+  it("keeps the garden tool visible while idling", () => {
+    expect(getGardenToolState(1000, Number.NEGATIVE_INFINITY)).toMatchObject({ visible: true });
+  });
+
+  it("changes garden tool idle rotation over time", () => {
+    const first = getGardenToolState(1000, Number.NEGATIVE_INFINITY);
+    const second = getGardenToolState(1800, Number.NEGATIVE_INFINITY);
+
+    expect(second.rotationZ).not.toBe(first.rotationZ);
+  });
+
+  it("swings the garden tool more strongly after planting", () => {
+    const idle = getGardenToolState(1200, Number.NEGATIVE_INFINITY);
+    const planting = getGardenToolState(1200, 1000);
+
+    expect(Math.abs(planting.rotationZ)).toBeGreaterThan(Math.abs(idle.rotationZ));
+    expect(planting.y).toBeGreaterThan(idle.y);
   });
 });

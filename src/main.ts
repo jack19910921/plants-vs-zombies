@@ -74,6 +74,7 @@ scene.uiEvents.on("sound-requested", (soundId: SoundId) => {
   }
   if (soundId === "plant") {
     threeStage.flipSeedPacket("plant");
+    threeStage.swingGardenTool();
   }
   void audio.unlock().then((unlocked) => {
     if (unlocked) audio.play(soundId);

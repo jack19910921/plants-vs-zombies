@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { getSeedPacketFlipState, type SeedPacketFlipMode } from "./threePresentation";
+import { getGardenToolState, getSeedPacketFlipState, type SeedPacketFlipMode } from "./threePresentation";
 
 export class ThreeStage {
   private readonly renderer: THREE.WebGLRenderer;
@@ -10,6 +10,7 @@ export class ThreeStage {
   private readonly waveRing = new THREE.Group();
   private readonly statusBadge = new THREE.Group();
   private readonly seedPacket = new THREE.Group();
+  private readonly gardenTool = new THREE.Group();
   private readonly statusBadgeMaterials: THREE.MeshStandardMaterial[] = [];
   private readonly seedPacketMaterials: THREE.MeshStandardMaterial[] = [];
   private frameId = 0;
@@ -17,6 +18,7 @@ export class ThreeStage {
   private wavePulseStartedAt = -Infinity;
   private statusPulseStartedAt = -Infinity;
   private seedPacketStartedAt = -Infinity;
+  private gardenToolPulseStartedAt = -Infinity;
   private seedPacketMode: SeedPacketFlipMode = "select";
   private statusBadgeMode: "victory" | "failure" | null = null;
 
@@ -40,6 +42,8 @@ export class ThreeStage {
     this.scene.add(this.waveRing);
     this.buildStatusBadge();
     this.scene.add(this.statusBadge);
+    this.buildGardenTool();
+    this.scene.add(this.gardenTool);
     this.buildSeedPacket();
     this.scene.add(this.seedPacket);
     this.resize();
@@ -65,6 +69,10 @@ export class ThreeStage {
     this.seedPacketMode = mode;
     this.seedPacketStartedAt = performance.now();
     this.applySeedPacketColors(mode);
+  }
+
+  swingGardenTool(): void {
+    this.gardenToolPulseStartedAt = performance.now();
   }
 
   destroy(): void {
@@ -199,6 +207,40 @@ export class ThreeStage {
     this.seedPacketMaterials.push(packetMaterial, rimMaterial, labelMaterial, seedMaterial);
   }
 
+  private buildGardenTool(): void {
+    const handleMaterial = new THREE.MeshStandardMaterial({
+      color: 0x8f5d32,
+      roughness: 0.62,
+      metalness: 0.08
+    });
+    const ferruleMaterial = new THREE.MeshStandardMaterial({
+      color: 0xc7d2d6,
+      roughness: 0.32,
+      metalness: 0.45
+    });
+    const bladeMaterial = new THREE.MeshStandardMaterial({
+      color: 0x9fb2b7,
+      roughness: 0.38,
+      metalness: 0.5
+    });
+    const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.065, 0.92, 18), handleMaterial);
+    handle.rotation.z = Math.PI / 2;
+    handle.position.x = -0.18;
+    const grip = new THREE.Mesh(new THREE.SphereGeometry(0.09, 18, 12), handleMaterial);
+    grip.scale.set(1, 0.8, 0.72);
+    grip.position.x = -0.66;
+    const ferrule = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.08, 0.18, 18), ferruleMaterial);
+    ferrule.rotation.z = Math.PI / 2;
+    ferrule.position.x = 0.31;
+    const blade = new THREE.Mesh(new THREE.CapsuleGeometry(0.12, 0.32, 8, 18), bladeMaterial);
+    blade.scale.set(0.9, 1.2, 0.2);
+    blade.rotation.z = -Math.PI / 2;
+    blade.position.x = 0.58;
+    this.gardenTool.position.set(0.45, -0.28, -0.08);
+    this.gardenTool.rotation.z = -0.42;
+    this.gardenTool.add(handle, grip, ferrule, blade);
+  }
+
   private createStarGeometry(): THREE.ShapeGeometry {
     const shape = new THREE.Shape();
     for (let point = 0; point < 10; point += 1) {
@@ -237,6 +279,7 @@ export class ThreeStage {
     this.animateBurst(pulseAge);
     this.animateWaveRing(now);
     this.animateStatusBadge(now);
+    this.animateGardenTool(now);
     this.animateSeedPacket(now);
     this.renderer.render(this.scene, this.camera);
     this.frameId = requestAnimationFrame(this.animate);
@@ -296,6 +339,15 @@ export class ThreeStage {
     this.seedPacketMaterials.forEach((material) => {
       material.opacity = state.opacity;
     });
+  }
+
+  private animateGardenTool(now: number): void {
+    const state = getGardenToolState(now, this.gardenToolPulseStartedAt);
+    this.gardenTool.visible = state.visible;
+    this.gardenTool.position.y = state.y;
+    this.gardenTool.rotation.z = state.rotationZ;
+    this.gardenTool.rotation.y = state.rotationY;
+    this.gardenTool.scale.setScalar(state.scale);
   }
 
   private applyStatusBadgeColors(status: "victory" | "failure"): void {

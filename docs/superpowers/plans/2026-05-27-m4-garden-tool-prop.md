@@ -20,11 +20,11 @@
 
 ## Task 1: Tool Motion Helper
 
-- [ ] **Step 1: Write failing helper tests**
+- [x] **Step 1: Write failing helper tests**
 
 Add tests that assert `getGardenToolState(1000, Number.NEGATIVE_INFINITY)` is visible, that idle rotation changes between two times, and that `getGardenToolState(1200, 1000)` has a larger swing than idle.
 
-- [ ] **Step 2: Run tests and verify red**
+- [x] **Step 2: Run tests and verify red**
 
 Run:
 
@@ -34,11 +34,11 @@ npm test -- src/game/threePresentation.test.ts
 
 Expected: fail because `getGardenToolState` does not exist.
 
-- [ ] **Step 3: Implement helper**
+- [x] **Step 3: Implement helper**
 
 Export `GardenToolState` and `getGardenToolState(nowMs, pulseStartedAt)` from `src/game/threePresentation.ts`.
 
-- [ ] **Step 4: Run tests and verify green**
+- [x] **Step 4: Run tests and verify green**
 
 Run:
 
@@ -50,21 +50,21 @@ Expected: helper tests pass.
 
 ## Task 2: ThreeStage Prop
 
-- [ ] **Step 1: Build trowel mesh**
+- [x] **Step 1: Build trowel mesh**
 
 In `src/game/ThreeStage.ts`, add a `gardenTool` group and build a simple trowel from a handle cylinder and metal scoop shape.
 
-- [ ] **Step 2: Animate from helper**
+- [x] **Step 2: Animate from helper**
 
 Add `swingGardenTool()` and `animateGardenTool(now)`.
 
-- [ ] **Step 3: Wire plant event**
+- [x] **Step 3: Wire plant event**
 
 In `src/main.ts`, call `threeStage.swingGardenTool()` when `soundId === "plant"`.
 
 ## Task 3: Verification And Commit
 
-- [ ] **Step 1: Run all tests**
+- [x] **Step 1: Run all tests**
 
 Run:
 
@@ -74,7 +74,7 @@ npm test
 
 Expected: all tests pass.
 
-- [ ] **Step 2: Build**
+- [x] **Step 2: Build**
 
 Run:
 
@@ -84,11 +84,11 @@ npm run build
 
 Expected: build succeeds with only the known chunk-size warning.
 
-- [ ] **Step 3: Browser check**
+- [x] **Step 3: Browser check**
 
 Open `http://127.0.0.1:5173/`, verify the Three canvas is nonblank, planting changes the Three canvas pixels, and console warnings/errors are zero.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 Commit:
 

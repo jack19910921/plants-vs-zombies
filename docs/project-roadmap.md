@@ -191,6 +191,7 @@ Scope:
 Delivered so far:
 
 - Added a test-backed 3D seed-packet flip for plant selection and planting.
+- Added a persistent 3D garden tool prop that idles and swings on planting.
 
 Architecture:
 
