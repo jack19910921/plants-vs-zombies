@@ -19,11 +19,11 @@
 
 ## Task 1: Warning Stake State Helper
 
-- [ ] **Step 1: Write failing helper tests**
+- [x] **Step 1: Write failing helper tests**
 
 Add tests that assert the stake is visible at `0`, larger at `240`, and hidden at `1000`.
 
-- [ ] **Step 2: Run tests and verify red**
+- [x] **Step 2: Run tests and verify red**
 
 Run:
 
@@ -33,11 +33,11 @@ npm test -- src/game/threePresentation.test.ts
 
 Expected: fail because `getWaveWarningStakeState` does not exist.
 
-- [ ] **Step 3: Implement helper**
+- [x] **Step 3: Implement helper**
 
 Export `WaveWarningStakeState` and `getWaveWarningStakeState(ageMs)`.
 
-- [ ] **Step 4: Run tests and verify green**
+- [x] **Step 4: Run tests and verify green**
 
 Run:
 
@@ -49,17 +49,17 @@ Expected: helper tests pass.
 
 ## Task 2: ThreeStage Mesh
 
-- [ ] **Step 1: Build warning stake mesh**
+- [x] **Step 1: Build warning stake mesh**
 
 Add a small wooden post and red flag group in `ThreeStage`.
 
-- [ ] **Step 2: Animate from helper**
+- [x] **Step 2: Animate from helper**
 
 Use `wavePulseStartedAt` inside `animateWaveWarningStake(now)`.
 
 ## Task 3: Verification And Commit
 
-- [ ] **Step 1: Run all tests**
+- [x] **Step 1: Run all tests**
 
 Run:
 
@@ -69,7 +69,7 @@ npm test
 
 Expected: all tests pass.
 
-- [ ] **Step 2: Build**
+- [x] **Step 2: Build**
 
 Run:
 
@@ -79,11 +79,11 @@ npm run build
 
 Expected: build succeeds with only the known chunk-size warning.
 
-- [ ] **Step 3: Browser check**
+- [x] **Step 3: Browser check**
 
 Open `http://127.0.0.1:5173/`, wait for the first wave, verify the Three canvas changes pixels, and check console warnings/errors.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 Commit:
 

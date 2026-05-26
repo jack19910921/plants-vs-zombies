@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getGardenToolState, getSeedPacketFlipState } from "./threePresentation";
+import { getGardenToolState, getSeedPacketFlipState, getWaveWarningStakeState } from "./threePresentation";
 
 describe("three presentation helpers", () => {
   it("keeps the seed packet visible during the flip", () => {
@@ -36,5 +36,21 @@ describe("three presentation helpers", () => {
 
     expect(Math.abs(planting.rotationZ)).toBeGreaterThan(Math.abs(idle.rotationZ));
     expect(planting.y).toBeGreaterThan(idle.y);
+  });
+
+  it("shows the wave warning stake during the alert", () => {
+    expect(getWaveWarningStakeState(0)).toMatchObject({ visible: true });
+  });
+
+  it("pops the wave warning stake larger mid-alert", () => {
+    const start = getWaveWarningStakeState(0);
+    const middle = getWaveWarningStakeState(240);
+
+    expect(middle.scale).toBeGreaterThan(start.scale);
+    expect(middle.opacity).toBeGreaterThan(0);
+  });
+
+  it("hides the wave warning stake after the alert", () => {
+    expect(getWaveWarningStakeState(1000)).toMatchObject({ visible: false, opacity: 0 });
   });
 });

@@ -1,5 +1,10 @@
 import * as THREE from "three";
-import { getGardenToolState, getSeedPacketFlipState, type SeedPacketFlipMode } from "./threePresentation";
+import {
+  getGardenToolState,
+  getSeedPacketFlipState,
+  getWaveWarningStakeState,
+  type SeedPacketFlipMode
+} from "./threePresentation";
 
 export class ThreeStage {
   private readonly renderer: THREE.WebGLRenderer;
@@ -11,8 +16,10 @@ export class ThreeStage {
   private readonly statusBadge = new THREE.Group();
   private readonly seedPacket = new THREE.Group();
   private readonly gardenTool = new THREE.Group();
+  private readonly waveWarningStake = new THREE.Group();
   private readonly statusBadgeMaterials: THREE.MeshStandardMaterial[] = [];
   private readonly seedPacketMaterials: THREE.MeshStandardMaterial[] = [];
+  private readonly waveWarningStakeMaterials: THREE.MeshStandardMaterial[] = [];
   private frameId = 0;
   private sunPulseStartedAt = -Infinity;
   private wavePulseStartedAt = -Infinity;
@@ -40,6 +47,8 @@ export class ThreeStage {
     this.scene.add(this.burst);
     this.buildWaveRing();
     this.scene.add(this.waveRing);
+    this.buildWaveWarningStake();
+    this.scene.add(this.waveWarningStake);
     this.buildStatusBadge();
     this.scene.add(this.statusBadge);
     this.buildGardenTool();
@@ -130,6 +139,41 @@ export class ThreeStage {
     const inner = new THREE.Mesh(new THREE.TorusGeometry(0.64, 0.02, 8, 48), material.clone());
     this.waveRing.add(outer, inner);
     this.waveRing.visible = false;
+  }
+
+  private buildWaveWarningStake(): void {
+    const postMaterial = new THREE.MeshStandardMaterial({
+      color: 0x8f5d32,
+      roughness: 0.58,
+      transparent: true,
+      opacity: 0
+    });
+    const flagMaterial = new THREE.MeshStandardMaterial({
+      color: 0xf45f4f,
+      emissive: 0x3d0f0b,
+      emissiveIntensity: 0.35,
+      roughness: 0.46,
+      transparent: true,
+      opacity: 0
+    });
+    const capMaterial = new THREE.MeshStandardMaterial({
+      color: 0xfff1a3,
+      emissive: 0xff8f4d,
+      emissiveIntensity: 0.35,
+      roughness: 0.36,
+      transparent: true,
+      opacity: 0
+    });
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.045, 0.62, 12), postMaterial);
+    post.position.y = -0.07;
+    const flag = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.2, 0.035), flagMaterial);
+    flag.position.set(0.18, 0.16, 0);
+    const cap = new THREE.Mesh(new THREE.SphereGeometry(0.065, 14, 10), capMaterial);
+    cap.position.y = 0.28;
+    this.waveWarningStake.position.set(-1.06, 0.4, 0.08);
+    this.waveWarningStake.add(post, flag, cap);
+    this.waveWarningStake.visible = false;
+    this.waveWarningStakeMaterials.push(postMaterial, flagMaterial, capMaterial);
   }
 
   private buildStatusBadge(): void {
@@ -278,6 +322,7 @@ export class ThreeStage {
     this.coin.scale.setScalar(1 + pulseEase * 0.24);
     this.animateBurst(pulseAge);
     this.animateWaveRing(now);
+    this.animateWaveWarningStake(now);
     this.animateStatusBadge(now);
     this.animateGardenTool(now);
     this.animateSeedPacket(now);
@@ -310,6 +355,18 @@ export class ThreeStage {
     this.waveRing.children.forEach((child) => {
       const ring = child as THREE.Mesh<THREE.TorusGeometry, THREE.MeshStandardMaterial>;
       ring.material.opacity = opacity * 0.85;
+    });
+  }
+
+  private animateWaveWarningStake(now: number): void {
+    const state = getWaveWarningStakeState(now - this.wavePulseStartedAt);
+    this.waveWarningStake.visible = state.visible;
+    if (!state.visible) return;
+    this.waveWarningStake.position.y = 0.4 + state.y;
+    this.waveWarningStake.rotation.z = state.rotationZ;
+    this.waveWarningStake.scale.setScalar(state.scale);
+    this.waveWarningStakeMaterials.forEach((material) => {
+      material.opacity = state.opacity;
     });
   }
 

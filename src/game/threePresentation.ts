@@ -17,8 +17,17 @@ export interface GardenToolState {
   y: number;
 }
 
+export interface WaveWarningStakeState {
+  visible: boolean;
+  opacity: number;
+  rotationZ: number;
+  scale: number;
+  y: number;
+}
+
 const SEED_PACKET_FLIP_MS = 720;
 const GARDEN_TOOL_PULSE_MS = 620;
+const WAVE_WARNING_STAKE_MS = 860;
 
 export function getSeedPacketFlipState(ageMs: number, mode: SeedPacketFlipMode): SeedPacketFlipState {
   if (ageMs < 0 || ageMs > SEED_PACKET_FLIP_MS) {
@@ -57,5 +66,29 @@ export function getGardenToolState(nowMs: number, pulseStartedAt: number): Garde
     rotationY: 0.18 + idle * 0.08 + pulse * 0.36,
     scale: 0.88 + pulse * 0.1,
     y: -0.28 + idle * 0.03 + pulse * 0.14
+  };
+}
+
+export function getWaveWarningStakeState(ageMs: number): WaveWarningStakeState {
+  if (ageMs < 0 || ageMs > WAVE_WARNING_STAKE_MS) {
+    return {
+      visible: false,
+      opacity: 0,
+      rotationZ: 0,
+      scale: 0.1,
+      y: 0
+    };
+  }
+
+  const progress = ageMs / WAVE_WARNING_STAKE_MS;
+  const pop = Math.sin(progress * Math.PI);
+  const wobble = Math.sin(progress * Math.PI * 5);
+
+  return {
+    visible: true,
+    opacity: Math.max(0, 1 - progress * 0.16),
+    rotationZ: wobble * 0.16,
+    scale: 0.55 + pop * 0.48,
+    y: -0.42 + pop * 0.16
   };
 }
