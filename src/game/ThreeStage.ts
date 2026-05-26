@@ -5,7 +5,9 @@ export class ThreeStage {
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.PerspectiveCamera(38, 1, 0.1, 20);
   private readonly coin = new THREE.Group();
+  private readonly burst = new THREE.Group();
   private frameId = 0;
+  private sunPulseStartedAt = -Infinity;
 
   constructor(private readonly root: HTMLElement) {
     this.renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, preserveDrawingBuffer: true });
@@ -21,9 +23,15 @@ export class ThreeStage {
 
     this.buildCoin();
     this.scene.add(this.coin);
+    this.buildBurst();
+    this.scene.add(this.burst);
     this.resize();
     window.addEventListener("resize", this.resize);
     this.animate();
+  }
+
+  pulseSunCollection(): void {
+    this.sunPulseStartedAt = performance.now();
   }
 
   destroy(): void {
@@ -52,6 +60,23 @@ export class ThreeStage {
     this.coin.add(face, rim, core);
   }
 
+  private buildBurst(): void {
+    const sparkleMaterial = new THREE.MeshStandardMaterial({
+      color: 0xfff1a3,
+      emissive: 0xffc547,
+      emissiveIntensity: 0.8,
+      transparent: true,
+      opacity: 0
+    });
+    for (let index = 0; index < 10; index += 1) {
+      const sparkle = new THREE.Mesh(new THREE.SphereGeometry(0.045, 12, 8), sparkleMaterial.clone());
+      sparkle.userData.angle = (Math.PI * 2 * index) / 10;
+      sparkle.userData.speed = 0.7 + (index % 3) * 0.12;
+      this.burst.add(sparkle);
+    }
+    this.burst.visible = false;
+  }
+
   private readonly resize = (): void => {
     const width = Math.max(1, this.root.clientWidth);
     const height = Math.max(1, this.root.clientHeight);
@@ -61,11 +86,32 @@ export class ThreeStage {
   };
 
   private readonly animate = (): void => {
-    const seconds = performance.now() / 1000;
+    const now = performance.now();
+    const seconds = now / 1000;
+    const pulseAge = (now - this.sunPulseStartedAt) / 620;
+    const pulse = pulseAge >= 0 && pulseAge <= 1 ? 1 - pulseAge : 0;
+    const pulseEase = pulse * pulse;
     this.coin.rotation.y = Math.sin(seconds * 1.7) * 0.65;
-    this.coin.rotation.z = seconds * 0.35;
-    this.coin.position.y = Math.sin(seconds * 2.2) * 0.08;
+    this.coin.rotation.z = seconds * 0.35 + pulseEase * 0.45;
+    this.coin.position.y = Math.sin(seconds * 2.2) * 0.08 + pulseEase * 0.1;
+    this.coin.scale.setScalar(1 + pulseEase * 0.24);
+    this.animateBurst(pulseAge);
     this.renderer.render(this.scene, this.camera);
     this.frameId = requestAnimationFrame(this.animate);
   };
+
+  private animateBurst(pulseAge: number): void {
+    this.burst.visible = pulseAge >= 0 && pulseAge <= 1;
+    if (!this.burst.visible) return;
+    const opacity = Math.max(0, 1 - pulseAge);
+    this.burst.children.forEach((child) => {
+      const sparkle = child as THREE.Mesh<THREE.SphereGeometry, THREE.MeshStandardMaterial>;
+      const angle = sparkle.userData.angle as number;
+      const speed = sparkle.userData.speed as number;
+      const radius = 0.34 + pulseAge * speed;
+      sparkle.position.set(Math.cos(angle) * radius, Math.sin(angle) * radius, Math.sin(angle * 2) * 0.08);
+      sparkle.scale.setScalar(1 + pulseAge * 1.6);
+      sparkle.material.opacity = opacity;
+    });
+  }
 }

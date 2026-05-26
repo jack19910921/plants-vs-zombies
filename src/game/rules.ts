@@ -1,5 +1,6 @@
 import type {
   ColumnIndex,
+  CombatEvent,
   GameState,
   LaneIndex,
   LevelConfig,
@@ -10,10 +11,16 @@ import type {
 } from "./types";
 
 let entityCounter = 0;
+const EVENT_TTL_MS = 700;
+type CombatEventInput = CombatEvent extends infer Event ? (Event extends CombatEvent ? Omit<Event, "id"> : never) : never;
 
 function nextId(prefix: string): string {
   entityCounter += 1;
   return `${prefix}-${entityCounter}`;
+}
+
+function makeEvent(event: CombatEventInput): CombatEvent {
+  return { ...event, id: nextId("event") } as CombatEvent;
 }
 
 export function createInitialState(level: LevelConfig): GameState {
@@ -25,6 +32,7 @@ export function createInitialState(level: LevelConfig): GameState {
     plants: [],
     zombies: [],
     projectiles: [],
+    events: [],
     spawnedWaveIndexes: [],
     cooldownReadyAt: {
       sunflower: 0,
@@ -127,6 +135,7 @@ export function advanceCombat(
   const newProjectiles = [...state.projectiles];
   const plants = state.plants.map((plant) => ({ ...plant }));
   let zombies = state.zombies.map((zombie) => ({ ...zombie }));
+  const events = state.events.filter((event) => state.nowMs - event.atMs <= EVENT_TTL_MS);
   let sun = state.sun;
   let nextHeroShotAtMs = state.nextHeroShotAtMs;
 
@@ -134,6 +143,16 @@ export function advanceCombat(
     const config = plantConfigs[plant.plantId];
     if (!config.producesSun || state.nowMs < plant.nextSunAtMs) continue;
     sun += 25;
+    events.push(
+      makeEvent({
+        type: "sun-produced",
+        sourceId: plant.id,
+        lane: plant.lane,
+        column: plant.column,
+        amount: 25,
+        atMs: state.nowMs
+      })
+    );
     plant.nextSunAtMs = state.nowMs + 5000;
   }
 
@@ -145,6 +164,7 @@ export function advanceCombat(
       damage: 14,
       slows: false
     });
+    events.push(makeEvent({ type: "hero-fired", sourceId: "hero", lane: state.heroLane, atMs: state.nowMs }));
     nextHeroShotAtMs = state.nowMs + 850;
   }
 
@@ -160,6 +180,15 @@ export function advanceCombat(
       damage: config.damage,
       slows: config.slows
     });
+    events.push(
+      makeEvent({
+        type: "plant-fired",
+        sourceId: plant.id,
+        lane: plant.lane,
+        column: plant.column,
+        atMs: state.nowMs
+      })
+    );
     plant.nextFireAtMs = state.nowMs + config.fireIntervalMs;
   }
 
@@ -173,7 +202,29 @@ export function advanceCombat(
       continue;
     }
     target.hp -= projectile.damage;
+    events.push(
+      makeEvent({
+        type: "zombie-hit",
+        targetId: target.id,
+        lane: target.lane,
+        x: target.x,
+        damage: projectile.damage,
+        slows: projectile.slows,
+        atMs: state.nowMs
+      })
+    );
     if (projectile.slows) target.slowedUntilMs = state.nowMs + 2000;
+    if (target.hp <= 0) {
+      events.push(
+        makeEvent({
+          type: "zombie-defeated",
+          targetId: target.id,
+          lane: target.lane,
+          x: target.x,
+          atMs: state.nowMs
+        })
+      );
+    }
   }
 
   zombies = zombies.filter((zombie) => zombie.hp > 0);
@@ -183,7 +234,18 @@ export function advanceCombat(
       (plant) => plant.lane === zombie.lane && zombie.x <= plant.column + 0.75 && zombie.x >= plant.column - 0.2
     );
     if (blockingPlant) {
-      blockingPlant.hp -= config.damagePerSecond * deltaSeconds;
+      const damage = config.damagePerSecond * deltaSeconds;
+      blockingPlant.hp -= damage;
+      events.push(
+        makeEvent({
+          type: "plant-bitten",
+          targetId: blockingPlant.id,
+          lane: blockingPlant.lane,
+          column: blockingPlant.column,
+          damage,
+          atMs: state.nowMs
+        })
+      );
       return zombie;
     }
     const slowMultiplier = zombie.slowedUntilMs > state.nowMs ? 0.45 : 1;
@@ -196,6 +258,7 @@ export function advanceCombat(
     nextHeroShotAtMs,
     plants: plants.filter((plant) => plant.hp > 0),
     zombies,
-    projectiles: remainingProjectiles
+    projectiles: remainingProjectiles,
+    events
   };
 }

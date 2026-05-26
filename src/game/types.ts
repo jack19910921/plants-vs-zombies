@@ -57,6 +57,59 @@ export interface ProjectileEntity {
   slows: boolean;
 }
 
+export type CombatEvent =
+  | {
+      id: string;
+      type: "sun-produced";
+      sourceId: string;
+      lane: LaneIndex;
+      column: ColumnIndex;
+      amount: number;
+      atMs: number;
+    }
+  | {
+      id: string;
+      type: "plant-fired";
+      sourceId: string;
+      lane: LaneIndex;
+      column: ColumnIndex;
+      atMs: number;
+    }
+  | {
+      id: string;
+      type: "hero-fired";
+      sourceId: "hero";
+      lane: LaneIndex;
+      atMs: number;
+    }
+  | {
+      id: string;
+      type: "zombie-hit";
+      targetId: string;
+      lane: LaneIndex;
+      x: number;
+      damage: number;
+      slows: boolean;
+      atMs: number;
+    }
+  | {
+      id: string;
+      type: "plant-bitten";
+      targetId: string;
+      lane: LaneIndex;
+      column: ColumnIndex;
+      damage: number;
+      atMs: number;
+    }
+  | {
+      id: string;
+      type: "zombie-defeated";
+      targetId: string;
+      lane: LaneIndex;
+      x: number;
+      atMs: number;
+    };
+
 export interface WaveEntry {
   atMs: number;
   lane: LaneIndex;
@@ -80,6 +133,7 @@ export interface GameState {
   plants: PlantEntity[];
   zombies: ZombieEntity[];
   projectiles: ProjectileEntity[];
+  events: CombatEvent[];
   spawnedWaveIndexes: number[];
   cooldownReadyAt: Record<PlantId, number>;
   heroLane: LaneIndex;

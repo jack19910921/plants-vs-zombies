@@ -108,4 +108,35 @@ describe("game rules", () => {
     expect(next.projectiles.length).toBeGreaterThan(0);
     expect(next.nextHeroShotAtMs).toBeGreaterThan(state.nowMs);
   });
+
+  it("records combat events for presentation feedback", () => {
+    const planted = plantAt(selectPlant(createInitialState(LEVEL_ONE), "peashooter"), PLANTS, 0, 1);
+    const firingState = {
+      ...planted,
+      nowMs: 2000,
+      zombies: [{ id: "z1", zombieId: "basic" as const, lane: 0 as const, x: 7, hp: 70, slowedUntilMs: 0 }]
+    };
+    const afterFire = advanceCombat(firingState, PLANTS, ZOMBIES, 16);
+    expect(afterFire.events.some((event) => event.type === "plant-fired" && event.sourceId === planted.plants[0].id)).toBe(
+      true
+    );
+
+    const hitState = {
+      ...createInitialState(LEVEL_ONE),
+      nowMs: 2400,
+      zombies: [{ id: "z1", zombieId: "basic" as const, lane: 0 as const, x: 2.1, hp: 70, slowedUntilMs: 0 }],
+      projectiles: [{ id: "p1", lane: 0 as const, x: 2.05, damage: 20, slows: true }]
+    };
+    const afterHit = advanceCombat(hitState, PLANTS, ZOMBIES, 16);
+    expect(afterHit.events).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: "zombie-hit",
+          targetId: "z1",
+          damage: 20,
+          slows: true
+        })
+      ])
+    );
+  });
 });
