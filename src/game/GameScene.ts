@@ -1,4 +1,10 @@
 import Phaser from "phaser";
+import {
+  getPlantAssetPresentation,
+  getSourceCropPixels,
+  getZombieAssetPresentation,
+  type AssetCrop
+} from "./assetPresentation";
 import { PLANT_TEXTURES, ZOMBIE_TEXTURE } from "./assets";
 import { DIFFICULTY, LEVELS, PLANTS, ZOMBIES } from "./config";
 import {
@@ -256,6 +262,7 @@ export class GameScene extends Phaser.Scene {
     const hitPulse = bittenEvent ? 1 - this.eventProgress(bittenEvent, SHORT_EFFECT_MS) : 0;
     const sunProgress = sunEvent ? this.eventProgress(sunEvent, LONG_EFFECT_MS) : 1;
     const profile = getPlantMiniatureProfile(plant.plantId);
+    const assetProfile = getPlantAssetPresentation(plant.plantId);
     const miniature = getPlantMiniatureState(this.state.nowMs, plant.lane, plant.column, firePulse, hitPulse);
     const wear = getHealthWearState(plant.hp, PLANTS[plant.plantId].maxHp);
     const bodyX = x + miniature.bodyXOffset;
@@ -287,8 +294,12 @@ export class GameScene extends Phaser.Scene {
         0.18
       )
       .setData("dynamic", true);
-    this.add
-      .image(bodyX, bodyY, `plant-${plant.plantId}`)
+    const plantImage = this.add.image(
+      bodyX + assetProfile.fieldOffsetX,
+      bodyY + assetProfile.fieldOffsetY,
+      `plant-${plant.plantId}`
+    );
+    this.applyTextureCrop(plantImage, assetProfile.crop)
       .setDisplaySize(profile.imageWidth * miniature.scaleX, profile.imageHeight * miniature.scaleY)
       .setAngle(miniature.angle)
       .setTint(tint)
@@ -395,6 +406,7 @@ export class GameScene extends Phaser.Scene {
     const chewing = this.isZombieChewing(zombie);
     const slowPulse = zombie.slowedUntilMs > this.state.nowMs ? 1 : 0;
     const profile = getZombieMiniatureProfile(zombie.zombieId);
+    const assetProfile = getZombieAssetPresentation(zombie.zombieId);
     const miniature = getZombieMiniatureState(this.state.nowMs, zombie.x, chewing, hitPulse);
     const wear = getHealthWearState(zombie.hp, ZOMBIES[zombie.zombieId].maxHp);
     const bodyX = x + miniature.bodyXOffset;
@@ -427,8 +439,8 @@ export class GameScene extends Phaser.Scene {
         0.18
       )
       .setData("dynamic", true);
-    this.add
-      .image(bodyX, bodyY, "zombie-basic")
+    const zombieImage = this.add.image(bodyX + assetProfile.fieldOffsetX, bodyY + assetProfile.fieldOffsetY, "zombie-basic");
+    this.applyTextureCrop(zombieImage, assetProfile.crop)
       .setDisplaySize(profile.imageWidth * miniature.scaleX, profile.imageHeight * miniature.scaleY)
       .setAngle(miniature.angle)
       .setTint(tint)
@@ -553,6 +565,12 @@ export class GameScene extends Phaser.Scene {
         this.add.circle(x - 18, y - 18 - progress * 18, 7, 0xffd34f, 0.45 * alpha).setData("dynamic", true);
         this.add.circle(x + 18, y - 12 - progress * 12, 6, 0x9bd887, 0.42 * alpha).setData("dynamic", true);
       });
+  }
+
+  private applyTextureCrop(image: Phaser.GameObjects.Image, crop: AssetCrop): Phaser.GameObjects.Image {
+    const sourceCrop = getSourceCropPixels(crop, image.width, image.height);
+    image.setCrop(sourceCrop.x, sourceCrop.y, sourceCrop.width, sourceCrop.height);
+    return image;
   }
 
   private isZombieChewing(zombie: ZombieEntity): boolean {

@@ -213,7 +213,7 @@ Dependencies:
 
 ### M5: Visual Asset Upgrade
 
-Status: in progress.
+Status: complete.
 
 Goal: improve realism and consistency while staying license-safe.
 
@@ -230,6 +230,7 @@ Delivered so far:
 - Added test-backed enemy silhouette profiles so basic, cone, and bucket enemies render with distinct body weight, shadows, rims, tints, and headgear geometry.
 - Added test-backed health wear feedback so damaged plants and enemies gain cracks, scuffs, and subtle critical-health overlays.
 - Added profile-driven plant card visuals so HUD cards reuse the same rim/base/stem colors as field miniatures.
+- Added test-backed asset presentation normalization so local plant/enemy textures use consistent crop, filter, focus, and field offsets in DOM and Phaser rendering.
 
 Architecture:
 

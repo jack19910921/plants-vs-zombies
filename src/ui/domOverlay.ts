@@ -1,4 +1,5 @@
 import type { GameScene } from "../game/GameScene";
+import { getPlantAssetPresentation } from "../game/assetPresentation";
 import { PLANT_TEXTURES } from "../game/assets";
 import { PLANTS } from "../game/config";
 import type { CombatEvent, DifficultyId, GameState, LevelConfig, PlantId, PlantingFailureReason } from "../game/types";
@@ -67,11 +68,14 @@ function toCssHex(color: number): string {
 
 function getPlantCardStyle(plantId: PlantId): string {
   const profile = getPlantMiniatureProfile(plantId);
+  const assetProfile = getPlantAssetPresentation(plantId);
   return [
     `--plant-rim: ${toCssHex(profile.rimColor)}`,
     `--plant-base: ${toCssHex(profile.baseColor)}`,
     `--plant-stem: ${toCssHex(profile.stemColor)}`,
-    `--plant-art: url('${PLANT_TEXTURES[plantId]}')`
+    `--plant-art: url('${PLANT_TEXTURES[plantId]}')`,
+    `--plant-position: ${assetProfile.cssObjectPosition}`,
+    `--plant-filter: ${assetProfile.cssFilter}`
   ].join("; ");
 }
 

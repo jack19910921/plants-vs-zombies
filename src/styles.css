@@ -231,11 +231,12 @@ body {
     linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(38, 50, 56, 0.08)),
     var(--plant-art);
   background-color: var(--plant-base, #8f5d32);
-  background-position: center;
+  background-position: var(--plant-position, center);
   background-size: cover;
   box-shadow:
     inset 0 -10px 14px rgba(38, 50, 56, 0.18),
     0 5px 0 color-mix(in srgb, var(--plant-rim, #5c4330) 32%, transparent);
+  filter: var(--plant-filter, none);
 }
 
 .plant-card[disabled] {
@@ -243,7 +244,7 @@ body {
 }
 
 .plant-card.is-locked .plant-art {
-  filter: grayscale(0.75);
+  filter: grayscale(0.75) var(--plant-filter, none);
 }
 
 .plant-card.is-selected,
