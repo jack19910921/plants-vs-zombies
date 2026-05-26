@@ -178,7 +178,7 @@ Dependencies:
 
 ### M4: Richer 3D Prop Layer
 
-Status: in progress.
+Status: complete.
 
 Goal: make the game feel more physically real without moving core gameplay into 3D.
 
@@ -213,7 +213,7 @@ Dependencies:
 
 ### M5: Visual Asset Upgrade
 
-Status: planned.
+Status: in progress.
 
 Goal: improve realism and consistency while staying license-safe.
 
@@ -222,6 +222,10 @@ Scope:
 - Replace placeholder-style compositions with a consistent set of open-license, generated, or user-owned plant/object/zombie-like character assets.
 - Normalize image crop, contrast, transparency, and silhouette readability.
 - Update `docs/asset-sources.md` for every external asset.
+
+Delivered so far:
+
+- Added test-backed miniature volume rendering around existing safe assets: plant bases, stem supports, contact shadows, image squash/stretch, zombie foot pads, and stronger hit/chew body feedback.
 
 Architecture:
 

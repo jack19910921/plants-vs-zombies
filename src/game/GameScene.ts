@@ -10,6 +10,7 @@ import {
   spawnDueZombies,
   updateStatus
 } from "./rules";
+import { getPlantMiniatureState, getZombieMiniatureState } from "./worldPresentation";
 import type {
   CombatEvent,
   ColumnIndex,
@@ -232,7 +233,6 @@ export class GameScene extends Phaser.Scene {
   private drawPlant(plant: PlantEntity, laneHeight: number, columnWidth: number): void {
     const x = BOARD.x + plant.column * columnWidth + columnWidth / 2;
     const y = BOARD.y + plant.lane * laneHeight + laneHeight / 2;
-    const bob = Math.sin(this.state.nowMs / 280 + plant.column * 0.7) * 4;
     const firedEvent = this.findRecentEvent(
       (event) => event.type === "plant-fired" && event.sourceId === plant.id,
       SHORT_EFFECT_MS
@@ -248,23 +248,39 @@ export class GameScene extends Phaser.Scene {
     const firePulse = firedEvent ? 1 - this.eventProgress(firedEvent, SHORT_EFFECT_MS) : 0;
     const hitPulse = bittenEvent ? 1 - this.eventProgress(bittenEvent, SHORT_EFFECT_MS) : 0;
     const sunProgress = sunEvent ? this.eventProgress(sunEvent, LONG_EFFECT_MS) : 1;
-    const recoil = firePulse * 8;
-    const shake = hitPulse * Math.sin(this.state.nowMs / 18) * 5;
-    const scale = 1 + firePulse * 0.08 - hitPulse * 0.04;
-    const bodyX = x + shake - recoil;
-    const bodyY = y - 5 + bob;
+    const miniature = getPlantMiniatureState(this.state.nowMs, plant.lane, plant.column, firePulse, hitPulse);
+    const bodyX = x + miniature.bodyXOffset;
+    const bodyY = y + miniature.bodyYOffset;
     const tint = hitPulse > 0 ? 0xffb39b : 0xffffff;
 
-    this.add.ellipse(x, y + 28, 72, 18, 0x163622, 0.24).setData("dynamic", true);
-    this.add.circle(bodyX, bodyY + 4, 37 * scale, 0x1d3f2c, 0.16).setData("dynamic", true);
+    this.add
+      .ellipse(x, y + 28, 74 * miniature.shadowScaleX, 18 * miniature.shadowScaleY, 0x163622, miniature.shadowAlpha)
+      .setData("dynamic", true);
+    this.add.ellipse(x, y + 23, 66, 20, 0x8f5d32, 0.86).setStrokeStyle(3, 0x5c4330, 0.36).setData("dynamic", true);
+    this.add.ellipse(x, y + 17, 48, 11, 0x65b86b, 0.38).setData("dynamic", true);
+    this.add.rectangle(bodyX, y + 8, 12, 34, 0x2e7d55, 0.58).setStrokeStyle(2, 0x174a36, 0.28).setData("dynamic", true);
+    this.add
+      .ellipse(bodyX + 5, bodyY + 7, 72 * miniature.scaleX, 70 * miniature.scaleY, 0x1d3f2c, 0.18)
+      .setData("dynamic", true);
     this.add
       .image(bodyX, bodyY, `plant-${plant.plantId}`)
-      .setDisplaySize(66 * scale, 66 * scale)
-      .setAngle(Math.sin(this.state.nowMs / 420 + plant.lane) * 4 - firePulse * 7)
+      .setDisplaySize(66 * miniature.scaleX, 66 * miniature.scaleY)
+      .setAngle(miniature.angle)
       .setTint(tint)
       .setData("dynamic", true);
-    this.add.circle(bodyX - 14, bodyY - 17, 11 * scale, 0xffffff, 0.2).setData("dynamic", true);
-    this.add.circle(bodyX, bodyY, 36 * scale, 0xffffff, 0).setStrokeStyle(3, 0x35513f).setData("dynamic", true);
+    this.add
+      .circle(bodyX - 14, bodyY - 17, 11 * Math.max(miniature.scaleX, miniature.scaleY), 0xffffff, miniature.highlightAlpha)
+      .setData("dynamic", true);
+    this.add
+      .ellipse(bodyX, bodyY, 72 * miniature.scaleX, 72 * miniature.scaleY, 0xffffff, 0)
+      .setStrokeStyle(3, 0x35513f)
+      .setData("dynamic", true);
+
+    if (miniature.flashAlpha > 0) {
+      this.add
+        .ellipse(bodyX, bodyY, 76 * miniature.scaleX, 74 * miniature.scaleY, 0xfff8df, miniature.flashAlpha)
+        .setData("dynamic", true);
+    }
 
     if (firePulse > 0) {
       this.add.circle(x + 42, y - 8, 10 + firePulse * 18, 0xfff1a3, 0.4 * firePulse).setData("dynamic", true);
@@ -314,22 +330,36 @@ export class GameScene extends Phaser.Scene {
     const hitPulse = hitEvent ? 1 - this.eventProgress(hitEvent, SHORT_EFFECT_MS) : 0;
     const chewing = this.isZombieChewing(zombie);
     const slowPulse = zombie.slowedUntilMs > this.state.nowMs ? 1 : 0;
-    const shuffle = Math.sin(this.state.nowMs / 180 + zombie.x) * 4;
-    const lunge = chewing ? Math.sin(this.state.nowMs / 75) * 7 : 0;
-    const bodyX = x - hitPulse * 12 + lunge;
-    const bodyY = y - 4 + shuffle;
+    const miniature = getZombieMiniatureState(this.state.nowMs, zombie.x, chewing, hitPulse);
+    const bodyX = x + miniature.bodyXOffset;
+    const bodyY = y + miniature.bodyYOffset;
     const variantTint = zombie.zombieId === "bucket" ? 0xc7d2d6 : zombie.zombieId === "cone" ? 0xffd0a6 : 0xffffff;
     const tint = hitPulse > 0 ? (hitEvent?.type === "zombie-hit" && hitEvent.slows ? 0xbbefff : 0xffa899) : variantTint;
 
-    this.add.ellipse(x, y + 30, 68, 19, 0x263238, 0.24).setData("dynamic", true);
-    this.add.ellipse(bodyX + 2, bodyY + 6, 60, 68, 0x1f2e2b, 0.16).setData("dynamic", true);
+    this.add
+      .ellipse(x, y + 30, 70 * miniature.shadowScaleX, 19 * miniature.shadowScaleY, 0x263238, miniature.shadowAlpha)
+      .setData("dynamic", true);
+    this.add.ellipse(bodyX - 14 + miniature.footOffset, y + 31, 26, 9, 0x5c4330, 0.22).setData("dynamic", true);
+    this.add.ellipse(bodyX + 18 - miniature.footOffset, y + 31, 25, 9, 0x5c4330, 0.18).setData("dynamic", true);
+    this.add
+      .ellipse(bodyX + 6, bodyY + 7, 64 * miniature.scaleX, 72 * miniature.scaleY, 0x1f2e2b, 0.18)
+      .setData("dynamic", true);
     this.add
       .image(bodyX, bodyY, "zombie-basic")
-      .setDisplaySize(74, 74)
-      .setAngle(chewing ? Math.sin(this.state.nowMs / 90) * 5 : Math.sin(this.state.nowMs / 240 + zombie.x) * 2)
+      .setDisplaySize(74 * miniature.scaleX, 74 * miniature.scaleY)
+      .setAngle(miniature.angle)
       .setTint(tint)
       .setData("dynamic", true);
-    this.add.rectangle(bodyX, bodyY, 58, 66, 0xffffff, 0).setStrokeStyle(3, 0x3f504d).setData("dynamic", true);
+    this.add
+      .rectangle(bodyX, bodyY, 60 * miniature.scaleX, 68 * miniature.scaleY, 0xffffff, 0)
+      .setStrokeStyle(3, 0x3f504d)
+      .setData("dynamic", true);
+
+    if (miniature.flashAlpha > 0) {
+      this.add
+        .ellipse(bodyX, bodyY - 2, 70 * miniature.scaleX, 74 * miniature.scaleY, 0xfff8df, miniature.flashAlpha)
+        .setData("dynamic", true);
+    }
 
     if (zombie.zombieId === "cone") {
       this.add
