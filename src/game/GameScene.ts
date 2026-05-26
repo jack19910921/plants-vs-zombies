@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { LEVEL_ONE, PLANTS, ZOMBIES } from "./config";
-import { createInitialState, plantAt, selectPlant, spawnDueZombies, updateStatus } from "./rules";
+import { advanceCombat, createInitialState, plantAt, selectPlant, spawnDueZombies, updateStatus } from "./rules";
 import type { ColumnIndex, GameState, LaneIndex, PlantId } from "./types";
 
 const BOARD = {
@@ -37,6 +37,7 @@ export class GameScene extends Phaser.Scene {
     this.state = { ...this.state, nowMs: this.state.nowMs + deltaMs };
     this.handleKeyboard();
     this.state = spawnDueZombies(this.state, LEVEL_ONE, ZOMBIES);
+    this.state = advanceCombat(this.state, PLANTS, ZOMBIES, deltaMs);
     this.state = updateStatus(this.state, LEVEL_ONE);
     this.redrawDynamicWorld();
     this.events.emit("state-changed", this.state);
@@ -114,6 +115,15 @@ export class GameScene extends Phaser.Scene {
           color: "#163622",
           fontStyle: "bold"
         })
+        .setData("dynamic", true);
+    });
+
+    this.state.projectiles.forEach((projectile) => {
+      const x = BOARD.x + projectile.x * columnWidth;
+      const y = BOARD.y + projectile.lane * laneHeight + laneHeight / 2;
+      this.add
+        .circle(x, y, 9, projectile.slows ? 0x9fd7ef : 0xc7ef68)
+        .setStrokeStyle(2, 0x35513f)
         .setData("dynamic", true);
     });
 

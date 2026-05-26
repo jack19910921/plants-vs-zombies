@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { LEVEL_ONE, PLANTS, ZOMBIES } from "./config";
-import { createInitialState, plantAt, selectPlant, spawnDueZombies, updateStatus } from "./rules";
+import { advanceCombat, createInitialState, plantAt, selectPlant, spawnDueZombies, updateStatus } from "./rules";
 
 describe("game rules", () => {
   it("spends sun and occupies a grid cell when planting succeeds", () => {
@@ -44,5 +44,35 @@ describe("game rules", () => {
       LEVEL_ONE
     );
     expect(next.status).toBe("failure");
+  });
+
+  it("moves zombies toward the base", () => {
+    const state = {
+      ...createInitialState(LEVEL_ONE),
+      zombies: [{ id: "z1", zombieId: "basic" as const, lane: 0 as const, x: 8, hp: 70, slowedUntilMs: 0 }]
+    };
+    const next = advanceCombat(
+      state,
+      PLANTS,
+      { basic: { id: "basic", name: "普通僵尸", maxHp: 70, speedCellsPerSecond: 1, damagePerSecond: 18 } },
+      1000
+    );
+    expect(next.zombies[0].x).toBeLessThan(8);
+  });
+
+  it("creates projectiles from peashooters when a zombie is ahead", () => {
+    const planted = plantAt(selectPlant(createInitialState(LEVEL_ONE), "peashooter"), PLANTS, 0, 1);
+    const state = {
+      ...planted,
+      nowMs: 2000,
+      zombies: [{ id: "z1", zombieId: "basic" as const, lane: 0 as const, x: 7, hp: 70, slowedUntilMs: 0 }]
+    };
+    const next = advanceCombat(
+      state,
+      PLANTS,
+      { basic: { id: "basic", name: "普通僵尸", maxHp: 70, speedCellsPerSecond: 1, damagePerSecond: 18 } },
+      16
+    );
+    expect(next.projectiles.length).toBeGreaterThan(0);
   });
 });

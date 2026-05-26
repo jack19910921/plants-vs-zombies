@@ -1076,7 +1076,7 @@ git commit -m "Add playable scene and HUD"
 - Modify: `src/game/rules.test.ts`
 - Modify: `src/game/GameScene.ts`
 
-- [ ] **Step 1: Add failing tests for movement and combat**
+- [x] **Step 1: Add failing tests for movement and combat**
 
 Update the existing rules import in `src/game/rules.test.ts`:
 
@@ -1109,7 +1109,7 @@ it("creates projectiles from peashooters when a zombie is ahead", () => {
 });
 ```
 
-- [ ] **Step 2: Run rule tests to verify failure**
+- [x] **Step 2: Run rule tests to verify failure**
 
 Run:
 
@@ -1119,7 +1119,7 @@ npm test -- src/game/rules.test.ts
 
 Expected: FAIL because `advanceCombat` does not exist yet.
 
-- [ ] **Step 3: Implement `advanceCombat` in `src/game/rules.ts`**
+- [x] **Step 3: Implement `advanceCombat` in `src/game/rules.ts`**
 
 Append:
 
@@ -1179,7 +1179,7 @@ export function advanceCombat(
 }
 ```
 
-- [ ] **Step 4: Wire `advanceCombat` into `src/game/GameScene.ts`**
+- [x] **Step 4: Wire `advanceCombat` into `src/game/GameScene.ts`**
 
 Update imports:
 
@@ -1194,7 +1194,7 @@ In `update`, after `spawnDueZombies`, add:
 this.state = advanceCombat(this.state, PLANTS, ZOMBIES, deltaMs);
 ```
 
-- [ ] **Step 5: Render projectiles in `redrawDynamicWorld`**
+- [x] **Step 5: Render projectiles in `redrawDynamicWorld`**
 
 Add before rendering zombies:
 
@@ -1206,7 +1206,7 @@ this.state.projectiles.forEach((projectile) => {
 });
 ```
 
-- [ ] **Step 6: Run tests and build**
+- [x] **Step 6: Run tests and build**
 
 Run:
 
@@ -1217,7 +1217,7 @@ npm run build
 
 Expected: both commands exit 0.
 
-- [ ] **Step 7: Commit combat loop**
+- [x] **Step 7: Commit combat loop**
 
 Run:
 

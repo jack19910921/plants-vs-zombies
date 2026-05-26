@@ -5,6 +5,7 @@ import type {
   LevelConfig,
   PlantConfig,
   PlantId,
+  ProjectileEntity,
   ZombieConfig
 } from "./types";
 
@@ -114,4 +115,58 @@ export function updateStatus(state: GameState, level: LevelConfig): GameState {
     return { ...state, status: "victory" };
   }
   return state;
+}
+
+export function advanceCombat(
+  state: GameState,
+  plantConfigs: Record<PlantId, PlantConfig>,
+  zombieConfigs: Record<string, ZombieConfig>,
+  deltaMs: number
+): GameState {
+  const deltaSeconds = deltaMs / 1000;
+  const newProjectiles = [...state.projectiles];
+  const plants = state.plants.map((plant) => ({ ...plant }));
+  let zombies = state.zombies.map((zombie) => ({ ...zombie }));
+
+  for (const plant of plants) {
+    const config = plantConfigs[plant.plantId];
+    if (config.damage <= 0 || state.nowMs < plant.nextFireAtMs) continue;
+    const target = zombies.find((zombie) => zombie.lane === plant.lane && zombie.x > plant.column);
+    if (!target) continue;
+    newProjectiles.push({
+      id: nextId("projectile"),
+      lane: plant.lane,
+      x: plant.column + 0.8,
+      damage: config.damage,
+      slows: config.slows
+    });
+    plant.nextFireAtMs = state.nowMs + config.fireIntervalMs;
+  }
+
+  const movedProjectiles = newProjectiles.map((projectile) => ({ ...projectile, x: projectile.x + deltaSeconds * 4 }));
+  const remainingProjectiles: ProjectileEntity[] = [];
+
+  for (const projectile of movedProjectiles) {
+    const target = zombies.find((zombie) => zombie.lane === projectile.lane && Math.abs(zombie.x - projectile.x) < 0.28);
+    if (!target) {
+      if (projectile.x < 9.4) remainingProjectiles.push(projectile);
+      continue;
+    }
+    target.hp -= projectile.damage;
+    if (projectile.slows) target.slowedUntilMs = state.nowMs + 2000;
+  }
+
+  zombies = zombies.filter((zombie) => zombie.hp > 0);
+  zombies = zombies.map((zombie) => {
+    const config = zombieConfigs[zombie.zombieId];
+    const slowMultiplier = zombie.slowedUntilMs > state.nowMs ? 0.45 : 1;
+    return { ...zombie, x: zombie.x - config.speedCellsPerSecond * slowMultiplier * deltaSeconds };
+  });
+
+  return {
+    ...state,
+    plants,
+    zombies,
+    projectiles: remainingProjectiles
+  };
 }
