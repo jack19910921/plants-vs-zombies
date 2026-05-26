@@ -318,7 +318,7 @@ git commit -m "Scaffold Phaser Vite game"
 - Create: `src/game/rules.ts`
 - Create: `src/game/rules.test.ts`
 
-- [ ] **Step 1: Create `src/game/types.ts`**
+- [x] **Step 1: Create `src/game/types.ts`**
 
 Add:
 
@@ -412,7 +412,7 @@ export interface GameState {
 }
 ```
 
-- [ ] **Step 2: Create `src/game/config.ts`**
+- [x] **Step 2: Create `src/game/config.ts`**
 
 Add:
 
@@ -522,7 +522,7 @@ export const LEVEL_ONE: LevelConfig = {
 };
 ```
 
-- [ ] **Step 3: Create failing rule tests in `src/game/rules.test.ts`**
+- [x] **Step 3: Create failing rule tests in `src/game/rules.test.ts`**
 
 Add:
 
@@ -574,7 +574,7 @@ describe("game rules", () => {
 });
 ```
 
-- [ ] **Step 4: Run tests to verify they fail**
+- [x] **Step 4: Run tests to verify they fail**
 
 Run:
 
@@ -584,7 +584,7 @@ npm test -- src/game/rules.test.ts
 
 Expected: FAIL because `src/game/rules.ts` does not exist yet.
 
-- [ ] **Step 5: Create `src/game/rules.ts`**
+- [x] **Step 5: Create `src/game/rules.ts`**
 
 Add:
 
@@ -700,7 +700,7 @@ export function updateStatus(state: GameState, level: LevelConfig): GameState {
 }
 ```
 
-- [ ] **Step 6: Run rule tests**
+- [x] **Step 6: Run rule tests**
 
 Run:
 
@@ -710,7 +710,7 @@ npm test -- src/game/rules.test.ts
 
 Expected: PASS for all tests.
 
-- [ ] **Step 7: Commit rule foundation**
+- [x] **Step 7: Commit rule foundation**
 
 Run:
 

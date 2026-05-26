@@ -1,0 +1,87 @@
+export type LaneIndex = 0 | 1 | 2 | 3 | 4;
+export type ColumnIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+
+export type PlantId = "sunflower" | "peashooter" | "wallnut" | "snowpea" | "potatomine";
+export type ZombieId = "basic" | "cone" | "bucket";
+export type DifficultyId = "easy" | "normal";
+export type GameStatus = "menu" | "playing" | "paused" | "victory" | "failure";
+
+export interface PlantConfig {
+  id: PlantId;
+  name: string;
+  cost: number;
+  cooldownMs: number;
+  maxHp: number;
+  damage: number;
+  fireIntervalMs: number;
+  rangeColumns: number;
+  producesSun: boolean;
+  slows: boolean;
+  blocks: boolean;
+  armsAfterMs: number;
+}
+
+export interface ZombieConfig {
+  id: ZombieId;
+  name: string;
+  maxHp: number;
+  speedCellsPerSecond: number;
+  damagePerSecond: number;
+}
+
+export interface PlantEntity {
+  id: string;
+  plantId: PlantId;
+  lane: LaneIndex;
+  column: ColumnIndex;
+  hp: number;
+  plantedAtMs: number;
+  nextFireAtMs: number;
+  nextSunAtMs: number;
+}
+
+export interface ZombieEntity {
+  id: string;
+  zombieId: ZombieId;
+  lane: LaneIndex;
+  x: number;
+  hp: number;
+  slowedUntilMs: number;
+}
+
+export interface ProjectileEntity {
+  id: string;
+  lane: LaneIndex;
+  x: number;
+  damage: number;
+  slows: boolean;
+}
+
+export interface WaveEntry {
+  atMs: number;
+  lane: LaneIndex;
+  zombieId: ZombieId;
+}
+
+export interface LevelConfig {
+  id: string;
+  name: string;
+  startingSun: number;
+  durationMs: number;
+  allowedPlants: PlantId[];
+  waves: WaveEntry[];
+}
+
+export interface GameState {
+  status: GameStatus;
+  nowMs: number;
+  sun: number;
+  selectedPlantId: PlantId | null;
+  plants: PlantEntity[];
+  zombies: ZombieEntity[];
+  projectiles: ProjectileEntity[];
+  spawnedWaveIndexes: number[];
+  cooldownReadyAt: Record<PlantId, number>;
+  heroLane: LaneIndex;
+  nextHeroShotAtMs: number;
+}
