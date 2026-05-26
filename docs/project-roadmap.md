@@ -65,7 +65,7 @@ Exit evidence:
 
 ### M1: Onboarding And Child-Friendly Feedback
 
-Status: next recommended milestone.
+Status: complete.
 
 Goal: make the current vertical slice easier for a child to understand without adult explanation.
 
@@ -74,6 +74,13 @@ Scope:
 - Add first-run tutorial prompts for selecting a plant, planting on the board, moving the hero lane, pausing, and restarting.
 - Add readable in-game feedback for invalid actions: not enough sun, cooldown, occupied tile, and wrong placement area.
 - Add positive reinforcement for first plant, first zombie defeated, first sun production, victory, and retry after failure.
+
+Delivered:
+
+- Tutorial strip in the DOM HUD.
+- Specific invalid planting feedback for no selection, outside board, occupied tile, not enough sun, and cooldown.
+- Positive first-time feedback for first plant, first sun production, and first zombie defeat.
+- Desktop and mobile-width browser checks with clean console output.
 
 Architecture:
 
@@ -95,7 +102,7 @@ Dependencies:
 
 ### M2: Audio And Settings
 
-Status: planned.
+Status: next recommended milestone.
 
 Goal: add tactile sound feedback while keeping the game safe for household use.
 
@@ -317,19 +324,18 @@ If the answer is no to most of these, keep it in the backlog.
 
 ## Recommended Next Slice
 
-Start with M1: Onboarding And Child-Friendly Feedback.
+Start with M2: Audio And Settings.
 
 Reason:
 
-- It improves the player experience more than adding another isolated visual effect.
-- It creates a structure for future levels, invalid actions, and tutorial copy.
-- It is low risk because it mostly builds on the existing DOM HUD and event pattern.
+- M1 now gives the player clear textual guidance; audio is the next strongest first-minute feedback layer.
+- Generated Web Audio cues avoid external asset licensing risk.
+- The existing `CombatEvent` stream provides clean triggers for planting, sun, hit, wave, victory, and failure sounds.
 
 Proposed first implementation plan:
 
-1. Add rule-level or UI-level tutorial step state.
-2. Add tests for tutorial prompt markup.
-3. Add invalid action feedback events from planting attempts.
-4. Render prompts and feedback in the DOM HUD.
-5. Verify desktop and mobile layouts.
-6. Commit as a single onboarding slice.
+1. Add a tiny audio controller using browser Web Audio.
+2. Add a sound toggle to the DOM HUD.
+3. Wire existing events to gentle generated cues after the first user gesture.
+4. Verify browser autoplay safety and clean console output.
+5. Commit as a single audio/settings slice.
