@@ -102,7 +102,7 @@ Dependencies:
 
 ### M2: Audio And Settings
 
-Status: next recommended milestone.
+Status: complete.
 
 Goal: add tactile sound feedback while keeping the game safe for household use.
 
@@ -111,6 +111,13 @@ Scope:
 - Add generated or open-license short sounds for planting, shooting, hit, sun production, wave alert, victory, failure, and button clicks.
 - Add a sound on/off toggle and default to a gentle volume.
 - Ensure audio starts only after user interaction to satisfy browser autoplay rules.
+
+Delivered:
+
+- Generated Web Audio cues, no external audio files.
+- HUD sound on/off toggle.
+- Event-driven sounds for selection, planting, shooting, hits, sun, waves, victory, failure, and buttons.
+- Browser checks for toggle behavior and clean console output.
 
 Architecture:
 
@@ -132,7 +139,7 @@ Dependencies:
 
 ### M3: Level Progression And Difficulty
 
-Status: planned.
+Status: next recommended milestone.
 
 Goal: turn the prototype from one isolated level into a small sequence.
 
