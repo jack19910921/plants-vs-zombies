@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { PLANT_TEXTURES, ZOMBIE_TEXTURE } from "./assets";
-import { LEVELS, PLANTS, ZOMBIES } from "./config";
+import { DIFFICULTY, LEVELS, PLANTS, ZOMBIES } from "./config";
 import {
   advanceCombat,
   createInitialState,
@@ -13,6 +13,7 @@ import {
 import type {
   CombatEvent,
   ColumnIndex,
+  DifficultyId,
   GameState,
   LaneIndex,
   LevelConfig,
@@ -37,7 +38,8 @@ export class GameScene extends Phaser.Scene {
   public readonly uiEvents = new Phaser.Events.EventEmitter();
 
   private currentLevelIndex = 0;
-  private state: GameState = createInitialState(LEVELS[0]);
+  private currentDifficultyId: DifficultyId = "normal";
+  private state: GameState = createInitialState(LEVELS[0], DIFFICULTY.normal);
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private keys!: Record<string, Phaser.Input.Keyboard.Key>;
   private lastTickMs = 0;
@@ -67,8 +69,8 @@ export class GameScene extends Phaser.Scene {
     this.lastTickMs = time;
     this.state = { ...this.state, nowMs: this.state.nowMs + deltaMs };
     this.handleKeyboard();
-    this.state = spawnDueZombies(this.state, this.currentLevel, ZOMBIES);
-    this.state = advanceCombat(this.state, PLANTS, ZOMBIES, deltaMs);
+    this.state = spawnDueZombies(this.state, this.currentLevel, ZOMBIES, this.currentDifficulty);
+    this.state = advanceCombat(this.state, PLANTS, ZOMBIES, deltaMs, this.currentDifficulty);
     this.state = updateStatus(this.state, this.currentLevel);
     this.redrawDynamicWorld();
     this.uiEvents.emit("state-changed", this.state);
@@ -80,6 +82,19 @@ export class GameScene extends Phaser.Scene {
 
   hasNextLevel(): boolean {
     return this.currentLevelIndex < LEVELS.length - 1;
+  }
+
+  getCurrentDifficultyId(): DifficultyId {
+    return this.currentDifficultyId;
+  }
+
+  setDifficulty(difficultyId: DifficultyId): void {
+    if (!DIFFICULTY[difficultyId] || difficultyId === this.currentDifficultyId) return;
+    this.uiEvents.emit("sound-requested", "button");
+    this.currentDifficultyId = difficultyId;
+    this.startCurrentLevel();
+    this.redrawDynamicWorld();
+    this.uiEvents.emit("state-changed", this.state);
   }
 
   setSelectedPlant(plantId: PlantId): void {
@@ -119,8 +134,12 @@ export class GameScene extends Phaser.Scene {
     return LEVELS[this.currentLevelIndex];
   }
 
+  private get currentDifficulty() {
+    return DIFFICULTY[this.currentDifficultyId];
+  }
+
   private startCurrentLevel(): void {
-    this.state = { ...createInitialState(this.currentLevel), status: "playing" };
+    this.state = { ...createInitialState(this.currentLevel, this.currentDifficulty), status: "playing" };
     this.lastTickMs = 0;
   }
 

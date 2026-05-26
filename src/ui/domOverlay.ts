@@ -1,7 +1,7 @@
 import type { GameScene } from "../game/GameScene";
 import { PLANT_TEXTURES } from "../game/assets";
 import { PLANTS } from "../game/config";
-import type { CombatEvent, GameState, LevelConfig, PlantId, PlantingFailureReason } from "../game/types";
+import type { CombatEvent, DifficultyId, GameState, LevelConfig, PlantId, PlantingFailureReason } from "../game/types";
 
 export interface OverlayPlantingFeedback {
   type: "planting";
@@ -25,6 +25,7 @@ interface OverlayRenderState {
   selectedPlantId: PlantId | null;
   cooldownReadyAt: GameState["cooldownReadyAt"];
   nowMs: number;
+  difficultyId?: DifficultyId;
   soundEnabled?: boolean;
   hasNextLevel?: boolean;
   plantsCount?: number;
@@ -38,6 +39,10 @@ export interface DomOverlayOptions {
 }
 
 const plantOrder: PlantId[] = ["sunflower", "peashooter", "wallnut", "snowpea", "potatomine"];
+const difficultyOptions: Array<{ id: DifficultyId; label: string }> = [
+  { id: "easy", label: "轻松" },
+  { id: "normal", label: "普通" }
+];
 
 const plantingFeedbackText: Record<OverlayPlantingFeedback["reason"], string> = {
   "no-selection": "先选一张植物卡片。",
@@ -97,7 +102,14 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
     .join("");
   const tutorialText = getTutorialText(state);
   const soundEnabled = state.soundEnabled ?? true;
+  const difficultyId = state.difficultyId ?? "normal";
   const waveLabel = state.levelName ? `${state.levelName} · ${state.waveText}` : state.waveText;
+  const difficultyButtons = difficultyOptions
+    .map((option) => {
+      const selected = difficultyId === option.id ? " is-selected" : "";
+      return `<button data-difficulty="${option.id}" class="difficulty-option${selected}">${option.label}</button>`;
+    })
+    .join("");
   const feedbackText =
     state.recentFeedback?.type === "planting"
       ? plantingFeedbackText[state.recentFeedback.reason]
@@ -125,6 +137,7 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
     <div class="hud-top">
       <div class="chip">☀ ${state.sun}</div>
       <div class="chip">${waveLabel}</div>
+      <div class="difficulty-toggle">${difficultyButtons}</div>
       <button class="chip" data-action="pause">暂停</button>
       <button class="chip sound-toggle" data-action="sound">${soundEnabled ? "声音开" : "声音关"}</button>
     </div>
@@ -191,6 +204,7 @@ export function createDomOverlay(root: Element, scene: GameScene, options: DomOv
       selectedPlantId: state.selectedPlantId,
       cooldownReadyAt: state.cooldownReadyAt,
       nowMs: state.nowMs,
+      difficultyId: scene.getCurrentDifficultyId(),
       soundEnabled,
       hasNextLevel: scene.hasNextLevel(),
       plantsCount: state.plants.length,
@@ -231,6 +245,11 @@ export function createDomOverlay(root: Element, scene: GameScene, options: DomOv
     }
     if (actionButton?.dataset.action === "next-level") {
       scene.nextLevel();
+      return;
+    }
+    const difficultyButton = target.closest("[data-difficulty]") as HTMLElement | null;
+    if (difficultyButton) {
+      scene.setDifficulty(difficultyButton.dataset.difficulty as DifficultyId);
     }
   });
 }

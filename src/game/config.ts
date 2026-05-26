@@ -1,4 +1,4 @@
-import type { DifficultyId, LevelConfig, PlantConfig, PlantId, ZombieConfig } from "./types";
+import type { DifficultyConfig, DifficultyId, LevelConfig, PlantConfig, PlantId, ZombieConfig } from "./types";
 
 export const PLANTS: Record<PlantId, PlantConfig> = {
   sunflower: {
@@ -79,10 +79,7 @@ export const ZOMBIES: Record<string, ZombieConfig> = {
   bucket: { id: "bucket", name: "铁桶僵尸", maxHp: 180, speedCellsPerSecond: 0.13, damagePerSecond: 22 }
 };
 
-export const DIFFICULTY: Record<
-  DifficultyId,
-  { zombieHpMultiplier: number; zombieSpeedMultiplier: number; sunMultiplier: number }
-> = {
+export const DIFFICULTY: Record<DifficultyId, DifficultyConfig> = {
   easy: { zombieHpMultiplier: 0.75, zombieSpeedMultiplier: 0.8, sunMultiplier: 1.25 },
   normal: { zombieHpMultiplier: 1, zombieSpeedMultiplier: 1, sunMultiplier: 1 }
 };

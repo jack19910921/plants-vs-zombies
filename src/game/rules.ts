@@ -1,6 +1,7 @@
 import type {
   ColumnIndex,
   CombatEvent,
+  DifficultyConfig,
   GameState,
   LaneIndex,
   LevelConfig,
@@ -13,6 +14,11 @@ import type {
 
 let entityCounter = 0;
 const EVENT_TTL_MS = 700;
+const NORMAL_DIFFICULTY: DifficultyConfig = {
+  zombieHpMultiplier: 1,
+  zombieSpeedMultiplier: 1,
+  sunMultiplier: 1
+};
 type CombatEventInput = CombatEvent extends infer Event ? (Event extends CombatEvent ? Omit<Event, "id"> : never) : never;
 
 function nextId(prefix: string): string {
@@ -24,11 +30,19 @@ function makeEvent(event: CombatEventInput): CombatEvent {
   return { ...event, id: nextId("event") } as CombatEvent;
 }
 
-export function createInitialState(level: LevelConfig): GameState {
+function applySunMultiplier(startingSun: number, difficulty: DifficultyConfig): number {
+  return Math.max(0, Math.round((startingSun * difficulty.sunMultiplier) / 25) * 25);
+}
+
+function applyZombieHp(maxHp: number, difficulty: DifficultyConfig): number {
+  return Math.max(1, Math.round(maxHp * difficulty.zombieHpMultiplier));
+}
+
+export function createInitialState(level: LevelConfig, difficulty: DifficultyConfig = NORMAL_DIFFICULTY): GameState {
   return {
     status: "menu",
     nowMs: 0,
-    sun: level.startingSun,
+    sun: applySunMultiplier(level.startingSun, difficulty),
     selectedPlantId: null,
     plants: [],
     zombies: [],
@@ -104,7 +118,8 @@ export function plantAt(
 export function spawnDueZombies(
   state: GameState,
   level: LevelConfig,
-  zombieConfigs: Record<string, ZombieConfig>
+  zombieConfigs: Record<string, ZombieConfig>,
+  difficulty: DifficultyConfig = NORMAL_DIFFICULTY
 ): GameState {
   const newZombies = level.waves
     .map((wave, index) => ({ wave, index }))
@@ -134,7 +149,7 @@ export function spawnDueZombies(
         zombieId: wave.zombieId,
         lane: wave.lane,
         x: 8.8,
-        hp: zombieConfigs[wave.zombieId].maxHp,
+        hp: applyZombieHp(zombieConfigs[wave.zombieId].maxHp, difficulty),
         slowedUntilMs: 0
       }))
     ]
@@ -170,7 +185,8 @@ export function advanceCombat(
   state: GameState,
   plantConfigs: Record<PlantId, PlantConfig>,
   zombieConfigs: Record<string, ZombieConfig>,
-  deltaMs: number
+  deltaMs: number,
+  difficulty: DifficultyConfig = NORMAL_DIFFICULTY
 ): GameState {
   const deltaSeconds = deltaMs / 1000;
   const newProjectiles = [...state.projectiles];
@@ -290,7 +306,10 @@ export function advanceCombat(
       return zombie;
     }
     const slowMultiplier = zombie.slowedUntilMs > state.nowMs ? 0.45 : 1;
-    return { ...zombie, x: zombie.x - config.speedCellsPerSecond * slowMultiplier * deltaSeconds };
+    return {
+      ...zombie,
+      x: zombie.x - config.speedCellsPerSecond * difficulty.zombieSpeedMultiplier * slowMultiplier * deltaSeconds
+    };
   });
 
   return {

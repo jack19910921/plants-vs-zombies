@@ -50,6 +50,47 @@ describe("dom overlay", () => {
     expect(html).toContain("薄雾菜园 · 第 1 波 / 9");
   });
 
+  it("renders difficulty options and selected difficulty", () => {
+    const html = createDomOverlayMarkup({
+      sun: 150,
+      waveText: "第 1 波 / 8",
+      status: "playing",
+      selectedPlantId: null,
+      cooldownReadyAt: {
+        sunflower: 0,
+        peashooter: 0,
+        wallnut: 0,
+        snowpea: 0,
+        potatomine: 0
+      },
+      nowMs: 0,
+      difficultyId: "easy"
+    });
+
+    expect(html).toContain('data-difficulty="easy"');
+    expect(html).toContain('data-difficulty="normal"');
+    expect(html).toContain('data-difficulty="easy" class="difficulty-option is-selected"');
+  });
+
+  it("keeps normal difficulty selected by default", () => {
+    const html = createDomOverlayMarkup({
+      sun: 150,
+      waveText: "第 1 波 / 8",
+      status: "playing",
+      selectedPlantId: null,
+      cooldownReadyAt: {
+        sunflower: 0,
+        peashooter: 0,
+        wallnut: 0,
+        snowpea: 0,
+        potatomine: 0
+      },
+      nowMs: 0
+    });
+
+    expect(html).toContain('data-difficulty="normal" class="difficulty-option is-selected"');
+  });
+
   it("does not replace controls when only elapsed time changes", () => {
     let stateHandler: ((state: GameState) => void) | null = null;
     let markup = "";
@@ -75,7 +116,9 @@ describe("dom overlay", () => {
       restartLevel: vi.fn(),
       nextLevel: vi.fn(),
       getCurrentLevel: vi.fn(() => LEVEL_ONE),
-      hasNextLevel: vi.fn(() => false)
+      hasNextLevel: vi.fn(() => false),
+      getCurrentDifficultyId: vi.fn(() => "normal"),
+      setDifficulty: vi.fn()
     } as unknown as GameScene;
 
     createDomOverlay(root as unknown as Element, scene);

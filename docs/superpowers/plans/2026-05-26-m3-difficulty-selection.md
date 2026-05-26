@@ -23,7 +23,7 @@
 
 ## Task 1: Rule-Level Difficulty
 
-- [ ] **Step 1: Write failing rule tests**
+- [x] **Step 1: Write failing rule tests**
 
 Add tests to `src/game/rules.test.ts`:
 
@@ -60,7 +60,7 @@ it("applies easy difficulty to zombie movement speed", () => {
 });
 ```
 
-- [ ] **Step 2: Run tests and verify red**
+- [x] **Step 2: Run tests and verify red**
 
 Run:
 
@@ -70,11 +70,11 @@ npm test -- src/game/rules.test.ts
 
 Expected: fail because rules do not accept difficulty config yet.
 
-- [ ] **Step 3: Implement rule modifiers**
+- [x] **Step 3: Implement rule modifiers**
 
 Add `DifficultyConfig` to `src/game/types.ts`, type `DIFFICULTY`, and update `createInitialState`, `spawnDueZombies`, and `advanceCombat` to accept a difficulty config with a normal default.
 
-- [ ] **Step 4: Run tests and verify green**
+- [x] **Step 4: Run tests and verify green**
 
 Run:
 
@@ -86,19 +86,19 @@ Expected: rule tests pass.
 
 ## Task 2: HUD Difficulty Control
 
-- [ ] **Step 1: Write failing DOM tests**
+- [x] **Step 1: Write failing DOM tests**
 
 Add tests to `src/ui/domOverlay.test.ts` that assert the markup includes `data-difficulty="easy"`, `data-difficulty="normal"`, and marks the selected difficulty with `is-selected`.
 
-- [ ] **Step 2: Implement DOM control**
+- [x] **Step 2: Implement DOM control**
 
 Extend `OverlayRenderState` with `difficultyId`, render the segmented control in `.hud-top`, and call `scene.setDifficulty()` when a difficulty button is clicked.
 
-- [ ] **Step 3: Style the control**
+- [x] **Step 3: Style the control**
 
 Add compact segmented-control CSS to `src/styles.css`, keeping the mobile top HUD readable.
 
-- [ ] **Step 4: Run DOM tests**
+- [x] **Step 4: Run DOM tests**
 
 Run:
 
@@ -110,11 +110,11 @@ Expected: DOM tests pass.
 
 ## Task 3: Scene Integration And Verification
 
-- [ ] **Step 1: Wire GameScene**
+- [x] **Step 1: Wire GameScene**
 
 Add `currentDifficultyId`, `getCurrentDifficultyId()`, `setDifficulty()`, and pass `DIFFICULTY[this.currentDifficultyId]` into rules calls.
 
-- [ ] **Step 2: Run all tests**
+- [x] **Step 2: Run all tests**
 
 Run:
 
@@ -124,7 +124,7 @@ npm test
 
 Expected: all tests pass.
 
-- [ ] **Step 3: Build**
+- [x] **Step 3: Build**
 
 Run:
 
@@ -134,11 +134,11 @@ npm run build
 
 Expected: build succeeds with only the known chunk-size warning.
 
-- [ ] **Step 4: Browser check**
+- [x] **Step 4: Browser check**
 
 Open `http://127.0.0.1:5173/` and verify difficulty controls, selecting/planting, pause, sound toggle, desktop/mobile layout, and console warnings/errors.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Commit:
 

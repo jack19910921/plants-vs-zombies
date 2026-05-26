@@ -40,6 +40,12 @@ export interface ZombieConfig {
   damagePerSecond: number;
 }
 
+export interface DifficultyConfig {
+  zombieHpMultiplier: number;
+  zombieSpeedMultiplier: number;
+  sunMultiplier: number;
+}
+
 export interface PlantEntity {
   id: string;
   plantId: PlantId;

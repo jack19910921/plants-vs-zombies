@@ -156,6 +156,7 @@ Delivered so far:
 - Replaced fixed `LEVEL_ONE` references in scene/HUD flow with current-level metadata.
 - Added victory next-level action for levels that have a following level.
 - Added tests for level config uniqueness, HUD level naming, and next-level modal markup.
+- Added `轻松` / `普通` difficulty selection that changes starting sun, zombie health, and zombie speed through config.
 
 Architecture:
 

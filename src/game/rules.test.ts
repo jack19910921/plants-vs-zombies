@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { LEVEL_ONE, PLANTS, ZOMBIES } from "./config";
+import { DIFFICULTY, LEVEL_ONE, PLANTS, ZOMBIES } from "./config";
 import {
   advanceCombat,
   createInitialState,
@@ -50,6 +50,14 @@ describe("game rules", () => {
     expect(getPlantingResult(coolingDown, PLANTS, 1, 1)).toMatchObject({ ok: false, reason: "cooldown" });
   });
 
+  it("applies easy difficulty to starting sun", () => {
+    const normal = createInitialState(LEVEL_ONE, DIFFICULTY.normal);
+    const easy = createInitialState(LEVEL_ONE, DIFFICULTY.easy);
+
+    expect(easy.sun).toBeGreaterThan(normal.sun);
+    expect(easy.sun % 25).toBe(0);
+  });
+
   it("spawns each wave entry once", () => {
     const state = { ...createInitialState(LEVEL_ONE), nowMs: 20000 };
     const first = spawnDueZombies(state, LEVEL_ONE, ZOMBIES);
@@ -57,6 +65,17 @@ describe("game rules", () => {
     expect(first.zombies).toHaveLength(2);
     expect(second.zombies).toHaveLength(2);
     expect(first.zombies[0].hp).toBeGreaterThan(1);
+  });
+
+  it("applies easy difficulty to spawned zombie health", () => {
+    const spawned = spawnDueZombies(
+      { ...createInitialState(LEVEL_ONE), nowMs: 9000 },
+      LEVEL_ONE,
+      ZOMBIES,
+      DIFFICULTY.easy
+    );
+
+    expect(spawned.zombies[0].hp).toBeLessThan(ZOMBIES.basic.maxHp);
   });
 
   it("records wave spawn events for presentation cues", () => {
@@ -117,6 +136,18 @@ describe("game rules", () => {
       1000
     );
     expect(next.zombies[0].x).toBeLessThan(8);
+  });
+
+  it("applies easy difficulty to zombie movement speed", () => {
+    const base = {
+      ...createInitialState(LEVEL_ONE),
+      zombies: [{ id: "zombie-1", zombieId: "basic" as const, lane: 2 as const, x: 8, hp: 70, slowedUntilMs: 0 }]
+    };
+
+    const normal = advanceCombat(base, PLANTS, ZOMBIES, 1000, DIFFICULTY.normal);
+    const easy = advanceCombat(base, PLANTS, ZOMBIES, 1000, DIFFICULTY.easy);
+
+    expect(easy.zombies[0].x).toBeGreaterThan(normal.zombies[0].x);
   });
 
   it("creates projectiles from peashooters when a zombie is ahead", () => {
