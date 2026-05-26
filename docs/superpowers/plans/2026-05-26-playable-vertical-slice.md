@@ -52,7 +52,7 @@ This plan builds a playable first level only. It creates the project foundation 
 - Create: `src/main.ts`
 - Create: `src/styles.css`
 
-- [ ] **Step 1: Create `package.json`**
+- [x] **Step 1: Create `package.json`**
 
 Add:
 
@@ -80,7 +80,7 @@ Add:
 }
 ```
 
-- [ ] **Step 2: Create `tsconfig.json`**
+- [x] **Step 2: Create `tsconfig.json`**
 
 Add:
 
@@ -106,7 +106,7 @@ Add:
 }
 ```
 
-- [ ] **Step 3: Create `index.html`**
+- [x] **Step 3: Create `index.html`**
 
 Add:
 
@@ -128,7 +128,7 @@ Add:
 </html>
 ```
 
-- [ ] **Step 4: Create initial `src/styles.css`**
+- [x] **Step 4: Create initial `src/styles.css`**
 
 Add:
 
@@ -255,7 +255,7 @@ body {
 }
 ```
 
-- [ ] **Step 5: Create initial `src/main.ts`**
+- [x] **Step 5: Create initial `src/main.ts`**
 
 Add:
 
@@ -279,7 +279,7 @@ const config: Phaser.Types.Core.GameConfig = {
 new Phaser.Game(config);
 ```
 
-- [ ] **Step 6: Install dependencies**
+- [x] **Step 6: Install dependencies**
 
 Run:
 
@@ -289,7 +289,7 @@ npm install
 
 Expected: `package-lock.json` is created and dependencies install successfully.
 
-- [ ] **Step 7: Verify scaffold build**
+- [x] **Step 7: Verify scaffold build**
 
 Run:
 
@@ -299,7 +299,7 @@ npm run build
 
 Expected: TypeScript and Vite finish with exit code 0.
 
-- [ ] **Step 8: Commit scaffold**
+- [x] **Step 8: Commit scaffold**
 
 Run:
 
