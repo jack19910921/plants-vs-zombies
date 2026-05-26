@@ -5,7 +5,7 @@ import type { CombatEvent, DifficultyId, GameState, LevelConfig, PlantId, Planti
 
 export interface OverlayPlantingFeedback {
   type: "planting";
-  reason: PlantingFailureReason | "outside-board";
+  reason: PlantingFailureReason | "outside-board" | "locked";
 }
 
 export type AchievementId = "first-plant" | "first-sun" | "first-zombie-defeated";
@@ -25,6 +25,7 @@ interface OverlayRenderState {
   selectedPlantId: PlantId | null;
   cooldownReadyAt: GameState["cooldownReadyAt"];
   nowMs: number;
+  allowedPlantIds?: PlantId[];
   difficultyId?: DifficultyId;
   soundEnabled?: boolean;
   hasNextLevel?: boolean;
@@ -49,7 +50,8 @@ const plantingFeedbackText: Record<OverlayPlantingFeedback["reason"], string> = 
   occupied: "这个格子已经有植物啦。",
   "not-enough-sun": "阳光不够，等向日葵产阳光。",
   cooldown: "这张卡还在准备。",
-  "outside-board": "点彩色草坪格子来种植物。"
+  "outside-board": "点彩色草坪格子来种植物。",
+  locked: "这株植物下一关再用。"
 };
 
 const achievementFeedbackText: Record<AchievementId, string> = {
@@ -89,15 +91,18 @@ function getTutorialText(state: OverlayRenderState): string {
 }
 
 export function createDomOverlayMarkup(state: OverlayRenderState): string {
+  const allowedPlantIds = new Set(state.allowedPlantIds ?? plantOrder);
   const cards = plantOrder
     .map((plantId) => {
       const plant = PLANTS[plantId];
-      const disabled = state.nowMs < state.cooldownReadyAt[plantId] ? "disabled" : "";
+      const locked = !allowedPlantIds.has(plantId);
+      const disabled = locked || state.nowMs < state.cooldownReadyAt[plantId] ? "disabled" : "";
       const selected = state.selectedPlantId === plantId ? " is-selected" : "";
-      return `<button class="plant-card${selected}" data-plant="${plantId}" ${disabled}>
+      const lockedClass = locked ? " is-locked" : "";
+      return `<button class="plant-card${selected}${lockedClass}" data-plant="${plantId}" ${disabled}>
         <span class="plant-art" style="background-image: url('${PLANT_TEXTURES[plantId]}')"></span>
         <strong>${plant.name}</strong>
-        <span>☀ ${plant.cost}</span>
+        <span>${locked ? "未开放" : `☀ ${plant.cost}`}</span>
       </button>`;
     })
     .join("");
@@ -208,6 +213,7 @@ export function createDomOverlay(root: Element, scene: GameScene, options: DomOv
       selectedPlantId: state.selectedPlantId,
       cooldownReadyAt: state.cooldownReadyAt,
       nowMs: state.nowMs,
+      allowedPlantIds: level.allowedPlants,
       difficultyId: scene.getCurrentDifficultyId(),
       soundEnabled,
       hasNextLevel: scene.hasNextLevel(),

@@ -91,6 +91,27 @@ describe("dom overlay", () => {
     expect(html).toContain('data-difficulty="normal" class="difficulty-option is-selected"');
   });
 
+  it("renders locked plant cards when a level has not unlocked them", () => {
+    const html = createDomOverlayMarkup({
+      sun: 150,
+      waveText: "第 1 波 / 8",
+      status: "playing",
+      selectedPlantId: null,
+      cooldownReadyAt: {
+        sunflower: 0,
+        peashooter: 0,
+        wallnut: 0,
+        snowpea: 0,
+        potatomine: 0
+      },
+      nowMs: 0,
+      allowedPlantIds: ["sunflower"]
+    });
+
+    expect(html).toContain('class="plant-card is-locked" data-plant="peashooter" disabled');
+    expect(html).toContain("未开放");
+  });
+
   it("does not replace controls when only elapsed time changes", () => {
     let stateHandler: ((state: GameState) => void) | null = null;
     let markup = "";

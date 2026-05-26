@@ -204,6 +204,10 @@ body {
   opacity: 0.5;
 }
 
+.plant-card.is-locked .plant-art {
+  filter: grayscale(0.75);
+}
+
 .plant-card.is-selected,
 .plant-card:hover:not([disabled]) {
   border-color: #2e7d55;

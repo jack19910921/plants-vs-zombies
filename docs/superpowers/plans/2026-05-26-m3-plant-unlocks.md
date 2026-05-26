@@ -22,11 +22,11 @@
 
 ## Task 1: Config Unlock Sequence
 
-- [ ] **Step 1: Write failing config test**
+- [x] **Step 1: Write failing config test**
 
 Add assertions that level 1 excludes `snowpea` and `potatomine`, level 2 includes `snowpea`, and level 3 includes `potatomine`.
 
-- [ ] **Step 2: Run config test and verify red**
+- [x] **Step 2: Run config test and verify red**
 
 Run:
 
@@ -36,7 +36,7 @@ npm test -- src/game/config.test.ts
 
 Expected: fail because all current levels allow every plant.
 
-- [ ] **Step 3: Update level allowed plants**
+- [x] **Step 3: Update level allowed plants**
 
 Set:
 
@@ -46,7 +46,7 @@ level-2: ["sunflower", "peashooter", "wallnut", "snowpea"]
 level-3: ["sunflower", "peashooter", "wallnut", "snowpea", "potatomine"]
 ```
 
-- [ ] **Step 4: Run config test and verify green**
+- [x] **Step 4: Run config test and verify green**
 
 Run:
 
@@ -58,15 +58,15 @@ Expected: config test passes.
 
 ## Task 2: HUD Locked Cards
 
-- [ ] **Step 1: Write failing DOM test**
+- [x] **Step 1: Write failing DOM test**
 
 Add a test that renders with `allowedPlantIds: ["sunflower"]` and expects the peashooter card to include `disabled`, `is-locked`, and `未开放`.
 
-- [ ] **Step 2: Implement locked-card markup**
+- [x] **Step 2: Implement locked-card markup**
 
 Extend `OverlayRenderState` with `allowedPlantIds?: PlantId[]`, render locked cards disabled, and pass `level.allowedPlants` from `createDomOverlay()`.
 
-- [ ] **Step 3: Run DOM tests**
+- [x] **Step 3: Run DOM tests**
 
 Run:
 
@@ -78,15 +78,15 @@ Expected: DOM tests pass.
 
 ## Task 3: Scene Guard, Verification, Commit
 
-- [ ] **Step 1: Guard GameScene selection**
+- [x] **Step 1: Guard GameScene selection**
 
 In `setSelectedPlant()`, return early for plants outside `this.currentLevel.allowedPlants` and emit `feedback-changed` with reason `locked`.
 
-- [ ] **Step 2: Add locked feedback copy**
+- [x] **Step 2: Add locked feedback copy**
 
 Add `locked: "这株植物下一关再用。"` to overlay planting feedback.
 
-- [ ] **Step 3: Run all tests**
+- [x] **Step 3: Run all tests**
 
 Run:
 
@@ -96,7 +96,7 @@ npm test
 
 Expected: all tests pass.
 
-- [ ] **Step 4: Build**
+- [x] **Step 4: Build**
 
 Run:
 
@@ -106,11 +106,11 @@ npm run build
 
 Expected: build succeeds with only the known chunk-size warning.
 
-- [ ] **Step 5: Browser check**
+- [x] **Step 5: Browser check**
 
 Open `http://127.0.0.1:5173/` and verify locked cards show `未开放`, are disabled, and the console has no warnings/errors.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 Commit:
 

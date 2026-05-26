@@ -98,6 +98,10 @@ export class GameScene extends Phaser.Scene {
   }
 
   setSelectedPlant(plantId: PlantId): void {
+    if (!this.currentLevel.allowedPlants.includes(plantId)) {
+      this.uiEvents.emit("feedback-changed", { type: "planting", reason: "locked" });
+      return;
+    }
     this.state = selectPlant(this.state, plantId);
     this.uiEvents.emit("sound-requested", "select");
     this.uiEvents.emit("state-changed", this.state);

@@ -90,7 +90,7 @@ export const LEVELS: LevelConfig[] = [
     name: "阳光草坪",
     startingSun: 250,
     durationMs: 105000,
-    allowedPlants: ["sunflower", "peashooter", "wallnut", "snowpea", "potatomine"],
+    allowedPlants: ["sunflower", "peashooter", "wallnut"],
     waves: [
       { atMs: 8000, lane: 2, zombieId: "basic" },
       { atMs: 18000, lane: 1, zombieId: "basic" },
@@ -107,7 +107,7 @@ export const LEVELS: LevelConfig[] = [
     name: "薄雾菜园",
     startingSun: 225,
     durationMs: 115000,
-    allowedPlants: ["sunflower", "peashooter", "wallnut", "snowpea", "potatomine"],
+    allowedPlants: ["sunflower", "peashooter", "wallnut", "snowpea"],
     waves: [
       { atMs: 6000, lane: 1, zombieId: "basic" },
       { atMs: 14000, lane: 3, zombieId: "basic" },
