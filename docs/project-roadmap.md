@@ -139,7 +139,7 @@ Dependencies:
 
 ### M3: Level Progression And Difficulty
 
-Status: next recommended milestone.
+Status: in progress.
 
 Goal: turn the prototype from one isolated level into a small sequence.
 
@@ -149,6 +149,13 @@ Scope:
 - Add easy/normal difficulty selection.
 - Add level start, victory progression, and replay flow.
 - Add a simple level select or next-level button.
+
+Delivered so far:
+
+- Added a `LEVELS` list with `阳光草坪` and `薄雾菜园`.
+- Replaced fixed `LEVEL_ONE` references in scene/HUD flow with current-level metadata.
+- Added victory next-level action for levels that have a following level.
+- Added tests for level config uniqueness, HUD level naming, and next-level modal markup.
 
 Architecture:
 

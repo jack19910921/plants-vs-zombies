@@ -1,7 +1,7 @@
 import type { GameScene } from "../game/GameScene";
 import { PLANT_TEXTURES } from "../game/assets";
-import { LEVEL_ONE, PLANTS } from "../game/config";
-import type { CombatEvent, GameState, PlantId, PlantingFailureReason } from "../game/types";
+import { PLANTS } from "../game/config";
+import type { CombatEvent, GameState, LevelConfig, PlantId, PlantingFailureReason } from "../game/types";
 
 export interface OverlayPlantingFeedback {
   type: "planting";
@@ -19,12 +19,14 @@ export type OverlayFeedback = OverlayPlantingFeedback | OverlayAchievementFeedba
 
 interface OverlayRenderState {
   sun: number;
+  levelName?: string;
   waveText: string;
   status: GameState["status"];
   selectedPlantId: PlantId | null;
   cooldownReadyAt: GameState["cooldownReadyAt"];
   nowMs: number;
   soundEnabled?: boolean;
+  hasNextLevel?: boolean;
   plantsCount?: number;
   recentFeedback?: OverlayFeedback | null;
   recentEvents?: CombatEvent[];
@@ -71,7 +73,7 @@ export function getNextAchievementFeedback(
 }
 
 function getTutorialText(state: OverlayRenderState): string {
-  if (state.status === "victory") return "守住啦，点“再玩一次”可以重来。";
+  if (state.status === "victory") return state.hasNextLevel ? "守住啦，点“下一关”继续。" : "守住啦，点“再玩一次”可以重来。";
   if (state.status === "failure") return "没关系，换个位置再试一次。";
   if (state.status === "paused") return "休息一下，准备好了就继续。";
   if (state.recentEvents?.some((event) => event.type === "wave-spawned")) return "僵尸来了，守住基地！";
@@ -95,6 +97,7 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
     .join("");
   const tutorialText = getTutorialText(state);
   const soundEnabled = state.soundEnabled ?? true;
+  const waveLabel = state.levelName ? `${state.levelName} · ${state.waveText}` : state.waveText;
   const feedbackText =
     state.recentFeedback?.type === "planting"
       ? plantingFeedbackText[state.recentFeedback.reason]
@@ -114,13 +117,14 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
       : state.status === "failure"
         ? "草坪防线被突破了，再试一次。"
         : "植物防线先休息一下。";
-  const modalAction = state.status === "paused" ? "pause" : "restart";
-  const modalButtonText = state.status === "paused" ? "继续" : "再玩一次";
+  const terminalAction = state.status === "victory" && state.hasNextLevel ? "next-level" : "restart";
+  const modalButtonAction = state.status === "paused" ? "pause" : terminalAction;
+  const modalButtonText = state.status === "paused" ? "继续" : terminalAction === "next-level" ? "下一关" : "再玩一次";
 
   return `<div class="hud">
     <div class="hud-top">
       <div class="chip">☀ ${state.sun}</div>
-      <div class="chip">${state.waveText}</div>
+      <div class="chip">${waveLabel}</div>
       <button class="chip" data-action="pause">暂停</button>
       <button class="chip sound-toggle" data-action="sound">${soundEnabled ? "声音开" : "声音关"}</button>
     </div>
@@ -131,14 +135,14 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
     <section class="modal">
       <h2>${modalTitle}</h2>
       <p>${modalBody}</p>
-      <button class="chip" data-action="${modalAction}">${modalButtonText}</button>
+      <button class="chip" data-action="${modalButtonAction}">${modalButtonText}</button>
     </section>
   </div>`;
 }
 
-function getWaveText(state: GameState): string {
+function getWaveText(state: GameState, level: LevelConfig): string {
   const spawned = state.spawnedWaveIndexes.length;
-  return `第 ${Math.min(spawned + 1, LEVEL_ONE.waves.length)} 波 / ${LEVEL_ONE.waves.length}`;
+  return `第 ${Math.min(spawned + 1, level.waves.length)} 波 / ${level.waves.length}`;
 }
 
 export function createDomOverlay(root: Element, scene: GameScene, options: DomOverlayOptions = {}): void {
@@ -165,6 +169,7 @@ export function createDomOverlay(root: Element, scene: GameScene, options: DomOv
 
   function render(state: GameState): void {
     lastState = state;
+    const level = scene.getCurrentLevel();
     if (!recentFeedback) {
       const achievementFeedback = getNextAchievementFeedback(state, shownAchievements);
       if (achievementFeedback) {
@@ -180,12 +185,14 @@ export function createDomOverlay(root: Element, scene: GameScene, options: DomOv
     }
     const nextMarkup = createDomOverlayMarkup({
       sun: state.sun,
-      waveText: getWaveText(state),
+      levelName: level.name,
+      waveText: getWaveText(state, level),
       status: state.status,
       selectedPlantId: state.selectedPlantId,
       cooldownReadyAt: state.cooldownReadyAt,
       nowMs: state.nowMs,
       soundEnabled,
+      hasNextLevel: scene.hasNextLevel(),
       plantsCount: state.plants.length,
       recentFeedback,
       recentEvents: state.events
@@ -220,6 +227,10 @@ export function createDomOverlay(root: Element, scene: GameScene, options: DomOv
     }
     if (actionButton?.dataset.action === "restart") {
       scene.restartLevel();
+      return;
+    }
+    if (actionButton?.dataset.action === "next-level") {
+      scene.nextLevel();
     }
   });
 }

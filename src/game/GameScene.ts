@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { PLANT_TEXTURES, ZOMBIE_TEXTURE } from "./assets";
-import { LEVEL_ONE, PLANTS, ZOMBIES } from "./config";
+import { LEVELS, PLANTS, ZOMBIES } from "./config";
 import {
   advanceCombat,
   createInitialState,
@@ -10,7 +10,16 @@ import {
   spawnDueZombies,
   updateStatus
 } from "./rules";
-import type { CombatEvent, ColumnIndex, GameState, LaneIndex, PlantEntity, PlantId, ZombieEntity } from "./types";
+import type {
+  CombatEvent,
+  ColumnIndex,
+  GameState,
+  LaneIndex,
+  LevelConfig,
+  PlantEntity,
+  PlantId,
+  ZombieEntity
+} from "./types";
 
 const BOARD = {
   x: 148,
@@ -27,7 +36,8 @@ const LONG_EFFECT_MS = 700;
 export class GameScene extends Phaser.Scene {
   public readonly uiEvents = new Phaser.Events.EventEmitter();
 
-  private state: GameState = createInitialState(LEVEL_ONE);
+  private currentLevelIndex = 0;
+  private state: GameState = createInitialState(LEVELS[0]);
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private keys!: Record<string, Phaser.Input.Keyboard.Key>;
   private lastTickMs = 0;
@@ -44,7 +54,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   create(): void {
-    this.state = { ...createInitialState(LEVEL_ONE), status: "playing" };
+    this.startCurrentLevel();
     this.cursors = this.input.keyboard!.createCursorKeys();
     this.keys = this.input.keyboard!.addKeys("W,A,S,D,SPACE,ESC") as Record<string, Phaser.Input.Keyboard.Key>;
     this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => this.handlePointer(pointer));
@@ -57,11 +67,19 @@ export class GameScene extends Phaser.Scene {
     this.lastTickMs = time;
     this.state = { ...this.state, nowMs: this.state.nowMs + deltaMs };
     this.handleKeyboard();
-    this.state = spawnDueZombies(this.state, LEVEL_ONE, ZOMBIES);
+    this.state = spawnDueZombies(this.state, this.currentLevel, ZOMBIES);
     this.state = advanceCombat(this.state, PLANTS, ZOMBIES, deltaMs);
-    this.state = updateStatus(this.state, LEVEL_ONE);
+    this.state = updateStatus(this.state, this.currentLevel);
     this.redrawDynamicWorld();
     this.uiEvents.emit("state-changed", this.state);
+  }
+
+  getCurrentLevel(): LevelConfig {
+    return this.currentLevel;
+  }
+
+  hasNextLevel(): boolean {
+    return this.currentLevelIndex < LEVELS.length - 1;
   }
 
   setSelectedPlant(plantId: PlantId): void {
@@ -83,10 +101,27 @@ export class GameScene extends Phaser.Scene {
 
   restartLevel(): void {
     this.uiEvents.emit("sound-requested", "button");
-    this.state = { ...createInitialState(LEVEL_ONE), status: "playing" };
-    this.lastTickMs = 0;
+    this.startCurrentLevel();
     this.redrawDynamicWorld();
     this.uiEvents.emit("state-changed", this.state);
+  }
+
+  nextLevel(): void {
+    if (!this.hasNextLevel()) return;
+    this.uiEvents.emit("sound-requested", "button");
+    this.currentLevelIndex += 1;
+    this.startCurrentLevel();
+    this.redrawDynamicWorld();
+    this.uiEvents.emit("state-changed", this.state);
+  }
+
+  private get currentLevel(): LevelConfig {
+    return LEVELS[this.currentLevelIndex];
+  }
+
+  private startCurrentLevel(): void {
+    this.state = { ...createInitialState(this.currentLevel), status: "playing" };
+    this.lastTickMs = 0;
   }
 
   private handleKeyboard(): void {

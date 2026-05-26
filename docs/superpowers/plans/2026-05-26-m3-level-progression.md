@@ -21,11 +21,11 @@
 
 ## Task 1: Level Config List
 
-- [ ] **Step 1: Write failing config test**
+- [x] **Step 1: Write failing config test**
 
 Add a test that expects `LEVELS.length` to be at least 2 and all IDs to be unique.
 
-- [ ] **Step 2: Run test and verify red**
+- [x] **Step 2: Run test and verify red**
 
 Run:
 
@@ -35,11 +35,11 @@ npm test -- src/game/config.test.ts
 
 Expected: fail because the test or `LEVELS` does not exist.
 
-- [ ] **Step 3: Add levels**
+- [x] **Step 3: Add levels**
 
 Export `LEVELS` from `src/game/config.ts`, keeping `LEVEL_ONE` as `LEVELS[0]`. Add `level-2` with different wave timings.
 
-- [ ] **Step 4: Run test and verify green**
+- [x] **Step 4: Run test and verify green**
 
 Run:
 
@@ -51,7 +51,7 @@ Expected: config test passes.
 
 ## Task 2: DOM Level Metadata And Next Action
 
-- [ ] **Step 1: Write failing DOM tests**
+- [x] **Step 1: Write failing DOM tests**
 
 Add tests for:
 
@@ -59,11 +59,11 @@ Add tests for:
 - Victory with `hasNextLevel: true` renders `data-action="next-level"` and `下一关`.
 - Victory with `hasNextLevel: false` renders restart and `再玩一次`.
 
-- [ ] **Step 2: Implement DOM changes**
+- [x] **Step 2: Implement DOM changes**
 
 Extend `createDomOverlayMarkup` render state with `levelName` and `hasNextLevel`.
 
-- [ ] **Step 3: Run DOM tests**
+- [x] **Step 3: Run DOM tests**
 
 Run:
 
@@ -75,15 +75,15 @@ Expected: DOM tests pass.
 
 ## Task 3: Scene Current Level
 
-- [ ] **Step 1: Replace fixed `LEVEL_ONE` in scene**
+- [x] **Step 1: Replace fixed `LEVEL_ONE` in scene**
 
 In `src/game/GameScene.ts`, import `LEVELS`, add `currentLevelIndex`, `currentLevel`, `hasNextLevel`, `startCurrentLevel()`, and `nextLevel()`.
 
-- [ ] **Step 2: Wire DOM overlay action**
+- [x] **Step 2: Wire DOM overlay action**
 
 `createDomOverlay` should call `scene.nextLevel()` on `data-action="next-level"`.
 
-- [ ] **Step 3: Run all tests**
+- [x] **Step 3: Run all tests**
 
 Run:
 
@@ -95,7 +95,7 @@ Expected: all tests pass.
 
 ## Task 4: Browser Verification
 
-- [ ] **Step 1: Build**
+- [x] **Step 1: Build**
 
 Run:
 
@@ -105,7 +105,7 @@ npm run build
 
 Expected: build succeeds with only known chunk-size warning.
 
-- [ ] **Step 2: Browser check**
+- [x] **Step 2: Browser check**
 
 Open `http://127.0.0.1:5173/`. Verify:
 
@@ -114,7 +114,7 @@ Open `http://127.0.0.1:5173/`. Verify:
 - Victory modal code path supports next-level action.
 - Console has no warnings or errors.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 Commit:
 

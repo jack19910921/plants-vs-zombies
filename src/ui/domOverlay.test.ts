@@ -30,6 +30,26 @@ describe("dom overlay", () => {
     expect(html).toContain("声音开");
   });
 
+  it("renders level name with wave text", () => {
+    const html = createDomOverlayMarkup({
+      sun: 150,
+      levelName: "薄雾菜园",
+      waveText: "第 1 波 / 9",
+      status: "playing",
+      selectedPlantId: null,
+      cooldownReadyAt: {
+        sunflower: 0,
+        peashooter: 0,
+        wallnut: 0,
+        snowpea: 0,
+        potatomine: 0
+      },
+      nowMs: 0
+    });
+
+    expect(html).toContain("薄雾菜园 · 第 1 波 / 9");
+  });
+
   it("does not replace controls when only elapsed time changes", () => {
     let stateHandler: ((state: GameState) => void) | null = null;
     let markup = "";
@@ -52,7 +72,10 @@ describe("dom overlay", () => {
       },
       setSelectedPlant: vi.fn(),
       togglePause: vi.fn(),
-      restartLevel: vi.fn()
+      restartLevel: vi.fn(),
+      nextLevel: vi.fn(),
+      getCurrentLevel: vi.fn(() => LEVEL_ONE),
+      hasNextLevel: vi.fn(() => false)
     } as unknown as GameScene;
 
     createDomOverlay(root as unknown as Element, scene);
@@ -81,6 +104,28 @@ describe("dom overlay", () => {
 
     expect(html).toContain('data-action="restart"');
     expect(html).toContain("再玩一次");
+  });
+
+  it("offers next level when victory has a following level", () => {
+    const html = createDomOverlayMarkup({
+      sun: 0,
+      levelName: "阳光草坪",
+      waveText: "第 8 波 / 8",
+      status: "victory",
+      selectedPlantId: null,
+      cooldownReadyAt: {
+        sunflower: 0,
+        peashooter: 0,
+        wallnut: 0,
+        snowpea: 0,
+        potatomine: 0
+      },
+      nowMs: 0,
+      hasNextLevel: true
+    });
+
+    expect(html).toContain('data-action="next-level"');
+    expect(html).toContain("下一关");
   });
 
   it("renders the initial tutorial prompt", () => {

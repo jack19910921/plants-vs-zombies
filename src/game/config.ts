@@ -87,20 +87,42 @@ export const DIFFICULTY: Record<
   normal: { zombieHpMultiplier: 1, zombieSpeedMultiplier: 1, sunMultiplier: 1 }
 };
 
-export const LEVEL_ONE: LevelConfig = {
-  id: "level-1",
-  name: "阳光草坪",
-  startingSun: 250,
-  durationMs: 105000,
-  allowedPlants: ["sunflower", "peashooter", "wallnut", "snowpea", "potatomine"],
-  waves: [
-    { atMs: 8000, lane: 2, zombieId: "basic" },
-    { atMs: 18000, lane: 1, zombieId: "basic" },
-    { atMs: 30000, lane: 3, zombieId: "cone" },
-    { atMs: 42000, lane: 0, zombieId: "basic" },
-    { atMs: 54000, lane: 4, zombieId: "cone" },
-    { atMs: 68000, lane: 2, zombieId: "bucket" },
-    { atMs: 82000, lane: 1, zombieId: "basic" },
-    { atMs: 98000, lane: 3, zombieId: "bucket" }
-  ]
-};
+export const LEVELS: LevelConfig[] = [
+  {
+    id: "level-1",
+    name: "阳光草坪",
+    startingSun: 250,
+    durationMs: 105000,
+    allowedPlants: ["sunflower", "peashooter", "wallnut", "snowpea", "potatomine"],
+    waves: [
+      { atMs: 8000, lane: 2, zombieId: "basic" },
+      { atMs: 18000, lane: 1, zombieId: "basic" },
+      { atMs: 30000, lane: 3, zombieId: "cone" },
+      { atMs: 42000, lane: 0, zombieId: "basic" },
+      { atMs: 54000, lane: 4, zombieId: "cone" },
+      { atMs: 68000, lane: 2, zombieId: "bucket" },
+      { atMs: 82000, lane: 1, zombieId: "basic" },
+      { atMs: 98000, lane: 3, zombieId: "bucket" }
+    ]
+  },
+  {
+    id: "level-2",
+    name: "薄雾菜园",
+    startingSun: 225,
+    durationMs: 115000,
+    allowedPlants: ["sunflower", "peashooter", "wallnut", "snowpea", "potatomine"],
+    waves: [
+      { atMs: 6000, lane: 1, zombieId: "basic" },
+      { atMs: 14000, lane: 3, zombieId: "basic" },
+      { atMs: 24000, lane: 2, zombieId: "cone" },
+      { atMs: 36000, lane: 0, zombieId: "basic" },
+      { atMs: 48000, lane: 4, zombieId: "cone" },
+      { atMs: 62000, lane: 1, zombieId: "bucket" },
+      { atMs: 76000, lane: 3, zombieId: "cone" },
+      { atMs: 92000, lane: 2, zombieId: "bucket" },
+      { atMs: 108000, lane: 0, zombieId: "bucket" }
+    ]
+  }
+];
+
+export const LEVEL_ONE: LevelConfig = LEVELS[0];
