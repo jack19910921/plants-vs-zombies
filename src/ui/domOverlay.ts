@@ -1,4 +1,5 @@
 import type { GameScene } from "../game/GameScene";
+import { PLANT_TEXTURES } from "../game/assets";
 import { LEVEL_ONE, PLANTS } from "../game/config";
 import type { GameState, PlantId } from "../game/types";
 
@@ -20,6 +21,7 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
       const disabled = state.nowMs < state.cooldownReadyAt[plantId] ? "disabled" : "";
       const selected = state.selectedPlantId === plantId ? " is-selected" : "";
       return `<button class="plant-card${selected}" data-plant="${plantId}" ${disabled}>
+        <span class="plant-art" style="background-image: url('${PLANT_TEXTURES[plantId]}')"></span>
         <strong>${plant.name}</strong>
         <span>☀ ${plant.cost}</span>
       </button>`;

@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { GameScene } from "./game/GameScene";
+import { ThreeStage } from "./game/ThreeStage";
 import { createDomOverlay } from "./ui/domOverlay";
 import "./styles.css";
 
@@ -19,8 +20,10 @@ const config: Phaser.Types.Core.GameConfig = {
 };
 
 const game = new Phaser.Game(config);
+const threeStage = new ThreeStage(document.querySelector("#three-root")!);
 createDomOverlay(document.querySelector("#ui-root")!, scene);
 
 window.addEventListener("beforeunload", () => {
+  threeStage.destroy();
   game.destroy(true);
 });

@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { PLANT_TEXTURES, ZOMBIE_TEXTURE } from "./assets";
 import { LEVEL_ONE, PLANTS, ZOMBIES } from "./config";
 import { advanceCombat, createInitialState, plantAt, selectPlant, spawnDueZombies, updateStatus } from "./rules";
 import type { ColumnIndex, GameState, LaneIndex, PlantId } from "./types";
@@ -22,6 +23,13 @@ export class GameScene extends Phaser.Scene {
 
   constructor() {
     super("GameScene");
+  }
+
+  preload(): void {
+    Object.entries(PLANT_TEXTURES).forEach(([plantId, url]) => {
+      this.load.image(`plant-${plantId}`, url);
+    });
+    this.load.image("zombie-basic", ZOMBIE_TEXTURE);
   }
 
   create(): void {
@@ -118,11 +126,18 @@ export class GameScene extends Phaser.Scene {
     this.state.plants.forEach((plant) => {
       const x = BOARD.x + plant.column * columnWidth + columnWidth / 2;
       const y = BOARD.y + plant.lane * laneHeight + laneHeight / 2;
-      this.add.circle(x, y, 24, 0x55bd70).setStrokeStyle(3, 0x35513f).setData("dynamic", true);
+      const bob = Math.sin(this.state.nowMs / 280 + plant.column * 0.7) * 4;
+      this.add.ellipse(x, y + 25, 62, 16, 0x163622, 0.22).setData("dynamic", true);
       this.add
-        .text(x - 16, y - 13, PLANTS[plant.plantId].name.slice(0, 1), {
+        .image(x, y - 4 + bob, `plant-${plant.plantId}`)
+        .setDisplaySize(58, 58)
+        .setAngle(Math.sin(this.state.nowMs / 420 + plant.lane) * 3)
+        .setData("dynamic", true);
+      this.add.circle(x, y - 4 + bob, 31, 0xffffff, 0).setStrokeStyle(3, 0x35513f).setData("dynamic", true);
+      this.add
+        .text(x - 10, y + 20, PLANTS[plant.plantId].name.slice(0, 1), {
           fontSize: "24px",
-          color: "#163622",
+          color: "#fff8df",
           fontStyle: "bold"
         })
         .setData("dynamic", true);
@@ -140,10 +155,14 @@ export class GameScene extends Phaser.Scene {
     this.state.zombies.forEach((zombie) => {
       const x = BOARD.x + zombie.x * columnWidth;
       const y = BOARD.y + zombie.lane * laneHeight + laneHeight / 2;
-      this.add.rectangle(x, y, 48, 54, 0x7b9189).setStrokeStyle(3, 0x3f504d).setData("dynamic", true);
+      const shuffle = Math.sin(this.state.nowMs / 180 + zombie.x) * 4;
+      this.add.ellipse(x, y + 28, 58, 18, 0x263238, 0.22).setData("dynamic", true);
       this.add
-        .text(x - 15, y - 13, "僵", { fontSize: "24px", color: "#263238", fontStyle: "bold" })
+        .image(x, y - 4 + shuffle, "zombie-basic")
+        .setDisplaySize(64, 64)
+        .setTint(zombie.zombieId === "bucket" ? 0xc7d2d6 : zombie.zombieId === "cone" ? 0xffd0a6 : 0xffffff)
         .setData("dynamic", true);
+      this.add.rectangle(x, y - 4 + shuffle, 50, 58, 0xffffff, 0).setStrokeStyle(3, 0x3f504d).setData("dynamic", true);
     });
   }
 }

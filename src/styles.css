@@ -37,11 +37,23 @@ body {
 #game-root {
   position: fixed;
   inset: 0;
+  z-index: 0;
+}
+
+#three-root {
+  position: fixed;
+  top: 22px;
+  left: 26px;
+  z-index: 3;
+  width: 72px;
+  height: 58px;
+  pointer-events: none;
 }
 
 #ui-root {
   position: fixed;
   inset: 0;
+  z-index: 2;
   pointer-events: none;
 }
 
@@ -49,6 +61,7 @@ body {
   position: absolute;
   inset: 20px;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: 64px 1fr 118px;
   gap: 12px;
   pointer-events: none;
@@ -83,17 +96,40 @@ body {
   font-weight: 900;
 }
 
+.hud-top .chip:first-child {
+  justify-content: flex-start;
+  padding-left: 84px;
+}
+
 .plant-tray {
   display: grid;
   grid-template-columns: repeat(5, minmax(120px, 1fr));
   gap: 10px;
+  width: 100%;
+  min-width: 0;
 }
 
 .plant-card {
   display: grid;
+  grid-template-rows: 48px auto auto;
   place-items: center;
   padding: 8px;
   font-weight: 900;
+  overflow: hidden;
+}
+
+.plant-card strong {
+  font-size: 15px;
+}
+
+.plant-art {
+  width: 48px;
+  height: 48px;
+  border: 2px solid #5c4330;
+  border-radius: 50%;
+  background-position: center;
+  background-size: cover;
+  box-shadow: inset 0 -10px 14px rgba(38, 50, 56, 0.18);
 }
 
 .plant-card[disabled] {
@@ -117,4 +153,54 @@ body {
   width: min(520px, 92vw);
   padding: 28px;
   text-align: center;
+}
+
+@media (max-width: 700px) {
+  #three-root {
+    top: 28px;
+    left: 28px;
+    width: 38px;
+    height: 38px;
+  }
+
+  .hud {
+    inset: 20px;
+    grid-template-rows: 64px 1fr 118px;
+    gap: 8px;
+  }
+
+  .hud-top {
+    grid-template-columns: 220px minmax(0, 1fr) 64px;
+    gap: 8px;
+    transform: scale(0.56);
+    transform-origin: top left;
+    width: calc((100vw - 40px) / 0.56);
+  }
+
+  .plant-tray {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .plant-card {
+    grid-template-rows: 34px auto auto;
+    min-width: 0;
+    padding: 5px 2px;
+  }
+
+  .plant-card strong {
+    max-width: 100%;
+    font-size: 12px;
+    line-height: 1.1;
+    text-align: center;
+  }
+
+  .plant-card span:last-child {
+    font-size: 11px;
+  }
+
+  .plant-art {
+    width: 34px;
+    height: 34px;
+  }
 }
