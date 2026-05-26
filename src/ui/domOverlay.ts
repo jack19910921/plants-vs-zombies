@@ -37,6 +37,8 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
       : state.status === "failure"
         ? "草坪防线被突破了，再试一次。"
         : "植物防线先休息一下。";
+  const modalAction = state.status === "paused" ? "pause" : "restart";
+  const modalButtonText = state.status === "paused" ? "继续" : "再玩一次";
 
   return `<div class="hud">
     <div class="hud-top">
@@ -51,7 +53,7 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
     <section class="modal">
       <h2>${modalTitle}</h2>
       <p>${modalBody}</p>
-      <button class="chip" data-action="pause">继续</button>
+      <button class="chip" data-action="${modalAction}">${modalButtonText}</button>
     </section>
   </div>`;
 }
@@ -62,8 +64,10 @@ function getWaveText(state: GameState): string {
 }
 
 export function createDomOverlay(root: Element, scene: GameScene): void {
+  let lastMarkup = "";
+
   function render(state: GameState): void {
-    root.innerHTML = createDomOverlayMarkup({
+    const nextMarkup = createDomOverlayMarkup({
       sun: state.sun,
       waveText: getWaveText(state),
       status: state.status,
@@ -71,9 +75,12 @@ export function createDomOverlay(root: Element, scene: GameScene): void {
       cooldownReadyAt: state.cooldownReadyAt,
       nowMs: state.nowMs
     });
+    if (nextMarkup === lastMarkup) return;
+    root.innerHTML = nextMarkup;
+    lastMarkup = nextMarkup;
   }
 
-  scene.events.on("state-changed", render);
+  scene.uiEvents.on("state-changed", render);
   root.addEventListener("click", (event) => {
     const target = event.target as HTMLElement;
     const plantButton = target.closest("[data-plant]") as HTMLElement | null;
@@ -84,6 +91,10 @@ export function createDomOverlay(root: Element, scene: GameScene): void {
     const actionButton = target.closest("[data-action]") as HTMLElement | null;
     if (actionButton?.dataset.action === "pause") {
       scene.togglePause();
+      return;
+    }
+    if (actionButton?.dataset.action === "restart") {
+      scene.restartLevel();
     }
   });
 }

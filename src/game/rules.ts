@@ -127,6 +127,26 @@ export function advanceCombat(
   const newProjectiles = [...state.projectiles];
   const plants = state.plants.map((plant) => ({ ...plant }));
   let zombies = state.zombies.map((zombie) => ({ ...zombie }));
+  let sun = state.sun;
+  let nextHeroShotAtMs = state.nextHeroShotAtMs;
+
+  for (const plant of plants) {
+    const config = plantConfigs[plant.plantId];
+    if (!config.producesSun || state.nowMs < plant.nextSunAtMs) continue;
+    sun += 25;
+    plant.nextSunAtMs = state.nowMs + 5000;
+  }
+
+  if (state.nowMs >= nextHeroShotAtMs && zombies.some((zombie) => zombie.lane === state.heroLane)) {
+    newProjectiles.push({
+      id: nextId("projectile"),
+      lane: state.heroLane,
+      x: 0.8,
+      damage: 14,
+      slows: false
+    });
+    nextHeroShotAtMs = state.nowMs + 850;
+  }
 
   for (const plant of plants) {
     const config = plantConfigs[plant.plantId];
@@ -159,13 +179,22 @@ export function advanceCombat(
   zombies = zombies.filter((zombie) => zombie.hp > 0);
   zombies = zombies.map((zombie) => {
     const config = zombieConfigs[zombie.zombieId];
+    const blockingPlant = plants.find(
+      (plant) => plant.lane === zombie.lane && zombie.x <= plant.column + 0.75 && zombie.x >= plant.column - 0.2
+    );
+    if (blockingPlant) {
+      blockingPlant.hp -= config.damagePerSecond * deltaSeconds;
+      return zombie;
+    }
     const slowMultiplier = zombie.slowedUntilMs > state.nowMs ? 0.45 : 1;
     return { ...zombie, x: zombie.x - config.speedCellsPerSecond * slowMultiplier * deltaSeconds };
   });
 
   return {
     ...state,
-    plants,
+    sun,
+    nextHeroShotAtMs,
+    plants: plants.filter((plant) => plant.hp > 0),
     zombies,
     projectiles: remainingProjectiles
   };

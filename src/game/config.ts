@@ -90,17 +90,17 @@ export const DIFFICULTY: Record<
 export const LEVEL_ONE: LevelConfig = {
   id: "level-1",
   name: "阳光草坪",
-  startingSun: 150,
-  durationMs: 120000,
+  startingSun: 250,
+  durationMs: 105000,
   allowedPlants: ["sunflower", "peashooter", "wallnut", "snowpea", "potatomine"],
   waves: [
-    { atMs: 3000, lane: 2, zombieId: "basic" },
-    { atMs: 9000, lane: 1, zombieId: "basic" },
-    { atMs: 16000, lane: 3, zombieId: "cone" },
-    { atMs: 24000, lane: 0, zombieId: "basic" },
-    { atMs: 33000, lane: 4, zombieId: "cone" },
-    { atMs: 45000, lane: 2, zombieId: "bucket" },
-    { atMs: 60000, lane: 1, zombieId: "basic" },
-    { atMs: 72000, lane: 3, zombieId: "bucket" }
+    { atMs: 8000, lane: 2, zombieId: "basic" },
+    { atMs: 18000, lane: 1, zombieId: "basic" },
+    { atMs: 30000, lane: 3, zombieId: "cone" },
+    { atMs: 42000, lane: 0, zombieId: "basic" },
+    { atMs: 54000, lane: 4, zombieId: "cone" },
+    { atMs: 68000, lane: 2, zombieId: "bucket" },
+    { atMs: 82000, lane: 1, zombieId: "basic" },
+    { atMs: 98000, lane: 3, zombieId: "bucket" }
   ]
 };

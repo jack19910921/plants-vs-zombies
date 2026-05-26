@@ -13,6 +13,8 @@ const BOARD = {
 };
 
 export class GameScene extends Phaser.Scene {
+  public readonly uiEvents = new Phaser.Events.EventEmitter();
+
   private state: GameState = createInitialState(LEVEL_ONE);
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private keys!: Record<string, Phaser.Input.Keyboard.Key>;
@@ -40,21 +42,29 @@ export class GameScene extends Phaser.Scene {
     this.state = advanceCombat(this.state, PLANTS, ZOMBIES, deltaMs);
     this.state = updateStatus(this.state, LEVEL_ONE);
     this.redrawDynamicWorld();
-    this.events.emit("state-changed", this.state);
+    this.uiEvents.emit("state-changed", this.state);
   }
 
   setSelectedPlant(plantId: PlantId): void {
     this.state = selectPlant(this.state, plantId);
-    this.events.emit("state-changed", this.state);
+    this.uiEvents.emit("state-changed", this.state);
   }
 
   togglePause(): void {
+    if (this.state.status !== "playing" && this.state.status !== "paused") return;
     this.state = {
       ...this.state,
       status: this.state.status === "paused" ? "playing" : "paused"
     };
     this.lastTickMs = 0;
-    this.events.emit("state-changed", this.state);
+    this.uiEvents.emit("state-changed", this.state);
+  }
+
+  restartLevel(): void {
+    this.state = { ...createInitialState(LEVEL_ONE), status: "playing" };
+    this.lastTickMs = 0;
+    this.redrawDynamicWorld();
+    this.uiEvents.emit("state-changed", this.state);
   }
 
   private handleKeyboard(): void {
@@ -74,7 +84,7 @@ export class GameScene extends Phaser.Scene {
     const lane = Math.floor(((pointer.y - BOARD.y) / BOARD.height) * BOARD.lanes);
     if (column < 0 || column > 8 || lane < 0 || lane > 4) return;
     this.state = plantAt(this.state, PLANTS, lane as LaneIndex, column as ColumnIndex);
-    this.events.emit("state-changed", this.state);
+    this.uiEvents.emit("state-changed", this.state);
   }
 
   private drawStaticBoard(): void {

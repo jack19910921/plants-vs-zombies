@@ -1234,7 +1234,7 @@ git commit -m "Add combat loop"
 - Modify: `src/styles.css`
 - Modify: `docs/superpowers/plans/2026-05-26-playable-vertical-slice.md`
 
-- [ ] **Step 1: Start the dev server**
+- [x] **Step 1: Start the dev server**
 
 Run:
 
@@ -1244,7 +1244,7 @@ npm run dev
 
 Expected: Vite prints a local URL, usually `http://127.0.0.1:5173/`.
 
-- [ ] **Step 2: Open the game in a browser**
+- [x] **Step 2: Open the game in a browser**
 
 Run with the Playwright wrapper:
 
@@ -1254,7 +1254,7 @@ Run with the Playwright wrapper:
 
 Expected: page title is `玩具桌面植物小队` and the game canvas is visible.
 
-- [ ] **Step 3: Interact with the vertical slice**
+- [x] **Step 3: Interact with the vertical slice**
 
 Use Playwright or manual browser interaction:
 
@@ -1275,7 +1275,7 @@ Expected:
 - Projectiles appear when a shooter has a zombie ahead.
 - Pause modal appears and closes.
 
-- [ ] **Step 4: Capture screenshot**
+- [x] **Step 4: Capture screenshot**
 
 Run:
 
@@ -1285,7 +1285,7 @@ Run:
 
 Expected: screenshot shows the playable board, HUD, plant tray, at least one plant, and at least one zombie.
 
-- [ ] **Step 5: Run final verification**
+- [x] **Step 5: Run final verification**
 
 Run:
 
@@ -1301,11 +1301,11 @@ Expected:
 - `npm run build` exits 0.
 - `git status --short` only shows files intentionally changed for this task and generated screenshot artifacts outside the commit.
 
-- [ ] **Step 6: Mark this plan task complete**
+- [x] **Step 6: Mark this plan task complete**
 
 Update this file so completed steps are checked.
 
-- [ ] **Step 7: Commit verification updates**
+- [x] **Step 7: Commit verification updates**
 
 Run:
 

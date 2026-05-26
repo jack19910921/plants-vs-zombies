@@ -6,7 +6,7 @@ describe("game rules", () => {
   it("spends sun and occupies a grid cell when planting succeeds", () => {
     const state = selectPlant(createInitialState(LEVEL_ONE), "peashooter");
     const next = plantAt(state, PLANTS, 2, 3);
-    expect(next.sun).toBe(50);
+    expect(next.sun).toBe(150);
     expect(next.plants).toHaveLength(1);
     expect(next.plants[0]).toMatchObject({ plantId: "peashooter", lane: 2, column: 3 });
   });
@@ -26,7 +26,7 @@ describe("game rules", () => {
   });
 
   it("spawns each wave entry once", () => {
-    const state = { ...createInitialState(LEVEL_ONE), nowMs: 10000 };
+    const state = { ...createInitialState(LEVEL_ONE), nowMs: 20000 };
     const first = spawnDueZombies(state, LEVEL_ONE, ZOMBIES);
     const second = spawnDueZombies(first, LEVEL_ONE, ZOMBIES);
     expect(first.zombies).toHaveLength(2);
@@ -74,5 +74,38 @@ describe("game rules", () => {
       16
     );
     expect(next.projectiles.length).toBeGreaterThan(0);
+  });
+
+  it("lets sunflowers produce additional sun over time", () => {
+    const planted = plantAt(selectPlant(createInitialState(LEVEL_ONE), "sunflower"), PLANTS, 0, 1);
+    const next = advanceCombat({ ...planted, nowMs: 5000 }, PLANTS, ZOMBIES, 16);
+    expect(next.sun).toBe(planted.sun + 25);
+  });
+
+  it("stops zombies while they chew through a plant", () => {
+    const planted = plantAt(selectPlant(createInitialState(LEVEL_ONE), "wallnut"), PLANTS, 0, 3);
+    const state = {
+      ...planted,
+      zombies: [{ id: "z1", zombieId: "basic" as const, lane: 0 as const, x: 3.5, hp: 70, slowedUntilMs: 0 }]
+    };
+    const next = advanceCombat(
+      state,
+      PLANTS,
+      { basic: { id: "basic", name: "普通僵尸", maxHp: 70, speedCellsPerSecond: 1, damagePerSecond: 18 } },
+      1000
+    );
+    expect(next.zombies[0].x).toBe(3.5);
+    expect(next.plants[0].hp).toBeLessThan(planted.plants[0].hp);
+  });
+
+  it("fires from the hero lane so movement affects combat", () => {
+    const state = {
+      ...createInitialState(LEVEL_ONE),
+      nowMs: 1000,
+      zombies: [{ id: "z1", zombieId: "basic" as const, lane: 2 as const, x: 7, hp: 70, slowedUntilMs: 0 }]
+    };
+    const next = advanceCombat(state, PLANTS, ZOMBIES, 16);
+    expect(next.projectiles.length).toBeGreaterThan(0);
+    expect(next.nextHeroShotAtMs).toBeGreaterThan(state.nowMs);
   });
 });
