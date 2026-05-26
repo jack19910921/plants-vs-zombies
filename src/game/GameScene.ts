@@ -10,7 +10,12 @@ import {
   spawnDueZombies,
   updateStatus
 } from "./rules";
-import { getPlantMiniatureProfile, getPlantMiniatureState, getZombieMiniatureState } from "./worldPresentation";
+import {
+  getPlantMiniatureProfile,
+  getPlantMiniatureState,
+  getZombieMiniatureProfile,
+  getZombieMiniatureState
+} from "./worldPresentation";
 import type {
   CombatEvent,
   ColumnIndex,
@@ -361,50 +366,111 @@ export class GameScene extends Phaser.Scene {
     const hitPulse = hitEvent ? 1 - this.eventProgress(hitEvent, SHORT_EFFECT_MS) : 0;
     const chewing = this.isZombieChewing(zombie);
     const slowPulse = zombie.slowedUntilMs > this.state.nowMs ? 1 : 0;
+    const profile = getZombieMiniatureProfile(zombie.zombieId);
     const miniature = getZombieMiniatureState(this.state.nowMs, zombie.x, chewing, hitPulse);
     const bodyX = x + miniature.bodyXOffset;
     const bodyY = y + miniature.bodyYOffset;
-    const variantTint = zombie.zombieId === "bucket" ? 0xc7d2d6 : zombie.zombieId === "cone" ? 0xffd0a6 : 0xffffff;
-    const tint = hitPulse > 0 ? (hitEvent?.type === "zombie-hit" && hitEvent.slows ? 0xbbefff : 0xffa899) : variantTint;
+    const tint = hitPulse > 0 ? (hitEvent?.type === "zombie-hit" && hitEvent.slows ? 0xbbefff : 0xffa899) : profile.tintColor;
 
     this.add
-      .ellipse(x, y + 30, 70 * miniature.shadowScaleX, 19 * miniature.shadowScaleY, 0x263238, miniature.shadowAlpha)
+      .ellipse(
+        x,
+        y + 30,
+        profile.shadowWidth * miniature.shadowScaleX,
+        profile.shadowHeight * miniature.shadowScaleY,
+        0x263238,
+        miniature.shadowAlpha
+      )
       .setData("dynamic", true);
-    this.add.ellipse(bodyX - 14 + miniature.footOffset, y + 31, 26, 9, 0x5c4330, 0.22).setData("dynamic", true);
-    this.add.ellipse(bodyX + 18 - miniature.footOffset, y + 31, 25, 9, 0x5c4330, 0.18).setData("dynamic", true);
     this.add
-      .ellipse(bodyX + 6, bodyY + 7, 64 * miniature.scaleX, 72 * miniature.scaleY, 0x1f2e2b, 0.18)
+      .ellipse(bodyX - 14 + miniature.footOffset, y + 31, profile.footWidth, profile.footHeight, 0x5c4330, 0.22)
+      .setData("dynamic", true);
+    this.add
+      .ellipse(bodyX + 18 - miniature.footOffset, y + 31, profile.footWidth - 1, profile.footHeight, 0x5c4330, 0.18)
+      .setData("dynamic", true);
+    this.add
+      .ellipse(
+        bodyX + 6,
+        bodyY + 7,
+        profile.backingWidth * miniature.scaleX,
+        profile.backingHeight * miniature.scaleY,
+        profile.backingColor,
+        0.18
+      )
       .setData("dynamic", true);
     this.add
       .image(bodyX, bodyY, "zombie-basic")
-      .setDisplaySize(74 * miniature.scaleX, 74 * miniature.scaleY)
+      .setDisplaySize(profile.imageWidth * miniature.scaleX, profile.imageHeight * miniature.scaleY)
       .setAngle(miniature.angle)
       .setTint(tint)
       .setData("dynamic", true);
     this.add
-      .rectangle(bodyX, bodyY, 60 * miniature.scaleX, 68 * miniature.scaleY, 0xffffff, 0)
-      .setStrokeStyle(3, 0x3f504d)
+      .rectangle(bodyX, bodyY, profile.rimWidth * miniature.scaleX, profile.rimHeight * miniature.scaleY, 0xffffff, 0)
+      .setStrokeStyle(3, profile.rimColor)
       .setData("dynamic", true);
 
     if (miniature.flashAlpha > 0) {
       this.add
-        .ellipse(bodyX, bodyY - 2, 70 * miniature.scaleX, 74 * miniature.scaleY, 0xfff8df, miniature.flashAlpha)
+        .ellipse(
+          bodyX,
+          bodyY - 2,
+          (profile.rimWidth + 10) * miniature.scaleX,
+          (profile.rimHeight + 6) * miniature.scaleY,
+          0xfff8df,
+          miniature.flashAlpha
+        )
         .setData("dynamic", true);
     }
 
-    if (zombie.zombieId === "cone") {
+    if (profile.headgear === "cone") {
+      const halfWidth = profile.headgearWidth / 2;
+      const yTop = bodyY + profile.headgearYOffset;
       this.add
-        .triangle(bodyX, bodyY - 46, 0, 24, 17, -13, 34, 24, 0xf59f42, 0.86)
-        .setStrokeStyle(2, 0x8b4f1f)
+        .triangle(
+          bodyX,
+          yTop,
+          0,
+          profile.headgearHeight,
+          halfWidth,
+          0,
+          profile.headgearWidth,
+          profile.headgearHeight,
+          profile.headgearColor,
+          0.86
+        )
+        .setStrokeStyle(2, profile.headgearStrokeColor)
         .setData("dynamic", true);
     }
-    if (zombie.zombieId === "bucket") {
-      this.add.rectangle(bodyX, bodyY - 44, 38, 20, 0xaebbc1, 0.9).setStrokeStyle(2, 0x60747a).setData("dynamic", true);
-      this.add.ellipse(bodyX, bodyY - 54, 38, 10, 0xe7eef1, 0.8).setStrokeStyle(2, 0x60747a).setData("dynamic", true);
+    if (profile.headgear === "bucket") {
+      this.add
+        .rectangle(
+          bodyX,
+          bodyY + profile.headgearYOffset,
+          profile.headgearWidth,
+          profile.headgearHeight,
+          profile.headgearColor,
+          0.9
+        )
+        .setStrokeStyle(2, profile.headgearStrokeColor)
+        .setData("dynamic", true);
+      this.add
+        .ellipse(
+          bodyX,
+          bodyY + profile.headgearYOffset - profile.headgearHeight / 2,
+          profile.headgearWidth,
+          10,
+          0xe7eef1,
+          0.8
+        )
+        .setStrokeStyle(2, profile.headgearStrokeColor)
+        .setData("dynamic", true);
     }
 
     if (slowPulse > 0) {
-      this.add.circle(bodyX, bodyY, 44, 0xbdefff, 0.16).setStrokeStyle(3, 0xdaf8ff, 0.5).setData("dynamic", true);
+      this.add
+        .circle(bodyX, bodyY, profile.slowAuraRadius, 0xbdefff, 0.16)
+        .setStrokeStyle(3, 0xdaf8ff, 0.5)
+        .setData("dynamic", true);
     }
     if (hitPulse > 0) {
       this.add.circle(bodyX + 24, bodyY - 12, 12 + hitPulse * 22, 0xffffff, 0.35 * hitPulse).setData("dynamic", true);

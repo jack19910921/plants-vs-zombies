@@ -1,4 +1,4 @@
-import type { PlantId } from "./types";
+import type { PlantId, ZombieId } from "./types";
 
 export interface PlantMiniatureProfile {
   imageWidth: number;
@@ -37,6 +37,29 @@ export interface ZombieMiniatureState {
   shadowAlpha: number;
   flashAlpha: number;
   footOffset: number;
+}
+
+export interface ZombieMiniatureProfile {
+  imageWidth: number;
+  imageHeight: number;
+  shadowWidth: number;
+  shadowHeight: number;
+  backingWidth: number;
+  backingHeight: number;
+  rimWidth: number;
+  rimHeight: number;
+  footWidth: number;
+  footHeight: number;
+  tintColor: number;
+  backingColor: number;
+  rimColor: number;
+  slowAuraRadius: number;
+  headgear: "none" | "cone" | "bucket";
+  headgearColor: number;
+  headgearStrokeColor: number;
+  headgearWidth: number;
+  headgearHeight: number;
+  headgearYOffset: number;
 }
 
 const PLANT_MINIATURE_PROFILES: Record<PlantId, PlantMiniatureProfile> = {
@@ -102,8 +125,81 @@ const PLANT_MINIATURE_PROFILES: Record<PlantId, PlantMiniatureProfile> = {
   }
 };
 
+const ZOMBIE_MINIATURE_PROFILES: Record<ZombieId, ZombieMiniatureProfile> = {
+  basic: {
+    imageWidth: 74,
+    imageHeight: 74,
+    shadowWidth: 70,
+    shadowHeight: 19,
+    backingWidth: 64,
+    backingHeight: 72,
+    rimWidth: 60,
+    rimHeight: 68,
+    footWidth: 26,
+    footHeight: 9,
+    tintColor: 0xffffff,
+    backingColor: 0x1f2e2b,
+    rimColor: 0x3f504d,
+    slowAuraRadius: 44,
+    headgear: "none",
+    headgearColor: 0xffffff,
+    headgearStrokeColor: 0x3f504d,
+    headgearWidth: 0,
+    headgearHeight: 0,
+    headgearYOffset: 0
+  },
+  cone: {
+    imageWidth: 76,
+    imageHeight: 80,
+    shadowWidth: 74,
+    shadowHeight: 20,
+    backingWidth: 66,
+    backingHeight: 78,
+    rimWidth: 62,
+    rimHeight: 73,
+    footWidth: 27,
+    footHeight: 9,
+    tintColor: 0xffd0a6,
+    backingColor: 0x2b3029,
+    rimColor: 0x7b4a24,
+    slowAuraRadius: 46,
+    headgear: "cone",
+    headgearColor: 0xf59f42,
+    headgearStrokeColor: 0x8b4f1f,
+    headgearWidth: 38,
+    headgearHeight: 42,
+    headgearYOffset: -48
+  },
+  bucket: {
+    imageWidth: 82,
+    imageHeight: 78,
+    shadowWidth: 82,
+    shadowHeight: 22,
+    backingWidth: 72,
+    backingHeight: 76,
+    rimWidth: 68,
+    rimHeight: 72,
+    footWidth: 30,
+    footHeight: 10,
+    tintColor: 0xc7d2d6,
+    backingColor: 0x223033,
+    rimColor: 0x60747a,
+    slowAuraRadius: 48,
+    headgear: "bucket",
+    headgearColor: 0xaebbc1,
+    headgearStrokeColor: 0x60747a,
+    headgearWidth: 42,
+    headgearHeight: 22,
+    headgearYOffset: -44
+  }
+};
+
 export function getPlantMiniatureProfile(plantId: PlantId): PlantMiniatureProfile {
   return PLANT_MINIATURE_PROFILES[plantId];
+}
+
+export function getZombieMiniatureProfile(zombieId: ZombieId): ZombieMiniatureProfile {
+  return ZOMBIE_MINIATURE_PROFILES[zombieId];
 }
 
 export function getPlantMiniatureState(

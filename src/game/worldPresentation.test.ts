@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { getPlantMiniatureProfile, getPlantMiniatureState, getZombieMiniatureState } from "./worldPresentation";
+import {
+  getPlantMiniatureProfile,
+  getPlantMiniatureState,
+  getZombieMiniatureProfile,
+  getZombieMiniatureState
+} from "./worldPresentation";
 
 describe("world presentation helpers", () => {
   it("recoils and stretches plants while firing", () => {
@@ -66,5 +71,35 @@ describe("world presentation helpers", () => {
     const peashooter = getPlantMiniatureProfile("peashooter");
 
     expect(snowPea.rimColor).not.toBe(peashooter.rimColor);
+  });
+
+  it("keeps basic enemies unarmored", () => {
+    const basic = getZombieMiniatureProfile("basic");
+
+    expect(basic.headgear).toBe("none");
+  });
+
+  it("makes cone enemies taller with cone headgear", () => {
+    const basic = getZombieMiniatureProfile("basic");
+    const cone = getZombieMiniatureProfile("cone");
+
+    expect(cone.headgear).toBe("cone");
+    expect(cone.imageHeight).toBeGreaterThan(basic.imageHeight);
+  });
+
+  it("makes bucket enemies wider and heavier", () => {
+    const basic = getZombieMiniatureProfile("basic");
+    const bucket = getZombieMiniatureProfile("bucket");
+
+    expect(bucket.headgear).toBe("bucket");
+    expect(bucket.imageWidth).toBeGreaterThan(basic.imageWidth);
+    expect(bucket.shadowWidth).toBeGreaterThan(basic.shadowWidth);
+  });
+
+  it("uses a distinct rim for bucket armor", () => {
+    const basic = getZombieMiniatureProfile("basic");
+    const bucket = getZombieMiniatureProfile("bucket");
+
+    expect(bucket.rimColor).not.toBe(basic.rimColor);
   });
 });
