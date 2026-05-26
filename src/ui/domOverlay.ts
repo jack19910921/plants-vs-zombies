@@ -2,6 +2,7 @@ import type { GameScene } from "../game/GameScene";
 import { PLANT_TEXTURES } from "../game/assets";
 import { PLANTS } from "../game/config";
 import type { CombatEvent, DifficultyId, GameState, LevelConfig, PlantId, PlantingFailureReason } from "../game/types";
+import { getPlantMiniatureProfile } from "../game/worldPresentation";
 
 export interface OverlayPlantingFeedback {
   type: "planting";
@@ -60,6 +61,20 @@ const achievementFeedbackText: Record<AchievementId, string> = {
   "first-zombie-defeated": "打倒一个了，继续守住基地！"
 };
 
+function toCssHex(color: number): string {
+  return `#${color.toString(16).padStart(6, "0")}`;
+}
+
+function getPlantCardStyle(plantId: PlantId): string {
+  const profile = getPlantMiniatureProfile(plantId);
+  return [
+    `--plant-rim: ${toCssHex(profile.rimColor)}`,
+    `--plant-base: ${toCssHex(profile.baseColor)}`,
+    `--plant-stem: ${toCssHex(profile.stemColor)}`,
+    `--plant-art: url('${PLANT_TEXTURES[plantId]}')`
+  ].join("; ");
+}
+
 export function getNextAchievementFeedback(
   state: Pick<GameState, "plants" | "events">,
   shownAchievements: ReadonlySet<string>
@@ -99,8 +114,9 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
       const disabled = locked || state.nowMs < state.cooldownReadyAt[plantId] ? "disabled" : "";
       const selected = state.selectedPlantId === plantId ? " is-selected" : "";
       const lockedClass = locked ? " is-locked" : "";
-      return `<button class="plant-card${selected}${lockedClass}" data-plant="${plantId}" ${disabled}>
-        <span class="plant-art" style="background-image: url('${PLANT_TEXTURES[plantId]}')"></span>
+      const cardStyle = getPlantCardStyle(plantId);
+      return `<button class="plant-card plant-card--${plantId}${selected}${lockedClass}" data-plant="${plantId}" style="${cardStyle}" ${disabled}>
+        <span class="plant-art"></span>
         <strong>${plant.name}</strong>
         <span>${locked ? "未开放" : `☀ ${plant.cost}`}</span>
       </button>`;

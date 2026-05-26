@@ -108,8 +108,55 @@ describe("dom overlay", () => {
       allowedPlantIds: ["sunflower"]
     });
 
-    expect(html).toContain('class="plant-card is-locked" data-plant="peashooter" disabled');
+    expect(html).toContain('class="plant-card plant-card--peashooter is-locked"');
+    expect(html).toContain('data-plant="peashooter"');
+    expect(html).toContain("disabled");
     expect(html).toContain("未开放");
+  });
+
+  it("renders plant card profile styling variables", () => {
+    const html = createDomOverlayMarkup({
+      sun: 150,
+      waveText: "第 1 波 / 8",
+      status: "playing",
+      selectedPlantId: null,
+      cooldownReadyAt: {
+        sunflower: 0,
+        peashooter: 0,
+        wallnut: 0,
+        snowpea: 0,
+        potatomine: 0
+      },
+      nowMs: 0
+    });
+
+    expect(html).toContain('class="plant-card plant-card--sunflower"');
+    expect(html).toContain("--plant-rim:");
+    expect(html).toContain("--plant-base:");
+    expect(html).toContain("--plant-stem:");
+    expect(html).toContain("--plant-art:");
+  });
+
+  it("keeps profile styling on locked cards", () => {
+    const html = createDomOverlayMarkup({
+      sun: 150,
+      waveText: "第 1 波 / 8",
+      status: "playing",
+      selectedPlantId: null,
+      cooldownReadyAt: {
+        sunflower: 0,
+        peashooter: 0,
+        wallnut: 0,
+        snowpea: 0,
+        potatomine: 0
+      },
+      nowMs: 0,
+      allowedPlantIds: ["sunflower"]
+    });
+
+    expect(html).toContain('class="plant-card plant-card--snowpea is-locked"');
+    expect(html).toContain("--plant-rim:");
+    expect(html).toContain("--plant-art:");
   });
 
   it("does not replace controls when only elapsed time changes", () => {

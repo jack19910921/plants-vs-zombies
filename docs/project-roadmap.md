@@ -229,6 +229,7 @@ Delivered so far:
 - Added test-backed plant silhouette profiles so sunflower, peashooter, wallnut, snow pea, and potato mine render with distinct body proportions, bases, stems, and rim colors.
 - Added test-backed enemy silhouette profiles so basic, cone, and bucket enemies render with distinct body weight, shadows, rims, tints, and headgear geometry.
 - Added test-backed health wear feedback so damaged plants and enemies gain cracks, scuffs, and subtle critical-health overlays.
+- Added profile-driven plant card visuals so HUD cards reuse the same rim/base/stem colors as field miniatures.
 
 Architecture:
 
