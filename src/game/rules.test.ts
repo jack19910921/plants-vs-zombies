@@ -34,6 +34,21 @@ describe("game rules", () => {
     expect(first.zombies[0].hp).toBeGreaterThan(1);
   });
 
+  it("records wave spawn events for presentation cues", () => {
+    const state = { ...createInitialState(LEVEL_ONE), nowMs: 9000 };
+    const next = spawnDueZombies(state, LEVEL_ONE, ZOMBIES);
+    expect(next.events).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: "wave-spawned",
+          waveIndex: 0,
+          lane: 2,
+          zombieId: "basic"
+        })
+      ])
+    );
+  });
+
   it("sets failure when a zombie reaches the base", () => {
     const state = createInitialState(LEVEL_ONE);
     const next = updateStatus(
@@ -44,6 +59,25 @@ describe("game rules", () => {
       LEVEL_ONE
     );
     expect(next.status).toBe("failure");
+  });
+
+  it("records a level-ended event when the status changes", () => {
+    const state = {
+      ...createInitialState(LEVEL_ONE),
+      nowMs: LEVEL_ONE.durationMs,
+      spawnedWaveIndexes: LEVEL_ONE.waves.map((_, index) => index)
+    };
+    const next = updateStatus(state, LEVEL_ONE);
+    expect(next.status).toBe("victory");
+    expect(next.events).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: "level-ended",
+          status: "victory",
+          atMs: LEVEL_ONE.durationMs
+        })
+      ])
+    );
   });
 
   it("moves zombies toward the base", () => {

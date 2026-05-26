@@ -99,6 +99,18 @@ export function spawnDueZombies(
 
   return {
     ...state,
+    events: [
+      ...state.events,
+      ...newZombies.map(({ wave, index }) =>
+        makeEvent({
+          type: "wave-spawned",
+          waveIndex: index,
+          lane: wave.lane,
+          zombieId: wave.zombieId,
+          atMs: state.nowMs
+        })
+      )
+    ],
     spawnedWaveIndexes: [...state.spawnedWaveIndexes, ...newZombies.map(({ index }) => index)],
     zombies: [
       ...state.zombies,
@@ -116,11 +128,25 @@ export function spawnDueZombies(
 
 export function updateStatus(state: GameState, level: LevelConfig): GameState {
   if (state.zombies.some((zombie) => zombie.x <= 0)) {
-    return { ...state, status: "failure" };
+    return {
+      ...state,
+      status: "failure",
+      events:
+        state.status === "failure"
+          ? state.events
+          : [...state.events, makeEvent({ type: "level-ended", status: "failure", atMs: state.nowMs })]
+    };
   }
   const allWavesSpawned = state.spawnedWaveIndexes.length === level.waves.length;
   if (allWavesSpawned && state.zombies.length === 0 && state.nowMs >= level.durationMs) {
-    return { ...state, status: "victory" };
+    return {
+      ...state,
+      status: "victory",
+      events:
+        state.status === "victory"
+          ? state.events
+          : [...state.events, makeEvent({ type: "level-ended", status: "victory", atMs: state.nowMs })]
+    };
   }
   return state;
 }

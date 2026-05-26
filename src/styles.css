@@ -42,11 +42,11 @@ body {
 
 #three-root {
   position: fixed;
-  top: 22px;
-  left: 26px;
+  top: 16px;
+  left: 18px;
   z-index: 3;
-  width: 72px;
-  height: 58px;
+  width: 112px;
+  height: 92px;
   pointer-events: none;
 }
 
@@ -98,7 +98,7 @@ body {
 
 .hud-top .chip:first-child {
   justify-content: flex-start;
-  padding-left: 84px;
+  padding-left: 104px;
 }
 
 .plant-tray {
@@ -179,9 +179,9 @@ body {
 @media (max-width: 700px) {
   #three-root {
     top: 28px;
-    left: 28px;
-    width: 38px;
-    height: 38px;
+    left: 24px;
+    width: 56px;
+    height: 50px;
   }
 
   .hud {

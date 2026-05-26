@@ -30,6 +30,12 @@ scene.uiEvents.on("state-changed", (state: GameState) => {
     if (!seenThreeEventIds.has(event.id) && event.type === "sun-produced") {
       threeStage.pulseSunCollection();
     }
+    if (!seenThreeEventIds.has(event.id) && event.type === "wave-spawned") {
+      threeStage.pulseWaveAlert();
+    }
+    if (!seenThreeEventIds.has(event.id) && event.type === "level-ended") {
+      threeStage.showLevelBadge(event.status);
+    }
   });
   seenThreeEventIds = new Set(state.events.map((event) => event.id));
 });

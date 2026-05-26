@@ -108,6 +108,20 @@ export type CombatEvent =
       lane: LaneIndex;
       x: number;
       atMs: number;
+    }
+  | {
+      id: string;
+      type: "wave-spawned";
+      waveIndex: number;
+      lane: LaneIndex;
+      zombieId: ZombieId;
+      atMs: number;
+    }
+  | {
+      id: string;
+      type: "level-ended";
+      status: Extract<GameStatus, "victory" | "failure">;
+      atMs: number;
     };
 
 export interface WaveEntry {
