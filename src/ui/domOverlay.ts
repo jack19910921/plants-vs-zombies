@@ -24,9 +24,15 @@ interface OverlayRenderState {
   selectedPlantId: PlantId | null;
   cooldownReadyAt: GameState["cooldownReadyAt"];
   nowMs: number;
+  soundEnabled?: boolean;
   plantsCount?: number;
   recentFeedback?: OverlayFeedback | null;
   recentEvents?: CombatEvent[];
+}
+
+export interface DomOverlayOptions {
+  soundEnabled?: boolean;
+  onToggleSound?: (enabled: boolean) => void;
 }
 
 const plantOrder: PlantId[] = ["sunflower", "peashooter", "wallnut", "snowpea", "potatomine"];
@@ -88,6 +94,7 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
     })
     .join("");
   const tutorialText = getTutorialText(state);
+  const soundEnabled = state.soundEnabled ?? true;
   const feedbackText =
     state.recentFeedback?.type === "planting"
       ? plantingFeedbackText[state.recentFeedback.reason]
@@ -115,6 +122,7 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
       <div class="chip">☀ ${state.sun}</div>
       <div class="chip">${state.waveText}</div>
       <button class="chip" data-action="pause">暂停</button>
+      <button class="chip sound-toggle" data-action="sound">${soundEnabled ? "声音开" : "声音关"}</button>
     </div>
     <div class="tutorial-strip"><span>${tutorialText}</span>${feedbackMarkup}</div>
     <div class="plant-tray">${cards}</div>
@@ -133,11 +141,12 @@ function getWaveText(state: GameState): string {
   return `第 ${Math.min(spawned + 1, LEVEL_ONE.waves.length)} 波 / ${LEVEL_ONE.waves.length}`;
 }
 
-export function createDomOverlay(root: Element, scene: GameScene): void {
+export function createDomOverlay(root: Element, scene: GameScene, options: DomOverlayOptions = {}): void {
   let lastMarkup = "";
   let lastState: GameState | null = null;
   let recentFeedback: OverlayFeedback | null = null;
   let feedbackTimer: ReturnType<typeof setTimeout> | null = null;
+  let soundEnabled = options.soundEnabled ?? true;
   const shownAchievements = new Set<AchievementId>();
   const queuedFeedback: OverlayAchievementFeedback[] = [];
 
@@ -176,6 +185,7 @@ export function createDomOverlay(root: Element, scene: GameScene): void {
       selectedPlantId: state.selectedPlantId,
       cooldownReadyAt: state.cooldownReadyAt,
       nowMs: state.nowMs,
+      soundEnabled,
       plantsCount: state.plants.length,
       recentFeedback,
       recentEvents: state.events
@@ -200,6 +210,12 @@ export function createDomOverlay(root: Element, scene: GameScene): void {
     const actionButton = target.closest("[data-action]") as HTMLElement | null;
     if (actionButton?.dataset.action === "pause") {
       scene.togglePause();
+      return;
+    }
+    if (actionButton?.dataset.action === "sound") {
+      soundEnabled = !soundEnabled;
+      options.onToggleSound?.(soundEnabled);
+      if (lastState) render(lastState);
       return;
     }
     if (actionButton?.dataset.action === "restart") {

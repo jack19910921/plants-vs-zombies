@@ -26,6 +26,8 @@ describe("dom overlay", () => {
     expect(html).toContain("向日葵");
     expect(html).toContain("豌豆射手");
     expect(html).toContain("暂停");
+    expect(html).toContain('data-action="sound"');
+    expect(html).toContain("声音开");
   });
 
   it("does not replace controls when only elapsed time changes", () => {
@@ -200,5 +202,25 @@ describe("dom overlay", () => {
     });
 
     expect(html).toContain("打倒一个了");
+  });
+
+  it("renders sound disabled state", () => {
+    const html = createDomOverlayMarkup({
+      sun: 250,
+      waveText: "第 1 波 / 8",
+      status: "playing",
+      selectedPlantId: null,
+      cooldownReadyAt: {
+        sunflower: 0,
+        peashooter: 0,
+        wallnut: 0,
+        snowpea: 0,
+        potatomine: 0
+      },
+      nowMs: 0,
+      soundEnabled: false
+    });
+
+    expect(html).toContain("声音关");
   });
 });

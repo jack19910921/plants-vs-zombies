@@ -66,11 +66,13 @@ export class GameScene extends Phaser.Scene {
 
   setSelectedPlant(plantId: PlantId): void {
     this.state = selectPlant(this.state, plantId);
+    this.uiEvents.emit("sound-requested", "select");
     this.uiEvents.emit("state-changed", this.state);
   }
 
   togglePause(): void {
     if (this.state.status !== "playing" && this.state.status !== "paused") return;
+    this.uiEvents.emit("sound-requested", "button");
     this.state = {
       ...this.state,
       status: this.state.status === "paused" ? "playing" : "paused"
@@ -80,6 +82,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   restartLevel(): void {
+    this.uiEvents.emit("sound-requested", "button");
     this.state = { ...createInitialState(LEVEL_ONE), status: "playing" };
     this.lastTickMs = 0;
     this.redrawDynamicWorld();
@@ -111,6 +114,7 @@ export class GameScene extends Phaser.Scene {
       return;
     }
     this.state = plantAt(this.state, PLANTS, lane as LaneIndex, column as ColumnIndex);
+    this.uiEvents.emit("sound-requested", "plant");
     this.uiEvents.emit("state-changed", this.state);
   }
 

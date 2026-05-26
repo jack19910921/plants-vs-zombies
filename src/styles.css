@@ -74,7 +74,7 @@ body {
 
 .hud-top {
   display: grid;
-  grid-template-columns: 220px 1fr 64px;
+  grid-template-columns: 220px 1fr 64px 92px;
   gap: 12px;
 }
 
@@ -222,7 +222,7 @@ body {
   }
 
   .hud-top {
-    grid-template-columns: 220px minmax(0, 1fr) 64px;
+    grid-template-columns: 220px minmax(0, 1fr) 64px 92px;
     gap: 8px;
     transform: scale(0.56);
     transform-origin: top left;
