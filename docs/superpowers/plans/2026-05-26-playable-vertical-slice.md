@@ -727,7 +727,7 @@ git commit -m "Add playable game rules"
 - Create: `src/game/GameScene.ts`
 - Modify: `src/main.ts`
 
-- [ ] **Step 1: Create `src/game/GameScene.ts`**
+- [x] **Step 1: Create `src/game/GameScene.ts`**
 
 Add:
 
@@ -853,7 +853,7 @@ export class GameScene extends Phaser.Scene {
 }
 ```
 
-- [ ] **Step 2: Modify `src/main.ts` to load the scene**
+- [x] **Step 2: Modify `src/main.ts` to load the scene**
 
 Replace the file with:
 
@@ -886,7 +886,7 @@ window.addEventListener("beforeunload", () => {
 });
 ```
 
-- [ ] **Step 3: Run build to reveal missing overlay**
+- [x] **Step 3: Run build to reveal missing overlay**
 
 Run:
 
@@ -907,7 +907,7 @@ Expected: FAIL because `src/ui/domOverlay.ts` has not been created yet.
 - Create: `src/ui/domOverlay.test.ts`
 - Modify: `src/styles.css`
 
-- [ ] **Step 1: Create `src/ui/domOverlay.test.ts`**
+- [x] **Step 1: Create `src/ui/domOverlay.test.ts`**
 
 Add:
 
@@ -940,7 +940,7 @@ describe("dom overlay", () => {
 });
 ```
 
-- [ ] **Step 2: Run overlay test to verify it fails**
+- [x] **Step 2: Run overlay test to verify it fails**
 
 Run:
 
@@ -950,7 +950,7 @@ npm test -- src/ui/domOverlay.test.ts
 
 Expected: FAIL because `src/ui/domOverlay.ts` does not exist yet.
 
-- [ ] **Step 3: Create `src/ui/domOverlay.ts`**
+- [x] **Step 3: Create `src/ui/domOverlay.ts`**
 
 Add:
 
@@ -1038,7 +1038,7 @@ export function createDomOverlay(root: Element, scene: GameScene): void {
 }
 ```
 
-- [ ] **Step 4: Run overlay tests**
+- [x] **Step 4: Run overlay tests**
 
 Run:
 
@@ -1048,7 +1048,7 @@ npm test -- src/ui/domOverlay.test.ts
 
 Expected: PASS.
 
-- [ ] **Step 5: Run build**
+- [x] **Step 5: Run build**
 
 Run:
 
@@ -1058,7 +1058,7 @@ npm run build
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit scene and overlay**
+- [x] **Step 6: Commit scene and overlay**
 
 Run:
 

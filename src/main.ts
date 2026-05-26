@@ -1,5 +1,9 @@
 import Phaser from "phaser";
+import { GameScene } from "./game/GameScene";
+import { createDomOverlay } from "./ui/domOverlay";
 import "./styles.css";
+
+const scene = new GameScene();
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -11,7 +15,12 @@ const config: Phaser.Types.Core.GameConfig = {
     width: 1280,
     height: 720
   },
-  scene: []
+  scene: [scene]
 };
 
-new Phaser.Game(config);
+const game = new Phaser.Game(config);
+createDomOverlay(document.querySelector("#ui-root")!, scene);
+
+window.addEventListener("beforeunload", () => {
+  game.destroy(true);
+});
