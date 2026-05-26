@@ -78,7 +78,8 @@ export function getNextAchievementFeedback(
 }
 
 function getTutorialText(state: OverlayRenderState): string {
-  if (state.status === "victory") return state.hasNextLevel ? "守住啦，点“下一关”继续。" : "守住啦，点“再玩一次”可以重来。";
+  if (state.status === "victory")
+    return state.hasNextLevel ? "守住啦，点“下一关”继续。" : "全部守住啦，点“再玩一次”可以重来。";
   if (state.status === "failure") return "没关系，换个位置再试一次。";
   if (state.status === "paused") return "休息一下，准备好了就继续。";
   if (state.recentEvents?.some((event) => event.type === "wave-spawned")) return "僵尸来了，守住基地！";
@@ -122,10 +123,13 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
     state.status === "paused" || state.status === "victory" || state.status === "failure"
       ? "modal-layer is-visible"
       : "modal-layer";
-  const modalTitle = state.status === "victory" ? "守住啦！" : state.status === "failure" ? "差一点点" : "暂停";
+  const modalTitle =
+    state.status === "victory" ? (state.hasNextLevel ? "守住啦！" : "全部守住啦！") : state.status === "failure" ? "差一点点" : "暂停";
   const modalBody =
     state.status === "victory"
-      ? "获得本关植物奖章。"
+      ? state.hasNextLevel
+        ? "获得本关植物奖章。"
+        : "当前三关都守住了，可以再玩一次。"
       : state.status === "failure"
         ? "草坪防线被突破了，再试一次。"
         : "植物防线先休息一下。";

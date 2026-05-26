@@ -119,6 +119,25 @@ export const LEVELS: LevelConfig[] = [
       { atMs: 92000, lane: 2, zombieId: "bucket" },
       { atMs: 108000, lane: 0, zombieId: "bucket" }
     ]
+  },
+  {
+    id: "level-3",
+    name: "暮色农圃",
+    startingSun: 200,
+    durationMs: 128000,
+    allowedPlants: ["sunflower", "peashooter", "wallnut", "snowpea", "potatomine"],
+    waves: [
+      { atMs: 5000, lane: 2, zombieId: "basic" },
+      { atMs: 12000, lane: 0, zombieId: "basic" },
+      { atMs: 20000, lane: 4, zombieId: "cone" },
+      { atMs: 31000, lane: 1, zombieId: "basic" },
+      { atMs: 43000, lane: 3, zombieId: "cone" },
+      { atMs: 57000, lane: 2, zombieId: "bucket" },
+      { atMs: 72000, lane: 0, zombieId: "cone" },
+      { atMs: 87000, lane: 4, zombieId: "bucket" },
+      { atMs: 104000, lane: 1, zombieId: "bucket" },
+      { atMs: 122000, lane: 3, zombieId: "bucket" }
+    ]
   }
 ];
 

@@ -171,6 +171,28 @@ describe("dom overlay", () => {
     expect(html).toContain("下一关");
   });
 
+  it("celebrates the final level victory and offers replay", () => {
+    const html = createDomOverlayMarkup({
+      sun: 0,
+      levelName: "暮色农圃",
+      waveText: "第 10 波 / 10",
+      status: "victory",
+      selectedPlantId: null,
+      cooldownReadyAt: {
+        sunflower: 0,
+        peashooter: 0,
+        wallnut: 0,
+        snowpea: 0,
+        potatomine: 0
+      },
+      nowMs: 0,
+      hasNextLevel: false
+    });
+
+    expect(html).toContain("全部守住啦");
+    expect(html).toContain('data-action="restart"');
+  });
+
   it("renders the initial tutorial prompt", () => {
     const html = createDomOverlayMarkup({
       sun: 250,

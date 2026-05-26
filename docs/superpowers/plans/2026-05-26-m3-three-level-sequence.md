@@ -20,7 +20,7 @@
 
 ## Task 1: Third Level Config
 
-- [ ] **Step 1: Write failing config test**
+- [x] **Step 1: Write failing config test**
 
 Update `src/game/config.test.ts`:
 
@@ -29,7 +29,7 @@ expect(LEVELS.length).toBeGreaterThanOrEqual(3);
 expect(LEVELS[2].waves.length).not.toBe(LEVELS[0].waves.length);
 ```
 
-- [ ] **Step 2: Run test and verify red**
+- [x] **Step 2: Run test and verify red**
 
 Run:
 
@@ -39,11 +39,11 @@ npm test -- src/game/config.test.ts
 
 Expected: fail because only two levels exist.
 
-- [ ] **Step 3: Add third level**
+- [x] **Step 3: Add third level**
 
 Add `level-3` named `暮色农圃` with ten waves and a slightly tighter starting sun budget.
 
-- [ ] **Step 4: Run test and verify green**
+- [x] **Step 4: Run test and verify green**
 
 Run:
 
@@ -55,15 +55,15 @@ Expected: config test passes.
 
 ## Task 2: Final Victory Copy
 
-- [ ] **Step 1: Write failing DOM test**
+- [x] **Step 1: Write failing DOM test**
 
 Add a test to `src/ui/domOverlay.test.ts` for `status: "victory"` and `hasNextLevel: false` that expects `全部守住啦` and `data-action="restart"`.
 
-- [ ] **Step 2: Implement copy change**
+- [x] **Step 2: Implement copy change**
 
 In `src/ui/domOverlay.ts`, make final victory use completion copy while next-level victory keeps `下一关`.
 
-- [ ] **Step 3: Run DOM tests**
+- [x] **Step 3: Run DOM tests**
 
 Run:
 
@@ -75,7 +75,7 @@ Expected: DOM tests pass.
 
 ## Task 3: Verification And Commit
 
-- [ ] **Step 1: Run all tests**
+- [x] **Step 1: Run all tests**
 
 Run:
 
@@ -85,7 +85,7 @@ npm test
 
 Expected: all tests pass.
 
-- [ ] **Step 2: Build**
+- [x] **Step 2: Build**
 
 Run:
 
@@ -95,11 +95,11 @@ npm run build
 
 Expected: build succeeds with only the known chunk-size warning.
 
-- [ ] **Step 3: Browser check**
+- [x] **Step 3: Browser check**
 
 Open `http://127.0.0.1:5173/` and verify the HUD still renders the level name, difficulty controls, pause, sound, and plant tray without console warnings/errors.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 Commit:
 
