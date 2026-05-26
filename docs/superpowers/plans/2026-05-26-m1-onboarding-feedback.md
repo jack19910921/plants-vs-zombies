@@ -196,3 +196,49 @@ Commit:
 git add src/game/types.ts src/game/rules.ts src/game/rules.test.ts src/game/GameScene.ts src/ui/domOverlay.ts src/ui/domOverlay.test.ts src/styles.css docs/superpowers/specs/2026-05-26-m1-onboarding-feedback-design.md docs/superpowers/plans/2026-05-26-m1-onboarding-feedback.md
 git commit -m "Add onboarding feedback prompts"
 ```
+
+## Task 5: Positive Reinforcement Feedback
+
+- [ ] **Step 1: Write failing DOM/helper tests**
+
+Add tests in `src/ui/domOverlay.test.ts` for deriving first-time achievements from state/events and rendering the feedback pill.
+
+Expected achievements:
+
+- `first-plant`: first successful plant on the board.
+- `first-sun`: first `sun-produced` combat event.
+- `first-zombie-defeated`: first `zombie-defeated` combat event.
+
+- [ ] **Step 2: Run DOM test and verify red**
+
+Run:
+
+```bash
+npm test -- src/ui/domOverlay.test.ts
+```
+
+Expected: fail because achievement feedback helpers do not exist.
+
+- [ ] **Step 3: Implement achievement feedback**
+
+Extend overlay feedback to include an `achievement` variant. Add a helper that returns the next unshown achievement from the latest `GameState`, then make `createDomOverlay` show it briefly.
+
+- [ ] **Step 4: Verify**
+
+Run:
+
+```bash
+npm test
+npm run build
+```
+
+Expected: tests pass and build succeeds with only the known chunk-size warning.
+
+- [ ] **Step 5: Browser check and commit**
+
+Verify first planting and first combat milestone feedback in the browser. Commit:
+
+```bash
+git add docs/superpowers/plans/2026-05-26-m1-onboarding-feedback.md src/ui/domOverlay.ts src/ui/domOverlay.test.ts
+git commit -m "Add positive onboarding feedback"
+```

@@ -8,6 +8,15 @@ export interface OverlayPlantingFeedback {
   reason: PlantingFailureReason | "outside-board";
 }
 
+export type AchievementId = "first-plant" | "first-sun" | "first-zombie-defeated";
+
+export interface OverlayAchievementFeedback {
+  type: "achievement";
+  achievement: AchievementId;
+}
+
+export type OverlayFeedback = OverlayPlantingFeedback | OverlayAchievementFeedback;
+
 interface OverlayRenderState {
   sun: number;
   waveText: string;
@@ -16,7 +25,7 @@ interface OverlayRenderState {
   cooldownReadyAt: GameState["cooldownReadyAt"];
   nowMs: number;
   plantsCount?: number;
-  recentFeedback?: OverlayPlantingFeedback | null;
+  recentFeedback?: OverlayFeedback | null;
   recentEvents?: CombatEvent[];
 }
 
@@ -29,6 +38,31 @@ const plantingFeedbackText: Record<OverlayPlantingFeedback["reason"], string> = 
   cooldown: "这张卡还在准备。",
   "outside-board": "点彩色草坪格子来种植物。"
 };
+
+const achievementFeedbackText: Record<AchievementId, string> = {
+  "first-plant": "种得好，防线开始啦！",
+  "first-sun": "收集到阳光，可以继续种植物。",
+  "first-zombie-defeated": "打倒一个了，继续守住基地！"
+};
+
+export function getNextAchievementFeedback(
+  state: Pick<GameState, "plants" | "events">,
+  shownAchievements: ReadonlySet<string>
+): OverlayAchievementFeedback | null {
+  if (state.plants.length > 0 && !shownAchievements.has("first-plant")) {
+    return { type: "achievement", achievement: "first-plant" };
+  }
+  if (state.events.some((event) => event.type === "sun-produced") && !shownAchievements.has("first-sun")) {
+    return { type: "achievement", achievement: "first-sun" };
+  }
+  if (
+    state.events.some((event) => event.type === "zombie-defeated") &&
+    !shownAchievements.has("first-zombie-defeated")
+  ) {
+    return { type: "achievement", achievement: "first-zombie-defeated" };
+  }
+  return null;
+}
 
 function getTutorialText(state: OverlayRenderState): string {
   if (state.status === "victory") return "守住啦，点“再玩一次”可以重来。";
@@ -54,7 +88,12 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
     })
     .join("");
   const tutorialText = getTutorialText(state);
-  const feedbackText = state.recentFeedback ? plantingFeedbackText[state.recentFeedback.reason] : "";
+  const feedbackText =
+    state.recentFeedback?.type === "planting"
+      ? plantingFeedbackText[state.recentFeedback.reason]
+      : state.recentFeedback?.type === "achievement"
+        ? achievementFeedbackText[state.recentFeedback.achievement]
+        : "";
   const feedbackMarkup = feedbackText ? `<span class="feedback-pill">${feedbackText}</span>` : "";
 
   const modalClass =
@@ -97,11 +136,39 @@ function getWaveText(state: GameState): string {
 export function createDomOverlay(root: Element, scene: GameScene): void {
   let lastMarkup = "";
   let lastState: GameState | null = null;
-  let recentFeedback: OverlayPlantingFeedback | null = null;
+  let recentFeedback: OverlayFeedback | null = null;
   let feedbackTimer: ReturnType<typeof setTimeout> | null = null;
+  const shownAchievements = new Set<AchievementId>();
+  const queuedFeedback: OverlayAchievementFeedback[] = [];
+
+  function showFeedback(feedback: OverlayFeedback): void {
+    recentFeedback = feedback;
+    if (feedbackTimer) clearTimeout(feedbackTimer);
+    feedbackTimer = setTimeout(() => {
+      recentFeedback = null;
+      const nextFeedback = queuedFeedback.shift();
+      if (nextFeedback) {
+        showFeedback(nextFeedback);
+      }
+      if (lastState) render(lastState);
+    }, 1800);
+  }
 
   function render(state: GameState): void {
     lastState = state;
+    if (!recentFeedback) {
+      const achievementFeedback = getNextAchievementFeedback(state, shownAchievements);
+      if (achievementFeedback) {
+        shownAchievements.add(achievementFeedback.achievement);
+        showFeedback(achievementFeedback);
+      }
+    } else {
+      const achievementFeedback = getNextAchievementFeedback(state, shownAchievements);
+      if (achievementFeedback) {
+        shownAchievements.add(achievementFeedback.achievement);
+        queuedFeedback.push(achievementFeedback);
+      }
+    }
     const nextMarkup = createDomOverlayMarkup({
       sun: state.sun,
       waveText: getWaveText(state),
@@ -120,12 +187,7 @@ export function createDomOverlay(root: Element, scene: GameScene): void {
 
   scene.uiEvents.on("state-changed", render);
   scene.uiEvents.on("feedback-changed", (feedback: OverlayPlantingFeedback) => {
-    recentFeedback = feedback;
-    if (feedbackTimer) clearTimeout(feedbackTimer);
-    feedbackTimer = setTimeout(() => {
-      recentFeedback = null;
-      if (lastState) render(lastState);
-    }, 1800);
+    showFeedback(feedback);
     if (lastState) render(lastState);
   });
   root.addEventListener("click", (event) => {

@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import { LEVEL_ONE } from "../game/config";
-import { createInitialState } from "../game/rules";
+import { LEVEL_ONE, PLANTS } from "../game/config";
+import { createInitialState, plantAt, selectPlant } from "../game/rules";
 import type { GameScene } from "../game/GameScene";
 import type { GameState } from "../game/types";
-import { createDomOverlay, createDomOverlayMarkup } from "./domOverlay";
+import { createDomOverlay, createDomOverlayMarkup, getNextAchievementFeedback } from "./domOverlay";
 
 describe("dom overlay", () => {
   it("renders sun, wave, pause, and all plant cards", () => {
@@ -123,5 +123,82 @@ describe("dom overlay", () => {
     });
 
     expect(html).toContain("这个格子已经有植物啦");
+  });
+
+  it("detects first-time achievement feedback once", () => {
+    const planted = plantAt(selectPlant(createInitialState(LEVEL_ONE), "sunflower"), PLANTS, 0, 0);
+    const seen = new Set<string>();
+
+    expect(getNextAchievementFeedback(planted, seen)).toMatchObject({
+      type: "achievement",
+      achievement: "first-plant"
+    });
+
+    seen.add("first-plant");
+    expect(getNextAchievementFeedback(planted, seen)).toBeNull();
+  });
+
+  it("detects sun and defeated zombie achievement feedback from events", () => {
+    const base = createInitialState(LEVEL_ONE);
+    expect(
+      getNextAchievementFeedback(
+        {
+          ...base,
+          events: [
+            {
+              id: "event-sun",
+              type: "sun-produced",
+              sourceId: "plant-1",
+              lane: 0,
+              column: 0,
+              amount: 25,
+              atMs: 5000
+            }
+          ]
+        },
+        new Set()
+      )
+    ).toMatchObject({ type: "achievement", achievement: "first-sun" });
+
+    expect(
+      getNextAchievementFeedback(
+        {
+          ...base,
+          events: [
+            {
+              id: "event-defeat",
+              type: "zombie-defeated",
+              targetId: "zombie-1",
+              lane: 2,
+              x: 6.4,
+              atMs: 9000
+            }
+          ]
+        },
+        new Set(["first-sun"])
+      )
+    ).toMatchObject({ type: "achievement", achievement: "first-zombie-defeated" });
+  });
+
+  it("renders achievement feedback copy", () => {
+    const html = createDomOverlayMarkup({
+      sun: 250,
+      waveText: "第 1 波 / 8",
+      status: "playing",
+      selectedPlantId: null,
+      cooldownReadyAt: {
+        sunflower: 0,
+        peashooter: 0,
+        wallnut: 0,
+        snowpea: 0,
+        potatomine: 0
+      },
+      nowMs: 0,
+      plantsCount: 1,
+      recentFeedback: { type: "achievement", achievement: "first-zombie-defeated" },
+      recentEvents: []
+    });
+
+    expect(html).toContain("打倒一个了");
   });
 });
