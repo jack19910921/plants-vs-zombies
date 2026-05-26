@@ -10,7 +10,7 @@ import {
   spawnDueZombies,
   updateStatus
 } from "./rules";
-import { getPlantMiniatureState, getZombieMiniatureState } from "./worldPresentation";
+import { getPlantMiniatureProfile, getPlantMiniatureState, getZombieMiniatureState } from "./worldPresentation";
 import type {
   CombatEvent,
   ColumnIndex,
@@ -248,37 +248,68 @@ export class GameScene extends Phaser.Scene {
     const firePulse = firedEvent ? 1 - this.eventProgress(firedEvent, SHORT_EFFECT_MS) : 0;
     const hitPulse = bittenEvent ? 1 - this.eventProgress(bittenEvent, SHORT_EFFECT_MS) : 0;
     const sunProgress = sunEvent ? this.eventProgress(sunEvent, LONG_EFFECT_MS) : 1;
+    const profile = getPlantMiniatureProfile(plant.plantId);
     const miniature = getPlantMiniatureState(this.state.nowMs, plant.lane, plant.column, firePulse, hitPulse);
     const bodyX = x + miniature.bodyXOffset;
     const bodyY = y + miniature.bodyYOffset;
     const tint = hitPulse > 0 ? 0xffb39b : 0xffffff;
+    const highlightAlpha = Math.min(0.56, profile.highlightAlpha + firePulse * 0.14);
 
     this.add
       .ellipse(x, y + 28, 74 * miniature.shadowScaleX, 18 * miniature.shadowScaleY, 0x163622, miniature.shadowAlpha)
       .setData("dynamic", true);
-    this.add.ellipse(x, y + 23, 66, 20, 0x8f5d32, 0.86).setStrokeStyle(3, 0x5c4330, 0.36).setData("dynamic", true);
-    this.add.ellipse(x, y + 17, 48, 11, 0x65b86b, 0.38).setData("dynamic", true);
-    this.add.rectangle(bodyX, y + 8, 12, 34, 0x2e7d55, 0.58).setStrokeStyle(2, 0x174a36, 0.28).setData("dynamic", true);
     this.add
-      .ellipse(bodyX + 5, bodyY + 7, 72 * miniature.scaleX, 70 * miniature.scaleY, 0x1d3f2c, 0.18)
+      .ellipse(x, y + 23, profile.baseWidth, profile.baseHeight, profile.baseColor, 0.86)
+      .setStrokeStyle(3, 0x5c4330, 0.36)
+      .setData("dynamic", true);
+    this.add
+      .ellipse(x, y + 17, profile.baseWidth * 0.72, Math.max(9, profile.baseHeight * 0.52), 0xfff1a3, 0.18)
+      .setData("dynamic", true);
+    this.add
+      .rectangle(bodyX, y + 23 - profile.stemHeight / 2, profile.stemWidth, profile.stemHeight, profile.stemColor, 0.58)
+      .setStrokeStyle(2, 0x174a36, 0.28)
+      .setData("dynamic", true);
+    this.add
+      .ellipse(
+        bodyX + 5,
+        bodyY + 7,
+        (profile.imageWidth + 8) * miniature.scaleX,
+        (profile.imageHeight + 6) * miniature.scaleY,
+        0x1d3f2c,
+        0.18
+      )
       .setData("dynamic", true);
     this.add
       .image(bodyX, bodyY, `plant-${plant.plantId}`)
-      .setDisplaySize(66 * miniature.scaleX, 66 * miniature.scaleY)
+      .setDisplaySize(profile.imageWidth * miniature.scaleX, profile.imageHeight * miniature.scaleY)
       .setAngle(miniature.angle)
       .setTint(tint)
       .setData("dynamic", true);
     this.add
-      .circle(bodyX - 14, bodyY - 17, 11 * Math.max(miniature.scaleX, miniature.scaleY), 0xffffff, miniature.highlightAlpha)
+      .circle(bodyX - 14, bodyY - 17, 11 * Math.max(miniature.scaleX, miniature.scaleY), 0xffffff, highlightAlpha)
       .setData("dynamic", true);
     this.add
-      .ellipse(bodyX, bodyY, 72 * miniature.scaleX, 72 * miniature.scaleY, 0xffffff, 0)
-      .setStrokeStyle(3, 0x35513f)
+      .ellipse(
+        bodyX,
+        bodyY,
+        (profile.imageWidth + 6) * miniature.scaleX,
+        (profile.imageHeight + 6) * miniature.scaleY,
+        0xffffff,
+        0
+      )
+      .setStrokeStyle(3, profile.rimColor)
       .setData("dynamic", true);
 
     if (miniature.flashAlpha > 0) {
       this.add
-        .ellipse(bodyX, bodyY, 76 * miniature.scaleX, 74 * miniature.scaleY, 0xfff8df, miniature.flashAlpha)
+        .ellipse(
+          bodyX,
+          bodyY,
+          (profile.imageWidth + 10) * miniature.scaleX,
+          (profile.imageHeight + 8) * miniature.scaleY,
+          0xfff8df,
+          miniature.flashAlpha
+        )
         .setData("dynamic", true);
     }
 

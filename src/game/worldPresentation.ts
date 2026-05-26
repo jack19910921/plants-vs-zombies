@@ -1,3 +1,18 @@
+import type { PlantId } from "./types";
+
+export interface PlantMiniatureProfile {
+  imageWidth: number;
+  imageHeight: number;
+  baseWidth: number;
+  baseHeight: number;
+  stemWidth: number;
+  stemHeight: number;
+  stemColor: number;
+  baseColor: number;
+  rimColor: number;
+  highlightAlpha: number;
+}
+
 export interface PlantMiniatureState {
   bodyXOffset: number;
   bodyYOffset: number;
@@ -22,6 +37,73 @@ export interface ZombieMiniatureState {
   shadowAlpha: number;
   flashAlpha: number;
   footOffset: number;
+}
+
+const PLANT_MINIATURE_PROFILES: Record<PlantId, PlantMiniatureProfile> = {
+  sunflower: {
+    imageWidth: 64,
+    imageHeight: 74,
+    baseWidth: 64,
+    baseHeight: 20,
+    stemWidth: 12,
+    stemHeight: 38,
+    stemColor: 0x2e7d55,
+    baseColor: 0x8f5d32,
+    rimColor: 0x35513f,
+    highlightAlpha: 0.26
+  },
+  peashooter: {
+    imageWidth: 68,
+    imageHeight: 64,
+    baseWidth: 66,
+    baseHeight: 20,
+    stemWidth: 13,
+    stemHeight: 32,
+    stemColor: 0x2e7d55,
+    baseColor: 0x8f5d32,
+    rimColor: 0x35513f,
+    highlightAlpha: 0.2
+  },
+  wallnut: {
+    imageWidth: 78,
+    imageHeight: 62,
+    baseWidth: 76,
+    baseHeight: 22,
+    stemWidth: 16,
+    stemHeight: 14,
+    stemColor: 0x8f5d32,
+    baseColor: 0xb48a4a,
+    rimColor: 0x5c4330,
+    highlightAlpha: 0.18
+  },
+  snowpea: {
+    imageWidth: 68,
+    imageHeight: 64,
+    baseWidth: 66,
+    baseHeight: 20,
+    stemWidth: 13,
+    stemHeight: 32,
+    stemColor: 0x478da0,
+    baseColor: 0x9fd7ef,
+    rimColor: 0x3f6f86,
+    highlightAlpha: 0.24
+  },
+  potatomine: {
+    imageWidth: 58,
+    imageHeight: 44,
+    baseWidth: 62,
+    baseHeight: 18,
+    stemWidth: 18,
+    stemHeight: 8,
+    stemColor: 0x8f5d32,
+    baseColor: 0xb48a4a,
+    rimColor: 0x6d4b2b,
+    highlightAlpha: 0.16
+  }
+};
+
+export function getPlantMiniatureProfile(plantId: PlantId): PlantMiniatureProfile {
+  return PLANT_MINIATURE_PROFILES[plantId];
 }
 
 export function getPlantMiniatureState(

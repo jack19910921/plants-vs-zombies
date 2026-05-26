@@ -226,6 +226,7 @@ Scope:
 Delivered so far:
 
 - Added test-backed miniature volume rendering around existing safe assets: plant bases, stem supports, contact shadows, image squash/stretch, zombie foot pads, and stronger hit/chew body feedback.
+- Added test-backed plant silhouette profiles so sunflower, peashooter, wallnut, snow pea, and potato mine render with distinct body proportions, bases, stems, and rim colors.
 
 Architecture:
 

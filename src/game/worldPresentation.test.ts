@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getPlantMiniatureState, getZombieMiniatureState } from "./worldPresentation";
+import { getPlantMiniatureProfile, getPlantMiniatureState, getZombieMiniatureState } from "./worldPresentation";
 
 describe("world presentation helpers", () => {
   it("recoils and stretches plants while firing", () => {
@@ -35,5 +35,36 @@ describe("world presentation helpers", () => {
     expect(hit.bodyXOffset).toBeGreaterThan(idle.bodyXOffset);
     expect(hit.scaleY).toBeLessThan(idle.scaleY);
     expect(hit.flashAlpha).toBeGreaterThan(idle.flashAlpha);
+  });
+
+  it("gives sunflower a taller profile than wallnut", () => {
+    const sunflower = getPlantMiniatureProfile("sunflower");
+    const wallnut = getPlantMiniatureProfile("wallnut");
+
+    expect(sunflower.imageHeight).toBeGreaterThan(wallnut.imageHeight);
+    expect(sunflower.stemHeight).toBeGreaterThan(wallnut.stemHeight);
+  });
+
+  it("gives wallnut a sturdier base than peashooter", () => {
+    const wallnut = getPlantMiniatureProfile("wallnut");
+    const peashooter = getPlantMiniatureProfile("peashooter");
+
+    expect(wallnut.baseWidth).toBeGreaterThan(peashooter.baseWidth);
+    expect(wallnut.imageWidth).toBeGreaterThan(peashooter.imageWidth);
+  });
+
+  it("keeps potato mine low to the ground", () => {
+    const potatoMine = getPlantMiniatureProfile("potatomine");
+    const sunflower = getPlantMiniatureProfile("sunflower");
+
+    expect(potatoMine.stemHeight).toBeLessThan(sunflower.stemHeight);
+    expect(potatoMine.imageHeight).toBeLessThan(sunflower.imageHeight);
+  });
+
+  it("uses a cool rim for snow pea", () => {
+    const snowPea = getPlantMiniatureProfile("snowpea");
+    const peashooter = getPlantMiniatureProfile("peashooter");
+
+    expect(snowPea.rimColor).not.toBe(peashooter.rimColor);
   });
 });
