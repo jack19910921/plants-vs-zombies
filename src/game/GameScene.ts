@@ -11,10 +11,12 @@ import {
   updateStatus
 } from "./rules";
 import {
+  getHealthWearState,
   getPlantMiniatureProfile,
   getPlantMiniatureState,
   getZombieMiniatureProfile,
-  getZombieMiniatureState
+  getZombieMiniatureState,
+  type HealthWearState
 } from "./worldPresentation";
 import type {
   CombatEvent,
@@ -255,6 +257,7 @@ export class GameScene extends Phaser.Scene {
     const sunProgress = sunEvent ? this.eventProgress(sunEvent, LONG_EFFECT_MS) : 1;
     const profile = getPlantMiniatureProfile(plant.plantId);
     const miniature = getPlantMiniatureState(this.state.nowMs, plant.lane, plant.column, firePulse, hitPulse);
+    const wear = getHealthWearState(plant.hp, PLANTS[plant.plantId].maxHp);
     const bodyX = x + miniature.bodyXOffset;
     const bodyY = y + miniature.bodyYOffset;
     const tint = hitPulse > 0 ? 0xffb39b : 0xffffff;
@@ -317,6 +320,7 @@ export class GameScene extends Phaser.Scene {
         )
         .setData("dynamic", true);
     }
+    this.drawPlantWear(bodyX, bodyY, profile.imageWidth * miniature.scaleX, profile.imageHeight * miniature.scaleY, wear);
 
     if (firePulse > 0) {
       this.add.circle(x + 42, y - 8, 10 + firePulse * 18, 0xfff1a3, 0.4 * firePulse).setData("dynamic", true);
@@ -331,6 +335,30 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.drawPlantHealth(plant, x, y);
+  }
+
+  private drawPlantWear(x: number, y: number, width: number, height: number, wear: HealthWearState): void {
+    if (wear.dangerAlpha > 0) {
+      this.add
+        .ellipse(x, y, width + 12, height + 10, 0xff8f4d, wear.dangerAlpha * 0.16)
+        .setData("dynamic", true);
+    }
+
+    if (wear.crackCount === 0) return;
+
+    const cracks = [
+      [-0.18, -0.28, -0.02, -0.08],
+      [0.12, -0.18, 0.0, 0.1],
+      [-0.06, 0.08, -0.22, 0.28],
+      [0.2, 0.02, 0.08, 0.26]
+    ];
+
+    cracks.slice(0, wear.crackCount).forEach(([x1, y1, x2, y2]) => {
+      this.add
+        .line(x, y, x1 * width, y1 * height, x2 * width, y2 * height, 0x5c4330, wear.crackAlpha)
+        .setLineWidth(2)
+        .setData("dynamic", true);
+    });
   }
 
   private drawPlantHealth(plant: PlantEntity, x: number, y: number): void {
@@ -368,6 +396,7 @@ export class GameScene extends Phaser.Scene {
     const slowPulse = zombie.slowedUntilMs > this.state.nowMs ? 1 : 0;
     const profile = getZombieMiniatureProfile(zombie.zombieId);
     const miniature = getZombieMiniatureState(this.state.nowMs, zombie.x, chewing, hitPulse);
+    const wear = getHealthWearState(zombie.hp, ZOMBIES[zombie.zombieId].maxHp);
     const bodyX = x + miniature.bodyXOffset;
     const bodyY = y + miniature.bodyYOffset;
     const tint = hitPulse > 0 ? (hitEvent?.type === "zombie-hit" && hitEvent.slows ? 0xbbefff : 0xffa899) : profile.tintColor;
@@ -421,6 +450,7 @@ export class GameScene extends Phaser.Scene {
         )
         .setData("dynamic", true);
     }
+    this.drawZombieWear(bodyX, bodyY, profile.rimWidth * miniature.scaleX, profile.rimHeight * miniature.scaleY, wear);
 
     if (profile.headgear === "cone") {
       const halfWidth = profile.headgearWidth / 2;
@@ -477,6 +507,30 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.drawZombieHealth(zombie, x, y);
+  }
+
+  private drawZombieWear(x: number, y: number, width: number, height: number, wear: HealthWearState): void {
+    if (wear.dangerAlpha > 0) {
+      this.add
+        .ellipse(x, y, width + 14, height + 10, 0xf45f4f, wear.dangerAlpha * 0.14)
+        .setData("dynamic", true);
+    }
+
+    if (wear.crackCount === 0) return;
+
+    const scratches = [
+      [-0.2, -0.2, 0.0, -0.28],
+      [0.1, -0.04, 0.28, -0.12],
+      [-0.18, 0.16, 0.02, 0.08],
+      [0.06, 0.24, 0.26, 0.18]
+    ];
+
+    scratches.slice(0, wear.crackCount).forEach(([x1, y1, x2, y2]) => {
+      this.add
+        .line(x, y, x1 * width, y1 * height, x2 * width, y2 * height, 0xfff8df, wear.scuffAlpha)
+        .setLineWidth(2)
+        .setData("dynamic", true);
+    });
   }
 
   private drawZombieHealth(zombie: ZombieEntity, x: number, y: number): void {

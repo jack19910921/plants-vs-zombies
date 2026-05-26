@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  getHealthWearState,
   getPlantMiniatureProfile,
   getPlantMiniatureState,
   getZombieMiniatureProfile,
@@ -101,5 +102,30 @@ describe("world presentation helpers", () => {
     const bucket = getZombieMiniatureProfile("bucket");
 
     expect(bucket.rimColor).not.toBe(basic.rimColor);
+  });
+
+  it("keeps full health figures clean", () => {
+    expect(getHealthWearState(100, 100)).toMatchObject({
+      crackCount: 0,
+      crackAlpha: 0,
+      scuffAlpha: 0,
+      dangerAlpha: 0
+    });
+  });
+
+  it("adds wear marks to damaged figures", () => {
+    const damaged = getHealthWearState(50, 100);
+
+    expect(damaged.crackCount).toBeGreaterThan(0);
+    expect(damaged.crackAlpha).toBeGreaterThan(0);
+    expect(damaged.scuffAlpha).toBeGreaterThan(0);
+  });
+
+  it("makes critical figures more visibly damaged", () => {
+    const damaged = getHealthWearState(50, 100);
+    const critical = getHealthWearState(20, 100);
+
+    expect(critical.crackCount).toBeGreaterThan(damaged.crackCount);
+    expect(critical.dangerAlpha).toBeGreaterThan(damaged.dangerAlpha);
   });
 });

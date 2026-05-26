@@ -62,6 +62,14 @@ export interface ZombieMiniatureProfile {
   headgearYOffset: number;
 }
 
+export interface HealthWearState {
+  damageRatio: number;
+  crackCount: number;
+  crackAlpha: number;
+  scuffAlpha: number;
+  dangerAlpha: number;
+}
+
 const PLANT_MINIATURE_PROFILES: Record<PlantId, PlantMiniatureProfile> = {
   sunflower: {
     imageWidth: 64,
@@ -200,6 +208,30 @@ export function getPlantMiniatureProfile(plantId: PlantId): PlantMiniatureProfil
 
 export function getZombieMiniatureProfile(zombieId: ZombieId): ZombieMiniatureProfile {
   return ZOMBIE_MINIATURE_PROFILES[zombieId];
+}
+
+export function getHealthWearState(currentHp: number, maxHp: number): HealthWearState {
+  if (maxHp <= 0) {
+    return {
+      damageRatio: 0,
+      crackCount: 0,
+      crackAlpha: 0,
+      scuffAlpha: 0,
+      dangerAlpha: 0
+    };
+  }
+
+  const healthRatio = Math.max(0, Math.min(1, currentHp / maxHp));
+  const damageRatio = 1 - healthRatio;
+  const crackCount = damageRatio < 0.25 ? 0 : damageRatio < 0.65 ? 2 : 4;
+
+  return {
+    damageRatio,
+    crackCount,
+    crackAlpha: crackCount === 0 ? 0 : 0.28 + damageRatio * 0.38,
+    scuffAlpha: crackCount === 0 ? 0 : 0.18 + damageRatio * 0.3,
+    dangerAlpha: healthRatio > 0.35 ? 0 : (0.35 - healthRatio) / 0.35
+  };
 }
 
 export function getPlantMiniatureState(

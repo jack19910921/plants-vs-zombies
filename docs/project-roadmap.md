@@ -228,6 +228,7 @@ Delivered so far:
 - Added test-backed miniature volume rendering around existing safe assets: plant bases, stem supports, contact shadows, image squash/stretch, zombie foot pads, and stronger hit/chew body feedback.
 - Added test-backed plant silhouette profiles so sunflower, peashooter, wallnut, snow pea, and potato mine render with distinct body proportions, bases, stems, and rim colors.
 - Added test-backed enemy silhouette profiles so basic, cone, and bucket enemies render with distinct body weight, shadows, rims, tints, and headgear geometry.
+- Added test-backed health wear feedback so damaged plants and enemies gain cracks, scuffs, and subtle critical-health overlays.
 
 Architecture:
 
