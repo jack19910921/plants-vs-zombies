@@ -20,11 +20,11 @@
 
 ## Task 1: Testable Animation State
 
-- [ ] **Step 1: Write failing helper tests**
+- [x] **Step 1: Write failing helper tests**
 
 Create tests that assert seed-packet state is visible at 0 ms, larger mid-animation, and hidden after the duration.
 
-- [ ] **Step 2: Run tests and verify red**
+- [x] **Step 2: Run tests and verify red**
 
 Run:
 
@@ -34,11 +34,11 @@ npm test -- src/game/threePresentation.test.ts
 
 Expected: fail because the helper does not exist.
 
-- [ ] **Step 3: Implement helper**
+- [x] **Step 3: Implement helper**
 
 Create `getSeedPacketFlipState(ageMs, mode)` and export `SeedPacketFlipMode`.
 
-- [ ] **Step 4: Run tests and verify green**
+- [x] **Step 4: Run tests and verify green**
 
 Run:
 
@@ -50,21 +50,21 @@ Expected: helper tests pass.
 
 ## Task 2: ThreeStage Mesh And Trigger
 
-- [ ] **Step 1: Add mesh group**
+- [x] **Step 1: Add mesh group**
 
 Build a small 3D seed packet from box/cylinder/leaf-like primitives in `ThreeStage`.
 
-- [ ] **Step 2: Animate from helper**
+- [x] **Step 2: Animate from helper**
 
 Add `flipSeedPacket(mode)` and update the group inside `animate()`.
 
-- [ ] **Step 3: Wire main event**
+- [x] **Step 3: Wire main event**
 
 In `src/main.ts`, trigger `threeStage.flipSeedPacket("select")` for select and `threeStage.flipSeedPacket("plant")` for plant.
 
 ## Task 3: Verification And Commit
 
-- [ ] **Step 1: Run all tests**
+- [x] **Step 1: Run all tests**
 
 Run:
 
@@ -74,7 +74,7 @@ npm test
 
 Expected: all tests pass.
 
-- [ ] **Step 2: Build**
+- [x] **Step 2: Build**
 
 Run:
 
@@ -84,11 +84,11 @@ npm run build
 
 Expected: build succeeds with only the known chunk-size warning.
 
-- [ ] **Step 3: Browser check**
+- [x] **Step 3: Browser check**
 
 Open `http://127.0.0.1:5173/`, select an unlocked plant, plant it, verify the 3D canvas remains nonblank/animated, and check console warnings/errors.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 Commit:
 

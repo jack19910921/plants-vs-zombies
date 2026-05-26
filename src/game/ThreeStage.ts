@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { getSeedPacketFlipState, type SeedPacketFlipMode } from "./threePresentation";
 
 export class ThreeStage {
   private readonly renderer: THREE.WebGLRenderer;
@@ -8,11 +9,15 @@ export class ThreeStage {
   private readonly burst = new THREE.Group();
   private readonly waveRing = new THREE.Group();
   private readonly statusBadge = new THREE.Group();
+  private readonly seedPacket = new THREE.Group();
   private readonly statusBadgeMaterials: THREE.MeshStandardMaterial[] = [];
+  private readonly seedPacketMaterials: THREE.MeshStandardMaterial[] = [];
   private frameId = 0;
   private sunPulseStartedAt = -Infinity;
   private wavePulseStartedAt = -Infinity;
   private statusPulseStartedAt = -Infinity;
+  private seedPacketStartedAt = -Infinity;
+  private seedPacketMode: SeedPacketFlipMode = "select";
   private statusBadgeMode: "victory" | "failure" | null = null;
 
   constructor(private readonly root: HTMLElement) {
@@ -35,6 +40,8 @@ export class ThreeStage {
     this.scene.add(this.waveRing);
     this.buildStatusBadge();
     this.scene.add(this.statusBadge);
+    this.buildSeedPacket();
+    this.scene.add(this.seedPacket);
     this.resize();
     window.addEventListener("resize", this.resize);
     this.animate();
@@ -52,6 +59,12 @@ export class ThreeStage {
     this.statusBadgeMode = status;
     this.statusPulseStartedAt = performance.now();
     this.applyStatusBadgeColors(status);
+  }
+
+  flipSeedPacket(mode: SeedPacketFlipMode): void {
+    this.seedPacketMode = mode;
+    this.seedPacketStartedAt = performance.now();
+    this.applySeedPacketColors(mode);
   }
 
   destroy(): void {
@@ -145,6 +158,47 @@ export class ThreeStage {
     this.statusBadgeMaterials.push(faceMaterial, rimMaterial, markMaterial);
   }
 
+  private buildSeedPacket(): void {
+    const packetMaterial = new THREE.MeshStandardMaterial({
+      color: 0x65b86b,
+      roughness: 0.48,
+      transparent: true,
+      opacity: 0
+    });
+    const rimMaterial = new THREE.MeshStandardMaterial({
+      color: 0x35513f,
+      roughness: 0.42,
+      transparent: true,
+      opacity: 0
+    });
+    const labelMaterial = new THREE.MeshStandardMaterial({
+      color: 0xfff8df,
+      roughness: 0.5,
+      transparent: true,
+      opacity: 0
+    });
+    const seedMaterial = new THREE.MeshStandardMaterial({
+      color: 0xffd34f,
+      emissive: 0x332000,
+      emissiveIntensity: 0.4,
+      roughness: 0.36,
+      transparent: true,
+      opacity: 0
+    });
+    const packet = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.72, 0.08), packetMaterial);
+    const rim = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.76, 0.045), rimMaterial);
+    rim.position.z = -0.035;
+    const label = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.18, 0.09), labelMaterial);
+    label.position.set(0, 0.08, 0.055);
+    const seed = new THREE.Mesh(new THREE.SphereGeometry(0.08, 18, 12), seedMaterial);
+    seed.scale.set(1, 0.72, 0.24);
+    seed.position.set(0, -0.16, 0.08);
+    this.seedPacket.position.set(1.1, 0.58, 0);
+    this.seedPacket.add(rim, packet, label, seed);
+    this.seedPacket.visible = false;
+    this.seedPacketMaterials.push(packetMaterial, rimMaterial, labelMaterial, seedMaterial);
+  }
+
   private createStarGeometry(): THREE.ShapeGeometry {
     const shape = new THREE.Shape();
     for (let point = 0; point < 10; point += 1) {
@@ -183,6 +237,7 @@ export class ThreeStage {
     this.animateBurst(pulseAge);
     this.animateWaveRing(now);
     this.animateStatusBadge(now);
+    this.animateSeedPacket(now);
     this.renderer.render(this.scene, this.camera);
     this.frameId = requestAnimationFrame(this.animate);
   };
@@ -230,6 +285,19 @@ export class ThreeStage {
     });
   }
 
+  private animateSeedPacket(now: number): void {
+    const state = getSeedPacketFlipState(now - this.seedPacketStartedAt, this.seedPacketMode);
+    this.seedPacket.visible = state.visible;
+    if (!state.visible) return;
+    this.seedPacket.position.y = 0.58 + state.y;
+    this.seedPacket.rotation.y = state.rotationY;
+    this.seedPacket.rotation.z = state.rotationZ;
+    this.seedPacket.scale.setScalar(state.scale);
+    this.seedPacketMaterials.forEach((material) => {
+      material.opacity = state.opacity;
+    });
+  }
+
   private applyStatusBadgeColors(status: "victory" | "failure"): void {
     const [face, rim, mark] = this.statusBadgeMaterials;
     if (status === "victory") {
@@ -245,5 +313,20 @@ export class ThreeStage {
     rim.color.setHex(0x7b2d25);
     mark.color.setHex(0xfff8df);
     mark.emissive.setHex(0xff8f4d);
+  }
+
+  private applySeedPacketColors(mode: SeedPacketFlipMode): void {
+    const [packet, rim, label, seed] = this.seedPacketMaterials;
+    if (mode === "plant") {
+      packet.color.setHex(0xffd34f);
+      rim.color.setHex(0x8f6a24);
+      label.color.setHex(0xfff8df);
+      seed.color.setHex(0x65b86b);
+      return;
+    }
+    packet.color.setHex(0x65b86b);
+    rim.color.setHex(0x35513f);
+    label.color.setHex(0xfff8df);
+    seed.color.setHex(0xffd34f);
   }
 }

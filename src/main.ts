@@ -69,6 +69,12 @@ scene.uiEvents.on("state-changed", (state: GameState) => {
 });
 
 scene.uiEvents.on("sound-requested", (soundId: SoundId) => {
+  if (soundId === "select") {
+    threeStage.flipSeedPacket("select");
+  }
+  if (soundId === "plant") {
+    threeStage.flipSeedPacket("plant");
+  }
   void audio.unlock().then((unlocked) => {
     if (unlocked) audio.play(soundId);
   }).catch(() => undefined);

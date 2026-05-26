@@ -178,7 +178,7 @@ Dependencies:
 
 ### M4: Richer 3D Prop Layer
 
-Status: planned.
+Status: in progress.
 
 Goal: make the game feel more physically real without moving core gameplay into 3D.
 
@@ -187,6 +187,10 @@ Scope:
 - Add small 3D props tied to events: seed packet flip, gardening tool, reward medal, sun collection trail, or lane warning marker.
 - Add one persistent 3D scene motif that reinforces the tabletop/toy identity.
 - Keep 3D decorative and feedback-oriented; gameplay hit detection stays in rules.
+
+Delivered so far:
+
+- Added a test-backed 3D seed-packet flip for plant selection and planting.
 
 Architecture:
 
