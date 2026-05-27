@@ -17,7 +17,7 @@ Completed:
 - Three.js overlay with animated 3D sun coin.
 - Combat presentation events and feedback: fire recoil, hit flashes, chewing, slow highlight, health bars, defeated effects, and sun production feedback.
 - Wave and level milestone feedback: 3D wave pulse and victory/failure badge.
-- M9 Three.js polish for seed packet shine and potato mine shockwave feedback.
+- M9 Three.js polish for seed packet shine, potato mine shockwave feedback, and badge ceremony moments.
 - Automated rule/UI tests and browser visual checks used before commits.
 
 Known constraints:
@@ -373,6 +373,7 @@ Delivered:
 - Added a test-backed seed packet light sweep during select/plant flips.
 - Added a test-backed potato mine shockwave helper with warm flash, ring growth, and staggered dirt chunks.
 - Added a compact Three.js potato mine shockwave prop and wired it to `potato-mine-exploded`.
+- Added a test-backed level-end badge ceremony: victory pops with small reward particles, while failure dips gently without scary effects.
 - Kept all new visuals procedural; no external assets were added.
 
 Architecture:
@@ -386,6 +387,7 @@ Acceptance:
 - Presentation helper tests cover new animation state.
 - Desktop and mobile browser checks show no console warnings/errors.
 - The 3D stage remains compact and does not block plant cards or core board reading.
+- Victory and failure use distinct, child-friendly event choreography.
 
 Dependencies:
 
@@ -445,11 +447,11 @@ If the answer is no to most of these, keep it in the backlog.
 
 ## Recommended Next Slice
 
-Continue M9 with one more small visual-feedback slice or move to the next gameplay-content slice from the backlog.
+Move to the next gameplay-content slice from the backlog, or do a narrow M9 follow-up on sun/wave timing if more visual polish is preferred.
 
 Reason:
 
-- M0-M9 now cover foundation, onboarding, audio, progression, 3D props, visual consistency, mobile controls, packaging, potato mine rules, and the first animation juice pass.
-- The best visual follow-up is a reward ceremony pass for victory and a gentle toy-sign dip for failure.
+- M0-M9 now cover foundation, onboarding, audio, progression, 3D props, visual consistency, mobile controls, packaging, potato mine rules, and two animation juice passes.
+- The best visual follow-up is smaller timing polish for sun trails or wave warnings.
 - The best gameplay follow-up is more replayable content: a new plant role, a clearer enemy variant, or a better victory/failure summary.
 - Keep the next slice small enough to verify with helper tests, UI/rules tests where relevant, and browser smoke checks.

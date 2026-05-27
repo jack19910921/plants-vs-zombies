@@ -49,6 +49,25 @@ export interface PotatoMineShockwaveState {
   rotationZ: number;
 }
 
+export type StatusBadgeMode = "victory" | "failure";
+
+export interface StatusBadgeState {
+  visible: boolean;
+  opacity: number;
+  scale: number;
+  y: number;
+  rotationY: number;
+  rotationZ: number;
+  materialIntensity: number;
+  particleVisible: boolean;
+  particleOpacity: number;
+  particleX: number;
+  particleY: number;
+  particleZ: number;
+  particleScale: number;
+  particleRotationZ: number;
+}
+
 const SEED_PACKET_FLIP_MS = 720;
 const GARDEN_TOOL_PULSE_MS = 620;
 const WAVE_WARNING_STAKE_MS = 860;
@@ -56,6 +75,9 @@ const SUN_TRAIL_PARTICLE_MS = 760;
 const SUN_TRAIL_PARTICLE_DELAY_MS = 48;
 const POTATO_MINE_SHOCKWAVE_MS = 680;
 const POTATO_MINE_DEBRIS_DELAY_MS = 32;
+const STATUS_BADGE_MS = 5000;
+const STATUS_BADGE_PARTICLE_MS = 1180;
+const STATUS_BADGE_PARTICLE_DELAY_MS = 58;
 
 export function getSeedPacketFlipState(ageMs: number, mode: SeedPacketFlipMode): SeedPacketFlipState {
   if (ageMs < 0 || ageMs > SEED_PACKET_FLIP_MS) {
@@ -201,5 +223,59 @@ export function getPotatoMineShockwaveState(ageMs: number, index: number): Potat
     z: Math.sin(angle) * radius * 0.18,
     scale: 0.34 + Math.sin(progress * Math.PI) * 0.36,
     rotationZ: angle + progress * Math.PI * 0.85
+  };
+}
+
+export function getStatusBadgeState(ageMs: number, mode: StatusBadgeMode, index: number): StatusBadgeState {
+  const particleIndex = Math.max(0, index);
+  const angle = -Math.PI / 2 + particleIndex * 1.79;
+  const localAge = ageMs - particleIndex * STATUS_BADGE_PARTICLE_DELAY_MS;
+
+  if (ageMs < 0 || ageMs > STATUS_BADGE_MS) {
+    return {
+      visible: false,
+      opacity: 0,
+      scale: 0.2,
+      y: -0.88,
+      rotationY: 0,
+      rotationZ: 0,
+      materialIntensity: 0,
+      particleVisible: false,
+      particleOpacity: 0,
+      particleX: Math.cos(angle) * 0.18,
+      particleY: Math.sin(angle) * 0.18,
+      particleZ: 0,
+      particleScale: 0.1,
+      particleRotationZ: angle
+    };
+  }
+
+  const progress = ageMs / STATUS_BADGE_MS;
+  const intro = Math.min(1, ageMs / 780);
+  const pop = Math.sin(intro * Math.PI);
+  const fadeOut = ageMs > 4100 ? Math.max(0, 1 - (ageMs - 4100) / 900) : 1;
+  const victory = mode === "victory";
+  const failureDip = victory ? 0 : Math.sin(Math.min(1, ageMs / 900) * Math.PI) * 0.1;
+  const particleProgress = localAge / STATUS_BADGE_PARTICLE_MS;
+  const particleVisible = victory && localAge >= 0 && localAge <= STATUS_BADGE_PARTICLE_MS;
+  const particleArc = particleVisible ? Math.sin(particleProgress * Math.PI) : 0;
+  const particleRadius = 0.18 + (particleVisible ? (1 - (1 - particleProgress) ** 3) * 0.62 : 0);
+  const particleFade = particleVisible ? Math.max(0, 1 - Math.max(0, particleProgress - 0.48) / 0.52) : 0;
+
+  return {
+    visible: true,
+    opacity: fadeOut,
+    scale: victory ? 0.34 + intro * 0.72 + pop * 0.18 : 0.34 + intro * 0.58 + pop * 0.06,
+    y: victory ? -0.88 + pop * 0.09 : -0.9 - failureDip,
+    rotationY: victory ? Math.sin(progress * Math.PI * 5) * 0.46 : -0.28 + pop * 0.1,
+    rotationZ: victory ? progress * Math.PI * 2.8 : -0.22 * intro + Math.sin(progress * Math.PI * 2) * 0.04,
+    materialIntensity: victory ? 0.95 + pop * 0.42 : 0.56 + pop * 0.1,
+    particleVisible,
+    particleOpacity: particleFade * fadeOut,
+    particleX: Math.cos(angle) * particleRadius,
+    particleY: Math.sin(angle) * particleRadius + particleArc * 0.2,
+    particleZ: Math.sin(angle * 2) * 0.08,
+    particleScale: 0.24 + particleArc * 0.38,
+    particleRotationZ: angle + particleProgress * Math.PI * 1.2
   };
 }

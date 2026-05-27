@@ -3,9 +3,11 @@ import {
   getGardenToolState,
   getPotatoMineShockwaveState,
   getSeedPacketFlipState,
+  getStatusBadgeState,
   getSunTrailParticleState,
   getWaveWarningStakeState,
-  type SeedPacketFlipMode
+  type SeedPacketFlipMode,
+  type StatusBadgeMode
 } from "./threePresentation";
 
 export class ThreeStage {
@@ -18,10 +20,12 @@ export class ThreeStage {
   private readonly waveRing = new THREE.Group();
   private readonly potatoMineShockwave = new THREE.Group();
   private readonly statusBadge = new THREE.Group();
+  private readonly statusBadgeParticles = new THREE.Group();
   private readonly seedPacket = new THREE.Group();
   private readonly gardenTool = new THREE.Group();
   private readonly waveWarningStake = new THREE.Group();
   private readonly statusBadgeMaterials: THREE.MeshStandardMaterial[] = [];
+  private readonly statusBadgeParticleMaterials: THREE.MeshStandardMaterial[] = [];
   private readonly seedPacketMaterials: THREE.MeshStandardMaterial[] = [];
   private seedPacketShine?: THREE.Mesh<THREE.BoxGeometry, THREE.MeshStandardMaterial>;
   private readonly potatoMineShockwaveMaterials: THREE.MeshStandardMaterial[] = [];
@@ -34,7 +38,7 @@ export class ThreeStage {
   private seedPacketStartedAt = -Infinity;
   private gardenToolPulseStartedAt = -Infinity;
   private seedPacketMode: SeedPacketFlipMode = "select";
-  private statusBadgeMode: "victory" | "failure" | null = null;
+  private statusBadgeMode: StatusBadgeMode | null = null;
 
   constructor(private readonly root: HTMLElement) {
     this.renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, preserveDrawingBuffer: true });
@@ -62,6 +66,8 @@ export class ThreeStage {
     this.scene.add(this.waveWarningStake);
     this.buildStatusBadge();
     this.scene.add(this.statusBadge);
+    this.buildStatusBadgeParticles();
+    this.scene.add(this.statusBadgeParticles);
     this.buildGardenTool();
     this.scene.add(this.gardenTool);
     this.buildSeedPacket();
@@ -83,7 +89,7 @@ export class ThreeStage {
     this.potatoMineShockwaveStartedAt = performance.now();
   }
 
-  showLevelBadge(status: "victory" | "failure"): void {
+  showLevelBadge(status: StatusBadgeMode): void {
     this.statusBadgeMode = status;
     this.statusPulseStartedAt = performance.now();
     this.applyStatusBadgeColors(status);
@@ -284,6 +290,29 @@ export class ThreeStage {
     this.statusBadge.add(face, rim, mark);
     this.statusBadge.visible = false;
     this.statusBadgeMaterials.push(faceMaterial, rimMaterial, markMaterial);
+  }
+
+  private buildStatusBadgeParticles(): void {
+    for (let index = 0; index < 8; index += 1) {
+      const material = new THREE.MeshStandardMaterial({
+        color: index % 2 === 0 ? 0xfff1a3 : 0xffd34f,
+        emissive: index % 2 === 0 ? 0xffffff : 0xffc547,
+        emissiveIntensity: 0.75,
+        roughness: 0.34,
+        transparent: true,
+        opacity: 0
+      });
+      const particle =
+        index % 2 === 0
+          ? new THREE.Mesh(this.createStarGeometry(), material)
+          : new THREE.Mesh(new THREE.SphereGeometry(0.065, 14, 10), material);
+      particle.userData.particleIndex = index;
+      particle.visible = false;
+      this.statusBadgeParticles.add(particle);
+      this.statusBadgeParticleMaterials.push(material);
+    }
+    this.statusBadgeParticles.position.set(1.08, -0.88, 0.04);
+    this.statusBadgeParticles.visible = false;
   }
 
   private buildSeedPacket(): void {
@@ -522,18 +551,59 @@ export class ThreeStage {
   }
 
   private animateStatusBadge(now: number): void {
-    const age = (now - this.statusPulseStartedAt) / 900;
-    this.statusBadge.visible = this.statusBadgeMode !== null && age >= 0 && age <= 5;
-    if (!this.statusBadge.visible) return;
-    const intro = Math.min(1, Math.max(0, age));
-    const alpha = age > 4 ? Math.max(0, 5 - age) : 1;
-    this.statusBadge.rotation.y = Math.sin(now / 480) * 0.5;
-    this.statusBadge.rotation.z = now / 900;
-    this.statusBadge.position.y = -0.88 + Math.sin(now / 260) * 0.04;
-    this.statusBadge.scale.setScalar(0.3 + intro * 0.7);
+    if (!this.statusBadgeMode) {
+      this.statusBadge.visible = false;
+      this.statusBadgeParticles.visible = false;
+      return;
+    }
+
+    const ageMs = now - this.statusPulseStartedAt;
+    const state = getStatusBadgeState(ageMs, this.statusBadgeMode, 0);
+    this.statusBadge.visible = state.visible;
+    if (!state.visible) {
+      this.statusBadgeParticles.visible = false;
+      this.statusBadgeMaterials.forEach((material) => {
+        material.opacity = 0;
+      });
+      this.statusBadgeParticleMaterials.forEach((material) => {
+        material.opacity = 0;
+      });
+      return;
+    }
+
+    this.statusBadge.rotation.y = state.rotationY;
+    this.statusBadge.rotation.z = state.rotationZ;
+    this.statusBadge.position.y = state.y;
+    this.statusBadge.scale.setScalar(state.scale);
     this.statusBadgeMaterials.forEach((material) => {
-      material.opacity = alpha;
+      material.opacity = state.opacity;
+      material.emissiveIntensity = state.materialIntensity;
     });
+    this.animateStatusBadgeParticles(ageMs, this.statusBadgeMode, state.y);
+  }
+
+  private animateStatusBadgeParticles(ageMs: number, mode: StatusBadgeMode, badgeY: number): void {
+    let hasVisibleParticle = false;
+
+    this.statusBadgeParticles.position.y = badgeY;
+    this.statusBadgeParticles.children.forEach((child, index) => {
+      const particle = child as THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMaterial>;
+      const state = getStatusBadgeState(ageMs, mode, index);
+      particle.visible = state.particleVisible;
+
+      if (!state.particleVisible) {
+        particle.material.opacity = 0;
+        return;
+      }
+
+      hasVisibleParticle = true;
+      particle.position.set(state.particleX, state.particleY, state.particleZ);
+      particle.rotation.z = state.particleRotationZ;
+      particle.scale.setScalar(state.particleScale);
+      particle.material.opacity = state.particleOpacity;
+    });
+
+    this.statusBadgeParticles.visible = hasVisibleParticle;
   }
 
   private animateSeedPacket(now: number): void {
@@ -564,7 +634,7 @@ export class ThreeStage {
     this.gardenTool.scale.setScalar(state.scale);
   }
 
-  private applyStatusBadgeColors(status: "victory" | "failure"): void {
+  private applyStatusBadgeColors(status: StatusBadgeMode): void {
     const [face, rim, mark] = this.statusBadgeMaterials;
     if (status === "victory") {
       face.color.setHex(0xffd34f);

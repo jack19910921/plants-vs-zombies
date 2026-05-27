@@ -3,6 +3,7 @@ import {
   getGardenToolState,
   getPotatoMineShockwaveState,
   getSeedPacketFlipState,
+  getStatusBadgeState,
   getSunTrailParticleState,
   getWaveWarningStakeState
 } from "./threePresentation";
@@ -117,5 +118,34 @@ describe("three presentation helpers", () => {
 
   it("hides potato mine shockwave particles after the burst", () => {
     expect(getPotatoMineShockwaveState(900, 0)).toMatchObject({ visible: false, opacity: 0, flashOpacity: 0 });
+  });
+
+  it("pops the victory badge and exposes celebration particles", () => {
+    const start = getStatusBadgeState(0, "victory", 0);
+    const intro = getStatusBadgeState(360, "victory", 0);
+
+    expect(start.visible).toBe(true);
+    expect(intro.scale).toBeGreaterThan(start.scale);
+    expect(intro.particleVisible).toBe(true);
+    expect(intro.particleOpacity).toBeGreaterThan(0);
+  });
+
+  it("keeps failure badge gentle and dimmer than victory", () => {
+    const victory = getStatusBadgeState(520, "victory", 0);
+    const failure = getStatusBadgeState(520, "failure", 0);
+
+    expect(failure.visible).toBe(true);
+    expect(failure.y).toBeLessThan(victory.y);
+    expect(failure.materialIntensity).toBeLessThan(victory.materialIntensity);
+    expect(failure.particleVisible).toBe(false);
+  });
+
+  it("hides status badge ceremony after its lifetime", () => {
+    expect(getStatusBadgeState(5200, "victory", 0)).toMatchObject({
+      visible: false,
+      opacity: 0,
+      particleOpacity: 0
+    });
+    expect(getStatusBadgeState(5200, "failure", 0)).toMatchObject({ visible: false, opacity: 0 });
   });
 });
