@@ -70,6 +70,27 @@ export interface HealthWearState {
   dangerAlpha: number;
 }
 
+export interface ProjectilePresentation {
+  trailColor: number;
+  trailAlpha: number;
+  glowColor: number;
+  glowRadius: number;
+  coreColor: number;
+  coreRadius: number;
+  rimColor: number;
+  sparkleColor: number;
+}
+
+export interface SunPickupPresentation {
+  coinColor: number;
+  rimColor: number;
+  glintColor: number;
+  textColor: string;
+  alpha: number;
+  coinRadius: number;
+  haloRadius: number;
+}
+
 const PLANT_MINIATURE_PROFILES: Record<PlantId, PlantMiniatureProfile> = {
   sunflower: {
     imageWidth: 74,
@@ -208,6 +229,45 @@ export function getPlantMiniatureProfile(plantId: PlantId): PlantMiniatureProfil
 
 export function getZombieMiniatureProfile(zombieId: ZombieId): ZombieMiniatureProfile {
   return ZOMBIE_MINIATURE_PROFILES[zombieId];
+}
+
+export function getProjectilePresentation(slows: boolean): ProjectilePresentation {
+  return slows
+    ? {
+        trailColor: 0xbdefff,
+        trailAlpha: 0.34,
+        glowColor: 0xe8fbff,
+        glowRadius: 15,
+        coreColor: 0x8fe7ff,
+        coreRadius: 10,
+        rimColor: 0x3f6f86,
+        sparkleColor: 0xffffff
+      }
+    : {
+        trailColor: 0xa6e56f,
+        trailAlpha: 0.3,
+        glowColor: 0xf4ffd0,
+        glowRadius: 12,
+        coreColor: 0x7edb65,
+        coreRadius: 10,
+        rimColor: 0x315f3a,
+        sparkleColor: 0xffffe4
+      };
+}
+
+export function getSunPickupPresentation(progress: number): SunPickupPresentation {
+  const safeProgress = Math.max(0, Math.min(1, progress));
+  const alpha = 1 - safeProgress;
+
+  return {
+    coinColor: 0xffd34f,
+    rimColor: 0xa56c21,
+    glintColor: 0xfff8df,
+    textColor: "#6d4615",
+    alpha,
+    coinRadius: 14 - safeProgress * 4,
+    haloRadius: 20 + safeProgress * 18
+  };
 }
 
 export function getHealthWearState(currentHp: number, maxHp: number): HealthWearState {

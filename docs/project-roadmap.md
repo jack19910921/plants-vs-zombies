@@ -19,7 +19,7 @@ Completed:
 - Wave and level milestone feedback: 3D wave pulse and victory/failure badge.
 - M9 Three.js polish for seed packet shine, sun trails, wave warning beacons, planting sparks, potato mine shockwave feedback, and badge ceremony moments.
 - M10 procedural toy-garden art pass for richer tabletop props and board polish without external assets.
-- M11 asset replacement pass started with user-provided ChatGPT image-model plants/board and original toy enemy SVGs.
+- M11 asset replacement pass started with user-provided ChatGPT image-model plants/board, original toy enemy SVGs, and matching projectile/sun pickup polish.
 - Automated rule/UI tests and browser visual checks used before commits.
 
 Known constraints:
@@ -422,11 +422,12 @@ Delivered so far:
 - Replaced the flat board fill with the image2 garden board texture.
 - Added bottom-center plant anchoring and card `contain` rendering for the new plant art.
 - Added original in-repository toy enemy SVG assets for basic, cone, and bucket enemy variants.
+- Polished pea/ice projectiles and sun-produced pickup feedback to match the toy asset palette.
 - Registered every new non-code asset in `docs/asset-sources.md`.
 
 Remaining:
 
-- Projectile and sun particle art can still be made more consistent with the new static assets.
+- Deeper particle choreography can still be added later if it stays lightweight.
 - Enemy behavior and wave balance are unchanged.
 
 ## Backlog By Domain

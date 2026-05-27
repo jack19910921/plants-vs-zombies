@@ -22,6 +22,8 @@ import {
   getHealthWearState,
   getPlantMiniatureProfile,
   getPlantMiniatureState,
+  getProjectilePresentation,
+  getSunPickupPresentation,
   getZombieMiniatureProfile,
   getZombieMiniatureState,
   type HealthWearState
@@ -408,9 +410,25 @@ export class GameScene extends Phaser.Scene {
 
     if (sunEvent?.type === "sun-produced") {
       const coinY = visualCenterY - imageHeight * 0.48 - sunProgress * 34;
-      const alpha = Math.max(0, 1 - sunProgress);
-      this.add.circle(x, coinY, 14, 0xffd34f, alpha).setStrokeStyle(3, 0xa56c21, alpha).setData("dynamic", true);
-      this.add.text(x + 18, coinY - 8, `+${sunEvent.amount}`, { fontSize: "16px", color: "#6d4615", fontStyle: "bold" }).setData("dynamic", true);
+      const sunPickup = getSunPickupPresentation(sunProgress);
+      this.add
+        .circle(x, coinY, sunPickup.haloRadius, sunPickup.glintColor, 0.18 * sunPickup.alpha)
+        .setData("dynamic", true);
+      this.add
+        .circle(x, coinY, sunPickup.coinRadius, sunPickup.coinColor, sunPickup.alpha)
+        .setStrokeStyle(3, sunPickup.rimColor, sunPickup.alpha)
+        .setData("dynamic", true);
+      this.add
+        .star(x - 3, coinY - 4, 5, 3, 8, sunPickup.glintColor, 0.42 * sunPickup.alpha)
+        .setData("dynamic", true);
+      this.add
+        .text(x + 18, coinY - 8, `+${sunEvent.amount}`, {
+          fontSize: "16px",
+          color: sunPickup.textColor,
+          fontStyle: "bold"
+        })
+        .setAlpha(sunPickup.alpha)
+        .setData("dynamic", true);
     }
 
     this.drawPlantHealth(plant, x, y);
@@ -455,12 +473,15 @@ export class GameScene extends Phaser.Scene {
   ): void {
     const x = BOARD.x + projectile.x * columnWidth;
     const y = BOARD.y + projectile.lane * laneHeight + laneHeight / 2;
-    const color = projectile.slows ? 0x9fd7ef : 0xc7ef68;
-    const glow = projectile.slows ? 0xdaf8ff : 0xf4ffd0;
-    this.add.circle(x - 18, y, 8, color, 0.18).setData("dynamic", true);
-    this.add.circle(x - 8, y, 10, color, 0.28).setData("dynamic", true);
-    this.add.circle(x, y, 11, color).setStrokeStyle(2, 0x35513f).setData("dynamic", true);
-    this.add.circle(x - 4, y - 4, 4, glow, 0.7).setData("dynamic", true);
+    const presentation = getProjectilePresentation(projectile.slows);
+    this.add.circle(x - 20, y, 7, presentation.trailColor, presentation.trailAlpha * 0.52).setData("dynamic", true);
+    this.add.circle(x - 10, y, 9, presentation.trailColor, presentation.trailAlpha).setData("dynamic", true);
+    this.add.circle(x, y, presentation.glowRadius, presentation.glowColor, 0.24).setData("dynamic", true);
+    this.add
+      .circle(x, y, presentation.coreRadius, presentation.coreColor)
+      .setStrokeStyle(2, presentation.rimColor)
+      .setData("dynamic", true);
+    this.add.circle(x - 4, y - 4, 4, presentation.sparkleColor, 0.74).setData("dynamic", true);
   }
 
   private drawZombie(zombie: ZombieEntity, laneHeight: number, columnWidth: number): void {

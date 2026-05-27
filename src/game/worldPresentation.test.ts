@@ -3,6 +3,8 @@ import {
   getHealthWearState,
   getPlantMiniatureProfile,
   getPlantMiniatureState,
+  getProjectilePresentation,
+  getSunPickupPresentation,
   getZombieMiniatureProfile,
   getZombieMiniatureState
 } from "./worldPresentation";
@@ -112,6 +114,27 @@ describe("world presentation helpers", () => {
     const bucket = getZombieMiniatureProfile("bucket");
 
     expect(bucket.rimColor).not.toBe(basic.rimColor);
+  });
+
+  it("gives pea and ice projectiles distinct toy bead palettes", () => {
+    const pea = getProjectilePresentation(false);
+    const ice = getProjectilePresentation(true);
+
+    expect(pea.coreColor).toBe(0x7edb65);
+    expect(pea.rimColor).toBe(0x315f3a);
+    expect(ice.coreColor).toBe(0x8fe7ff);
+    expect(ice.glowRadius).toBeGreaterThan(pea.glowRadius);
+    expect(ice.trailColor).not.toBe(pea.trailColor);
+  });
+
+  it("shrinks and fades sun pickup feedback as it is collected", () => {
+    const start = getSunPickupPresentation(0);
+    const end = getSunPickupPresentation(1);
+
+    expect(start.alpha).toBe(1);
+    expect(end.alpha).toBe(0);
+    expect(start.coinRadius).toBeGreaterThan(end.coinRadius);
+    expect(start.haloRadius).toBeLessThan(end.haloRadius);
   });
 
   it("keeps full health figures clean", () => {
