@@ -50,7 +50,7 @@ const difficultyOptions: Array<{ id: DifficultyId; label: string }> = [
 const plantingFeedbackText: Record<OverlayPlantingFeedback["reason"], string> = {
   "no-selection": "先选一张植物卡片。",
   occupied: "这个格子已经有植物啦。",
-  "not-enough-sun": "阳光不够，等向日葵产阳光。",
+  "not-enough-sun": "阳光不够，等向日葵或基地补给。",
   cooldown: "这张卡还在准备。",
   "outside-board": "点彩色草坪格子来种植物。",
   locked: "这株植物下一关再用。"

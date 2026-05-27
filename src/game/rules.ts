@@ -16,6 +16,8 @@ let entityCounter = 0;
 const EVENT_TTL_MS = 700;
 const POTATO_MINE_TRIGGER_RADIUS_CELLS = 0.65;
 const POTATO_MINE_BLAST_RADIUS_CELLS = 0.75;
+const BASE_SUN_AMOUNT = 25;
+const BASE_SUN_INTERVAL_MS = 9000;
 const NORMAL_DIFFICULTY: DifficultyConfig = {
   zombieHpMultiplier: 1,
   zombieSpeedMultiplier: 1,
@@ -59,7 +61,8 @@ export function createInitialState(level: LevelConfig, difficulty: DifficultyCon
       potatomine: 0
     },
     heroLane: 2,
-    nextHeroShotAtMs: 0
+    nextHeroShotAtMs: 0,
+    nextBaseSunAtMs: BASE_SUN_INTERVAL_MS
   };
 }
 
@@ -204,6 +207,22 @@ export function advanceCombat(
   const events = state.events.filter((event) => state.nowMs - event.atMs <= EVENT_TTL_MS);
   let sun = state.sun;
   let nextHeroShotAtMs = state.nextHeroShotAtMs;
+  let nextBaseSunAtMs = state.nextBaseSunAtMs;
+
+  if (state.nowMs >= nextBaseSunAtMs) {
+    sun += BASE_SUN_AMOUNT;
+    events.push(
+      makeEvent({
+        type: "sun-produced",
+        sourceId: "base-sun",
+        lane: state.heroLane,
+        column: 0,
+        amount: BASE_SUN_AMOUNT,
+        atMs: state.nowMs
+      })
+    );
+    nextBaseSunAtMs = state.nowMs + BASE_SUN_INTERVAL_MS;
+  }
 
   for (const plant of plants) {
     const config = plantConfigs[plant.plantId];
@@ -384,6 +403,7 @@ export function advanceCombat(
     ...state,
     sun,
     nextHeroShotAtMs,
+    nextBaseSunAtMs,
     plants: plants.filter((plant) => plant.hp > 0 && !spentPlantIds.has(plant.id)),
     zombies,
     projectiles: remainingProjectiles,

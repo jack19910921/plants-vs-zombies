@@ -179,4 +179,5 @@ export interface GameState {
   cooldownReadyAt: Record<PlantId, number>;
   heroLane: LaneIndex;
   nextHeroShotAtMs: number;
+  nextBaseSunAtMs: number;
 }

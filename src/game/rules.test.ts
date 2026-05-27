@@ -173,6 +173,35 @@ describe("game rules", () => {
     expect(next.sun).toBe(planted.sun + 25);
   });
 
+  it("provides base sun over time even without sunflowers", () => {
+    const state = { ...createInitialState(LEVEL_ONE), sun: 0, nowMs: 9000 };
+    const next = advanceCombat(state, PLANTS, ZOMBIES, 16);
+
+    expect(next.sun).toBe(25);
+    expect(next.nextBaseSunAtMs).toBeGreaterThan(state.nowMs);
+    expect(next.events).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: "sun-produced",
+          sourceId: "base-sun",
+          amount: 25,
+          atMs: state.nowMs
+        })
+      ])
+    );
+  });
+
+  it("does not provide base sun again before the next scheduled drip", () => {
+    const state = { ...createInitialState(LEVEL_ONE), sun: 0, nowMs: 9000 };
+    const first = advanceCombat(state, PLANTS, ZOMBIES, 16);
+    const second = advanceCombat({ ...first, nowMs: 9016 }, PLANTS, ZOMBIES, 16);
+
+    expect(second.sun).toBe(25);
+    expect(
+      second.events.filter((event) => event.type === "sun-produced" && event.sourceId === "base-sun")
+    ).toHaveLength(1);
+  });
+
   it("stops zombies while they chew through a plant", () => {
     const planted = plantAt(selectPlant(createInitialState(LEVEL_ONE), "wallnut"), PLANTS, 0, 3);
     const state = {
