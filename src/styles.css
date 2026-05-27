@@ -89,7 +89,7 @@ button {
 
 .hud-top {
   display: grid;
-  grid-template-columns: 220px 1fr 132px 64px 92px;
+  grid-template-columns: 200px 1fr 132px 64px 92px 104px;
   gap: 12px;
 }
 
@@ -288,6 +288,11 @@ button {
   transform: translateZ(18px);
 }
 
+:root[data-motion="reduced"] .plant-card,
+:root[data-motion="reduced"] .plant-art {
+  transform: none;
+}
+
 .lane-controls {
   position: absolute;
   top: 50%;
@@ -382,9 +387,13 @@ button {
 
   .hud-top {
     grid-template-columns: minmax(94px, 1fr) minmax(96px, 1fr) minmax(82px, 0.9fr);
-    grid-template-rows: repeat(2, 50px);
+    grid-template-rows: repeat(3, 46px);
     gap: 6px;
     width: auto;
+  }
+
+  .hud {
+    grid-template-rows: 150px minmax(0, 1fr) auto;
   }
 
   .chip {
@@ -415,6 +424,11 @@ button {
   .hud-top .sound-toggle {
     grid-column: 3;
     grid-row: 2;
+  }
+
+  .hud-top .motion-toggle {
+    grid-column: 1 / 4;
+    grid-row: 3;
   }
 
   .difficulty-toggle {

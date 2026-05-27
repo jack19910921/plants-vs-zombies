@@ -30,6 +30,7 @@ interface OverlayRenderState {
   allowedPlantIds?: PlantId[];
   difficultyId?: DifficultyId;
   soundEnabled?: boolean;
+  reducedMotion?: boolean;
   hasNextLevel?: boolean;
   plantsCount?: number;
   spawnedWaveCount?: number;
@@ -41,6 +42,8 @@ interface OverlayRenderState {
 export interface DomOverlayOptions {
   soundEnabled?: boolean;
   onToggleSound?: (enabled: boolean) => void;
+  reducedMotion?: boolean;
+  onToggleMotion?: (enabled: boolean) => void;
 }
 
 const plantOrder: PlantId[] = ["sunflower", "peashooter", "wallnut", "snowpea", "potatomine"];
@@ -149,6 +152,7 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
     .join("");
   const tutorialText = getTutorialText(state);
   const soundEnabled = state.soundEnabled ?? true;
+  const reducedMotion = state.reducedMotion ?? false;
   const difficultyId = state.difficultyId ?? "normal";
   const waveLabel = state.levelName ? `${state.levelName} · ${state.waveText}` : state.waveText;
   const difficultyButtons = difficultyOptions
@@ -191,6 +195,7 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
       <div class="difficulty-toggle">${difficultyButtons}</div>
       <button class="chip" data-action="pause">暂停</button>
       <button class="chip sound-toggle" data-action="sound">${soundEnabled ? "声音开" : "声音关"}</button>
+      <button class="chip motion-toggle" data-action="motion">${reducedMotion ? "动效柔和" : "动效正常"}</button>
     </div>
     <div class="tutorial-strip"><span>${tutorialText}</span>${feedbackMarkup}</div>
     <div class="lane-controls" aria-label="小队长移动">
@@ -220,6 +225,7 @@ export function createDomOverlay(root: Element, scene: GameScene, options: DomOv
   let recentFeedback: OverlayFeedback | null = null;
   let feedbackTimer: ReturnType<typeof setTimeout> | null = null;
   let soundEnabled = options.soundEnabled ?? true;
+  let reducedMotion = options.reducedMotion ?? false;
   const shownAchievements = new Set<AchievementId>();
   const queuedFeedback: OverlayAchievementFeedback[] = [];
 
@@ -263,6 +269,7 @@ export function createDomOverlay(root: Element, scene: GameScene, options: DomOv
       allowedPlantIds: level.allowedPlants,
       difficultyId: scene.getCurrentDifficultyId(),
       soundEnabled,
+      reducedMotion,
       hasNextLevel: scene.hasNextLevel(),
       plantsCount: state.plants.length,
       spawnedWaveCount: state.spawnedWaveIndexes.length,
@@ -303,6 +310,12 @@ export function createDomOverlay(root: Element, scene: GameScene, options: DomOv
     if (actionButton?.dataset.action === "sound") {
       soundEnabled = !soundEnabled;
       options.onToggleSound?.(soundEnabled);
+      if (lastState) render(lastState);
+      return;
+    }
+    if (actionButton?.dataset.action === "motion") {
+      reducedMotion = !reducedMotion;
+      options.onToggleMotion?.(reducedMotion);
       if (lastState) render(lastState);
       return;
     }

@@ -21,6 +21,7 @@ Completed:
 - M10 procedural toy-garden art pass for richer tabletop props and board polish without external assets.
 - M11 asset replacement pass started with user-provided ChatGPT image-model plants/board, original toy enemy SVGs, and matching projectile/sun pickup polish.
 - M12 terminal summary adds compact victory/failure stats for wave progress, remaining plants, and sun.
+- Final acceptance closeout adds a gentle motion setting and a small bucket enemy ice-resistance behavior.
 - Automated rule/UI tests and browser visual checks used before commits.
 
 Known constraints:
@@ -412,7 +413,7 @@ Delivered:
 
 ### M11: Asset Replacement Pass
 
-Status: in progress.
+Status: complete.
 
 Goal: replace placeholder-feeling visuals with user-owned, generated, or original local assets while keeping licensing safe.
 
@@ -426,10 +427,9 @@ Delivered so far:
 - Polished pea/ice projectiles and sun-produced pickup feedback to match the toy asset palette.
 - Registered every new non-code asset in `docs/asset-sources.md`.
 
-Remaining:
+Closeout note:
 
-- Deeper particle choreography can still be added later if it stays lightweight.
-- Enemy behavior and wave balance are unchanged.
+- Deeper particle choreography is now treated as optional future polish, not acceptance-blocking work.
 
 ### M12: Terminal Summary Polish
 
@@ -443,33 +443,39 @@ Delivered:
 - Kept the summary responsive with stacked mobile chips.
 - Covered victory and failure summaries with DOM overlay tests.
 
+### Final Acceptance Closeout
+
+Status: complete.
+
+Goal: finish the remaining acceptance checklist without expanding scope.
+
+Delivered:
+
+- Added a `动效正常` / `动效柔和` HUD toggle.
+- Skipped decorative Three.js event pulses when gentle motion is enabled.
+- Added bucket enemy ice resistance so armored enemies have a clearer behavior difference.
+- Updated the private preview checklist for final验收.
+
 ## Backlog By Domain
 
 Gameplay:
 
 - More plants with distinct but simple roles.
-- More zombie variants with clear silhouettes and behaviors.
-- Level progression and difficulty.
+- More enemy behavior variants beyond the current bucket ice resistance.
+- More levels or optional objectives after验收.
 
 UX:
 
-- Tutorial prompts.
-- Invalid action feedback.
-- Settings panel for audio and reduced motion.
 - Saved or shareable run history if the prototype later needs it.
 
 Visual:
 
-- Consistent realistic assets.
-- 3D prop feedback.
-- Improved lane readability.
-- Mobile HUD polish.
+- Deeper particle choreography if it stays lightweight.
+- Further lane readability tuning after hands-on验收.
 
 Audio:
 
-- Gentle event sounds.
-- Sound toggle.
-- Volume discipline.
+- More varied sound cues if family testing asks for them.
 
 Engineering:
 
@@ -497,11 +503,10 @@ If the answer is no to most of these, keep it in the backlog.
 
 ## Recommended Next Slice
 
-Move to the next gameplay-content slice from the backlog.
+Pause for user验收.
 
 Reason:
 
-- M0-M9 now cover foundation, onboarding, audio, progression, 3D props, visual consistency, mobile controls, packaging, potato mine rules, and the full M9 animation juice pass.
-- The main visual feedback backlog for the current prototype is now closed enough to shift attention back to replayable content.
-- The best gameplay follow-up is more replayable content: a new plant role, a clearer enemy behavior variant, or another lightweight level objective.
-- Keep the next slice small enough to verify with helper tests, UI/rules tests where relevant, and browser smoke checks.
+- M0-M12 and the final closeout now cover foundation, onboarding, audio, progression, mobile controls, packaging, asset replacement, terminal summaries, gentle motion, and one extra enemy behavior distinction.
+- Remaining items are future enhancements rather than acceptance blockers.
+- After验收, choose the next slice from family feedback instead of guessing.

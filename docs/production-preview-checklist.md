@@ -23,6 +23,8 @@ Use this before sharing a private build with family or testing on another device
 - [ ] Use the mobile `上移` and `下移` buttons to move the 小队长.
 - [ ] Open the pause modal and resume with `继续`.
 - [ ] Toggle sound on/off after a user gesture.
+- [ ] Toggle `动效柔和` and confirm large decorative 3D pulses stop while core gameplay remains usable.
+- [ ] Confirm bucket enemies recover from ice slow faster than basic enemies.
 - [ ] Confirm Chinese labels do not overflow cards, chips, tutorial text, or modals.
 
 ## Asset And Sharing Gate

@@ -24,6 +24,8 @@ const config: Phaser.Types.Core.GameConfig = {
 const game = new Phaser.Game(config);
 const threeStage = new ThreeStage(document.querySelector("#three-root")!);
 const audio = createGameAudioController();
+let reducedMotion = false;
+document.documentElement.dataset.motion = "full";
 createDomOverlay(document.querySelector("#ui-root")!, scene, {
   soundEnabled: audio.getSettings().enabled,
   onToggleSound: (enabled) => {
@@ -34,6 +36,12 @@ createDomOverlay(document.querySelector("#ui-root")!, scene, {
       }).catch(() => undefined);
       return;
     }
+    audio.play("button");
+  },
+  reducedMotion,
+  onToggleMotion: (enabled) => {
+    reducedMotion = enabled;
+    document.documentElement.dataset.motion = enabled ? "reduced" : "full";
     audio.play("button");
   }
 });
@@ -50,16 +58,16 @@ let seenThreeEventIds = new Set<string>();
 let seenAudioEventIds = new Set<string>();
 scene.uiEvents.on("state-changed", (state: GameState) => {
   state.events.forEach((event) => {
-    if (!seenThreeEventIds.has(event.id) && event.type === "sun-produced") {
+    if (!reducedMotion && !seenThreeEventIds.has(event.id) && event.type === "sun-produced") {
       threeStage.pulseSunCollection();
     }
-    if (!seenThreeEventIds.has(event.id) && event.type === "wave-spawned") {
+    if (!reducedMotion && !seenThreeEventIds.has(event.id) && event.type === "wave-spawned") {
       threeStage.pulseWaveAlert();
     }
-    if (!seenThreeEventIds.has(event.id) && event.type === "potato-mine-exploded") {
+    if (!reducedMotion && !seenThreeEventIds.has(event.id) && event.type === "potato-mine-exploded") {
       threeStage.pulsePotatoMineExplosion();
     }
-    if (!seenThreeEventIds.has(event.id) && event.type === "level-ended") {
+    if (!reducedMotion && !seenThreeEventIds.has(event.id) && event.type === "level-ended") {
       threeStage.showLevelBadge(event.status);
     }
     if (!seenAudioEventIds.has(event.id)) {
@@ -72,10 +80,10 @@ scene.uiEvents.on("state-changed", (state: GameState) => {
 });
 
 scene.uiEvents.on("sound-requested", (soundId: SoundId) => {
-  if (soundId === "select") {
+  if (!reducedMotion && soundId === "select") {
     threeStage.flipSeedPacket("select");
   }
-  if (soundId === "plant") {
+  if (!reducedMotion && soundId === "plant") {
     threeStage.flipSeedPacket("plant");
     threeStage.swingGardenTool();
   }

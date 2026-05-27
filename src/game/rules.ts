@@ -18,6 +18,8 @@ const POTATO_MINE_TRIGGER_RADIUS_CELLS = 0.65;
 const POTATO_MINE_BLAST_RADIUS_CELLS = 0.75;
 const BASE_SUN_AMOUNT = 25;
 const BASE_SUN_INTERVAL_MS = 9000;
+const ICE_SLOW_MS = 2000;
+const BUCKET_ICE_SLOW_MS = 1000;
 const NORMAL_DIFFICULTY: DifficultyConfig = {
   zombieHpMultiplier: 1,
   zombieSpeedMultiplier: 1,
@@ -298,7 +300,7 @@ export function advanceCombat(
         atMs: state.nowMs
       })
     );
-    if (projectile.slows) target.slowedUntilMs = state.nowMs + 2000;
+    if (projectile.slows) target.slowedUntilMs = state.nowMs + (target.zombieId === "bucket" ? BUCKET_ICE_SLOW_MS : ICE_SLOW_MS);
     if (target.hp <= 0) {
       events.push(
         makeEvent({

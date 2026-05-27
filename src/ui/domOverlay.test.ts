@@ -28,6 +28,8 @@ describe("dom overlay", () => {
     expect(html).toContain("暂停");
     expect(html).toContain('data-action="sound"');
     expect(html).toContain("声音开");
+    expect(html).toContain('data-action="motion"');
+    expect(html).toContain("动效正常");
   });
 
   it("renders touch lane controls for mobile play", () => {
@@ -255,6 +257,44 @@ describe("dom overlay", () => {
 
     expect(scene.moveHeroLane).toHaveBeenNthCalledWith(1, -1);
     expect(scene.moveHeroLane).toHaveBeenNthCalledWith(2, 1);
+  });
+
+  it("toggles reduced motion from the HUD", () => {
+    let stateHandler: ((state: GameState) => void) | null = null;
+    let clickHandler: ((event: Event) => void) | null = null;
+    const root = {
+      innerHTML: "",
+      addEventListener: vi.fn((_eventName: string, handler: (event: Event) => void) => {
+        clickHandler = handler;
+      })
+    };
+    const scene = {
+      uiEvents: {
+        on: vi.fn((_eventName: string, handler: (state: GameState) => void) => {
+          if (_eventName === "state-changed") stateHandler = handler;
+        })
+      },
+      setSelectedPlant: vi.fn(),
+      togglePause: vi.fn(),
+      restartLevel: vi.fn(),
+      nextLevel: vi.fn(),
+      getCurrentLevel: vi.fn(() => LEVEL_ONE),
+      hasNextLevel: vi.fn(() => false),
+      getCurrentDifficultyId: vi.fn(() => "normal"),
+      setDifficulty: vi.fn(),
+      moveHeroLane: vi.fn()
+    } as unknown as GameScene;
+    const onToggleMotion = vi.fn();
+    const motionTarget = {
+      closest: vi.fn((selector: string) => (selector === "[data-action]" ? { dataset: { action: "motion" } } : null))
+    } as unknown as HTMLElement;
+
+    createDomOverlay(root as unknown as Element, scene, { onToggleMotion });
+    stateHandler!({ ...createInitialState(LEVEL_ONE), status: "playing" });
+    clickHandler!({ target: motionTarget } as unknown as Event);
+
+    expect(onToggleMotion).toHaveBeenCalledWith(true);
+    expect(root.innerHTML).toContain("动效柔和");
   });
 
   it("offers restart instead of continue on terminal states", () => {

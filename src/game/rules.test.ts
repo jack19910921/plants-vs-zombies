@@ -320,4 +320,33 @@ describe("game rules", () => {
       ])
     );
   });
+
+  it("lets bucket enemies resist ice slow duration", () => {
+    const base = {
+      ...createInitialState(LEVEL_ONE),
+      nowMs: 2400,
+      projectiles: [{ id: "p1", lane: 0 as const, x: 2.05, damage: 1, slows: true }]
+    };
+    const basicHit = advanceCombat(
+      {
+        ...base,
+        zombies: [{ id: "z1", zombieId: "basic" as const, lane: 0 as const, x: 2.1, hp: 70, slowedUntilMs: 0 }]
+      },
+      PLANTS,
+      ZOMBIES,
+      16
+    );
+    const bucketHit = advanceCombat(
+      {
+        ...base,
+        zombies: [{ id: "z2", zombieId: "bucket" as const, lane: 0 as const, x: 2.1, hp: 180, slowedUntilMs: 0 }]
+      },
+      PLANTS,
+      ZOMBIES,
+      16
+    );
+
+    expect(bucketHit.zombies[0].slowedUntilMs).toBeLessThan(basicHit.zombies[0].slowedUntilMs);
+    expect(bucketHit.zombies[0].slowedUntilMs).toBe(base.nowMs + 1000);
+  });
 });
