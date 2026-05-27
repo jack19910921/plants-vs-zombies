@@ -321,6 +321,58 @@ describe("dom overlay", () => {
     expect(html).toContain('data-action="restart"');
   });
 
+  it("shows a compact terminal summary on victory", () => {
+    const html = createDomOverlayMarkup({
+      sun: 120,
+      levelName: "阳光草坪",
+      waveText: "第 8 波 / 8",
+      status: "victory",
+      selectedPlantId: null,
+      cooldownReadyAt: {
+        sunflower: 0,
+        peashooter: 0,
+        wallnut: 0,
+        snowpea: 0,
+        potatomine: 0
+      },
+      nowMs: 0,
+      hasNextLevel: true,
+      plantsCount: 4,
+      spawnedWaveCount: 8,
+      totalWaveCount: 8
+    });
+
+    expect(html).toContain('class="modal-summary"');
+    expect(html).toContain("守住 8/8 波");
+    expect(html).toContain("剩余植物 4");
+    expect(html).toContain("阳光 120");
+  });
+
+  it("shows a partial terminal summary on failure", () => {
+    const html = createDomOverlayMarkup({
+      sun: 35,
+      levelName: "薄雾菜园",
+      waveText: "第 6 波 / 9",
+      status: "failure",
+      selectedPlantId: null,
+      cooldownReadyAt: {
+        sunflower: 0,
+        peashooter: 0,
+        wallnut: 0,
+        snowpea: 0,
+        potatomine: 0
+      },
+      nowMs: 0,
+      plantsCount: 2,
+      spawnedWaveCount: 6,
+      totalWaveCount: 9
+    });
+
+    expect(html).toContain("守到 6/9 波");
+    expect(html).toContain("剩余植物 2");
+    expect(html).toContain("阳光 35");
+  });
+
   it("renders the initial tutorial prompt", () => {
     const html = createDomOverlayMarkup({
       sun: 250,

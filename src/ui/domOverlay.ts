@@ -32,6 +32,8 @@ interface OverlayRenderState {
   soundEnabled?: boolean;
   hasNextLevel?: boolean;
   plantsCount?: number;
+  spawnedWaveCount?: number;
+  totalWaveCount?: number;
   recentFeedback?: OverlayFeedback | null;
   recentEvents?: CombatEvent[];
 }
@@ -110,6 +112,24 @@ function getTutorialText(state: OverlayRenderState): string {
   return "先选一张植物卡片。";
 }
 
+function getTerminalSummaryMarkup(state: OverlayRenderState): string {
+  if (state.status !== "victory" && state.status !== "failure") return "";
+  if (state.spawnedWaveCount === undefined || state.totalWaveCount === undefined) return "";
+
+  const waveLabel =
+    state.status === "victory"
+      ? `守住 ${state.spawnedWaveCount}/${state.totalWaveCount} 波`
+      : `守到 ${state.spawnedWaveCount}/${state.totalWaveCount} 波`;
+  const plantLabel = `剩余植物 ${state.plantsCount ?? 0}`;
+  const sunLabel = `阳光 ${state.sun}`;
+
+  return `<div class="modal-summary">
+        <span>${waveLabel}</span>
+        <span>${plantLabel}</span>
+        <span>${sunLabel}</span>
+      </div>`;
+}
+
 export function createDomOverlayMarkup(state: OverlayRenderState): string {
   const allowedPlantIds = new Set(state.allowedPlantIds ?? plantOrder);
   const cards = plantOrder
@@ -162,6 +182,7 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
   const terminalAction = state.status === "victory" && state.hasNextLevel ? "next-level" : "restart";
   const modalButtonAction = state.status === "paused" ? "pause" : terminalAction;
   const modalButtonText = state.status === "paused" ? "继续" : terminalAction === "next-level" ? "下一关" : "再玩一次";
+  const modalSummary = getTerminalSummaryMarkup(state);
 
   return `<div class="hud">
     <div class="hud-top">
@@ -182,6 +203,7 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
     <section class="modal">
       <h2>${modalTitle}</h2>
       <p>${modalBody}</p>
+      ${modalSummary}
       <button class="chip" data-action="${modalButtonAction}">${modalButtonText}</button>
     </section>
   </div>`;
@@ -243,6 +265,8 @@ export function createDomOverlay(root: Element, scene: GameScene, options: DomOv
       soundEnabled,
       hasNextLevel: scene.hasNextLevel(),
       plantsCount: state.plants.length,
+      spawnedWaveCount: state.spawnedWaveIndexes.length,
+      totalWaveCount: level.waves.length,
       recentFeedback,
       recentEvents: state.events
     });

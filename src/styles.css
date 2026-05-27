@@ -341,6 +341,27 @@ button {
   margin: 0 auto;
 }
 
+.modal-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 16px 0 18px;
+}
+
+.modal-summary span {
+  display: grid;
+  min-height: 42px;
+  place-items: center;
+  padding: 6px 8px;
+  border: 2px solid rgba(92, 67, 48, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 248, 223, 0.72);
+  color: #5c4330;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
 @media (max-width: 900px), (pointer: coarse) {
   #three-root {
     top: calc(10px + env(safe-area-inset-top, 0px));
@@ -462,6 +483,17 @@ button {
   .modal {
     width: min(520px, calc(100vw - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
     padding: 20px 16px;
+  }
+
+  .modal-summary {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    margin: 12px 0 14px;
+  }
+
+  .modal-summary span {
+    min-height: 34px;
+    font-size: 13px;
   }
 }
 

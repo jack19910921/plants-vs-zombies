@@ -20,6 +20,7 @@ Completed:
 - M9 Three.js polish for seed packet shine, sun trails, wave warning beacons, planting sparks, potato mine shockwave feedback, and badge ceremony moments.
 - M10 procedural toy-garden art pass for richer tabletop props and board polish without external assets.
 - M11 asset replacement pass started with user-provided ChatGPT image-model plants/board, original toy enemy SVGs, and matching projectile/sun pickup polish.
+- M12 terminal summary adds compact victory/failure stats for wave progress, remaining plants, and sun.
 - Automated rule/UI tests and browser visual checks used before commits.
 
 Known constraints:
@@ -430,6 +431,18 @@ Remaining:
 - Deeper particle choreography can still be added later if it stays lightweight.
 - Enemy behavior and wave balance are unchanged.
 
+### M12: Terminal Summary Polish
+
+Status: complete.
+
+Goal: make victory and failure clearer by showing a compact end-of-level summary.
+
+Delivered:
+
+- Added terminal modal stats for wave progress, remaining plants, and remaining sun.
+- Kept the summary responsive with stacked mobile chips.
+- Covered victory and failure summaries with DOM overlay tests.
+
 ## Backlog By Domain
 
 Gameplay:
@@ -443,7 +456,7 @@ UX:
 - Tutorial prompts.
 - Invalid action feedback.
 - Settings panel for audio and reduced motion.
-- Better victory/failure summary.
+- Saved or shareable run history if the prototype later needs it.
 
 Visual:
 
@@ -490,5 +503,5 @@ Reason:
 
 - M0-M9 now cover foundation, onboarding, audio, progression, 3D props, visual consistency, mobile controls, packaging, potato mine rules, and the full M9 animation juice pass.
 - The main visual feedback backlog for the current prototype is now closed enough to shift attention back to replayable content.
-- The best gameplay follow-up is more replayable content: a new plant role, a clearer enemy variant, or a better victory/failure summary.
+- The best gameplay follow-up is more replayable content: a new plant role, a clearer enemy behavior variant, or another lightweight level objective.
 - Keep the next slice small enough to verify with helper tests, UI/rules tests where relevant, and browser smoke checks.
