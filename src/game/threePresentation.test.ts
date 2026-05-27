@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   getGardenToolState,
+  getPotatoMineShockwaveState,
   getSeedPacketFlipState,
   getSunTrailParticleState,
   getWaveWarningStakeState
@@ -18,6 +19,16 @@ describe("three presentation helpers", () => {
 
     expect(planted.scale).toBeGreaterThan(selected.scale);
     expect(planted.opacity).toBeGreaterThan(0);
+  });
+
+  it("sweeps a shine across the seed packet during the flip", () => {
+    const early = getSeedPacketFlipState(90, "select");
+    const middle = getSeedPacketFlipState(360, "select");
+    const late = getSeedPacketFlipState(620, "select");
+
+    expect(middle.shineOpacity).toBeGreaterThan(early.shineOpacity);
+    expect(late.shineX).toBeGreaterThan(early.shineX);
+    expect(middle.shineRotationZ).toBeLessThan(0);
   });
 
   it("hides after the flip duration", () => {
@@ -84,5 +95,27 @@ describe("three presentation helpers", () => {
 
   it("hides sun trail particles after collection", () => {
     expect(getSunTrailParticleState(1000, 0)).toMatchObject({ visible: false, opacity: 0 });
+  });
+
+  it("shows a warm potato mine shockwave during the burst", () => {
+    const start = getPotatoMineShockwaveState(0, 0);
+    const middle = getPotatoMineShockwaveState(260, 0);
+
+    expect(start.visible).toBe(true);
+    expect(middle.ringScale).toBeGreaterThan(start.ringScale);
+    expect(middle.flashOpacity).toBeGreaterThan(0);
+  });
+
+  it("staggers potato mine debris particles by index", () => {
+    const first = getPotatoMineShockwaveState(180, 0);
+    const later = getPotatoMineShockwaveState(180, 5);
+
+    expect(first.visible).toBe(true);
+    expect(later.x).not.toBe(first.x);
+    expect(later.opacity).toBeLessThan(first.opacity);
+  });
+
+  it("hides potato mine shockwave particles after the burst", () => {
+    expect(getPotatoMineShockwaveState(900, 0)).toMatchObject({ visible: false, opacity: 0, flashOpacity: 0 });
   });
 });

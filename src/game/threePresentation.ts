@@ -7,6 +7,9 @@ export interface SeedPacketFlipState {
   rotationZ: number;
   scale: number;
   y: number;
+  shineOpacity: number;
+  shineX: number;
+  shineRotationZ: number;
 }
 
 export interface GardenToolState {
@@ -34,11 +37,25 @@ export interface SunTrailParticleState {
   scale: number;
 }
 
+export interface PotatoMineShockwaveState {
+  visible: boolean;
+  opacity: number;
+  flashOpacity: number;
+  ringScale: number;
+  x: number;
+  y: number;
+  z: number;
+  scale: number;
+  rotationZ: number;
+}
+
 const SEED_PACKET_FLIP_MS = 720;
 const GARDEN_TOOL_PULSE_MS = 620;
 const WAVE_WARNING_STAKE_MS = 860;
 const SUN_TRAIL_PARTICLE_MS = 760;
 const SUN_TRAIL_PARTICLE_DELAY_MS = 48;
+const POTATO_MINE_SHOCKWAVE_MS = 680;
+const POTATO_MINE_DEBRIS_DELAY_MS = 32;
 
 export function getSeedPacketFlipState(ageMs: number, mode: SeedPacketFlipMode): SeedPacketFlipState {
   if (ageMs < 0 || ageMs > SEED_PACKET_FLIP_MS) {
@@ -48,13 +65,18 @@ export function getSeedPacketFlipState(ageMs: number, mode: SeedPacketFlipMode):
       rotationY: 0,
       rotationZ: 0,
       scale: 0.1,
-      y: 0
+      y: 0,
+      shineOpacity: 0,
+      shineX: -0.36,
+      shineRotationZ: -0.42
     };
   }
 
   const progress = ageMs / SEED_PACKET_FLIP_MS;
   const pop = Math.sin(progress * Math.PI);
   const strength = mode === "plant" ? 1.18 : 1;
+  const shineProgress = Math.min(1, Math.max(0, (progress - 0.08) / 0.76));
+  const shinePeak = Math.sin(shineProgress * Math.PI);
 
   return {
     visible: true,
@@ -62,7 +84,10 @@ export function getSeedPacketFlipState(ageMs: number, mode: SeedPacketFlipMode):
     rotationY: (1 - progress) * Math.PI * 1.35,
     rotationZ: (mode === "plant" ? -0.16 : 0.12) + pop * 0.18,
     scale: 0.72 + pop * 0.34 * strength,
-    y: -0.15 + pop * 0.24 * strength
+    y: -0.15 + pop * 0.24 * strength,
+    shineOpacity: shinePeak * (mode === "plant" ? 0.74 : 0.58),
+    shineX: -0.34 + shineProgress * 0.68,
+    shineRotationZ: -0.42
   };
 }
 
@@ -135,5 +160,46 @@ export function getSunTrailParticleState(ageMs: number, index: number): SunTrail
     y: startY * (1 - eased) + arc,
     z: startZ * (1 - eased) + Math.sin(progress * Math.PI * 2 + particleIndex) * 0.04,
     scale: 0.42 + Math.sin(progress * Math.PI) * 0.42
+  };
+}
+
+export function getPotatoMineShockwaveState(ageMs: number, index: number): PotatoMineShockwaveState {
+  const particleIndex = Math.max(0, index);
+  const localAge = ageMs - particleIndex * POTATO_MINE_DEBRIS_DELAY_MS;
+  const angle = -Math.PI / 2 + particleIndex * 1.37;
+  const startRadius = 0.08 + (particleIndex % 3) * 0.018;
+
+  if (ageMs < 0 || localAge < 0 || localAge > POTATO_MINE_SHOCKWAVE_MS) {
+    return {
+      visible: false,
+      opacity: 0,
+      flashOpacity: 0,
+      ringScale: 0.28,
+      x: Math.cos(angle) * startRadius,
+      y: Math.sin(angle) * startRadius,
+      z: -0.05,
+      scale: 0.1,
+      rotationZ: angle
+    };
+  }
+
+  const progress = localAge / POTATO_MINE_SHOCKWAVE_MS;
+  const globalProgress = Math.min(1, Math.max(0, ageMs / POTATO_MINE_SHOCKWAVE_MS));
+  const eased = 1 - (1 - progress) ** 3;
+  const lift = Math.sin(progress * Math.PI) * (0.18 + (particleIndex % 4) * 0.025);
+  const radius = startRadius + eased * (0.48 + (particleIndex % 5) * 0.04);
+  const fadeIn = Math.min(1, progress * 7 + 0.24);
+  const fadeOut = Math.max(0, 1 - Math.max(0, progress - 0.48) / 0.52);
+
+  return {
+    visible: true,
+    opacity: fadeIn * fadeOut,
+    flashOpacity: Math.max(0, 1 - globalProgress * 1.35),
+    ringScale: 0.34 + (1 - (1 - globalProgress) ** 2) * 1.1,
+    x: Math.cos(angle) * radius,
+    y: -0.34 + lift,
+    z: Math.sin(angle) * radius * 0.18,
+    scale: 0.34 + Math.sin(progress * Math.PI) * 0.36,
+    rotationZ: angle + progress * Math.PI * 0.85
   };
 }

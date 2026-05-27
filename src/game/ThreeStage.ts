@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import {
   getGardenToolState,
+  getPotatoMineShockwaveState,
   getSeedPacketFlipState,
   getSunTrailParticleState,
   getWaveWarningStakeState,
@@ -15,16 +16,20 @@ export class ThreeStage {
   private readonly burst = new THREE.Group();
   private readonly sunTrail = new THREE.Group();
   private readonly waveRing = new THREE.Group();
+  private readonly potatoMineShockwave = new THREE.Group();
   private readonly statusBadge = new THREE.Group();
   private readonly seedPacket = new THREE.Group();
   private readonly gardenTool = new THREE.Group();
   private readonly waveWarningStake = new THREE.Group();
   private readonly statusBadgeMaterials: THREE.MeshStandardMaterial[] = [];
   private readonly seedPacketMaterials: THREE.MeshStandardMaterial[] = [];
+  private seedPacketShine?: THREE.Mesh<THREE.BoxGeometry, THREE.MeshStandardMaterial>;
+  private readonly potatoMineShockwaveMaterials: THREE.MeshStandardMaterial[] = [];
   private readonly waveWarningStakeMaterials: THREE.MeshStandardMaterial[] = [];
   private frameId = 0;
   private sunPulseStartedAt = -Infinity;
   private wavePulseStartedAt = -Infinity;
+  private potatoMineShockwaveStartedAt = -Infinity;
   private statusPulseStartedAt = -Infinity;
   private seedPacketStartedAt = -Infinity;
   private gardenToolPulseStartedAt = -Infinity;
@@ -51,6 +56,8 @@ export class ThreeStage {
     this.scene.add(this.sunTrail);
     this.buildWaveRing();
     this.scene.add(this.waveRing);
+    this.buildPotatoMineShockwave();
+    this.scene.add(this.potatoMineShockwave);
     this.buildWaveWarningStake();
     this.scene.add(this.waveWarningStake);
     this.buildStatusBadge();
@@ -70,6 +77,10 @@ export class ThreeStage {
 
   pulseWaveAlert(): void {
     this.wavePulseStartedAt = performance.now();
+  }
+
+  pulsePotatoMineExplosion(): void {
+    this.potatoMineShockwaveStartedAt = performance.now();
   }
 
   showLevelBadge(status: "victory" | "failure"): void {
@@ -161,6 +172,49 @@ export class ThreeStage {
     const inner = new THREE.Mesh(new THREE.TorusGeometry(0.64, 0.02, 8, 48), material.clone());
     this.waveRing.add(outer, inner);
     this.waveRing.visible = false;
+  }
+
+  private buildPotatoMineShockwave(): void {
+    const ringMaterial = new THREE.MeshStandardMaterial({
+      color: 0xffd34f,
+      emissive: 0xff8f4d,
+      emissiveIntensity: 0.78,
+      roughness: 0.4,
+      transparent: true,
+      opacity: 0
+    });
+    const flashMaterial = new THREE.MeshStandardMaterial({
+      color: 0xfff1a3,
+      emissive: 0xffc547,
+      emissiveIntensity: 0.95,
+      roughness: 0.32,
+      transparent: true,
+      opacity: 0
+    });
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.026, 8, 48), ringMaterial);
+    const flash = new THREE.Mesh(new THREE.SphereGeometry(0.2, 20, 12), flashMaterial);
+    flash.scale.set(1.6, 0.44, 0.12);
+    flash.position.z = -0.02;
+    this.potatoMineShockwave.add(ring, flash);
+    this.potatoMineShockwaveMaterials.push(ringMaterial, flashMaterial);
+
+    const debrisGeometry = new THREE.BoxGeometry(0.075, 0.045, 0.04);
+    for (let index = 0; index < 8; index += 1) {
+      const debrisMaterial = new THREE.MeshStandardMaterial({
+        color: index % 2 === 0 ? 0x8f5d32 : 0x6d4b2b,
+        roughness: 0.68,
+        metalness: 0.02,
+        transparent: true,
+        opacity: 0
+      });
+      const debris = new THREE.Mesh(debrisGeometry, debrisMaterial);
+      debris.userData.debrisIndex = index;
+      this.potatoMineShockwave.add(debris);
+      this.potatoMineShockwaveMaterials.push(debrisMaterial);
+    }
+
+    this.potatoMineShockwave.position.set(-0.54, -0.52, 0.12);
+    this.potatoMineShockwave.visible = false;
   }
 
   private buildWaveWarningStake(): void {
@@ -259,6 +313,14 @@ export class ThreeStage {
       transparent: true,
       opacity: 0
     });
+    const shineMaterial = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      emissive: 0xfff8df,
+      emissiveIntensity: 0.9,
+      roughness: 0.24,
+      transparent: true,
+      opacity: 0
+    });
     const packet = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.72, 0.08), packetMaterial);
     const rim = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.76, 0.045), rimMaterial);
     rim.position.z = -0.035;
@@ -267,8 +329,11 @@ export class ThreeStage {
     const seed = new THREE.Mesh(new THREE.SphereGeometry(0.08, 18, 12), seedMaterial);
     seed.scale.set(1, 0.72, 0.24);
     seed.position.set(0, -0.16, 0.08);
+    this.seedPacketShine = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.84, 0.018), shineMaterial);
+    this.seedPacketShine.position.z = 0.11;
+    this.seedPacketShine.visible = false;
     this.seedPacket.position.set(1.1, 0.58, 0);
-    this.seedPacket.add(rim, packet, label, seed);
+    this.seedPacket.add(rim, packet, label, seed, this.seedPacketShine);
     this.seedPacket.visible = false;
     this.seedPacketMaterials.push(packetMaterial, rimMaterial, labelMaterial, seedMaterial);
   }
@@ -345,6 +410,7 @@ export class ThreeStage {
     this.animateBurst(pulseAge);
     this.animateSunTrail(now);
     this.animateWaveRing(now);
+    this.animatePotatoMineShockwave(now);
     this.animateWaveWarningStake(now);
     this.animateStatusBadge(now);
     this.animateGardenTool(now);
@@ -404,6 +470,45 @@ export class ThreeStage {
     });
   }
 
+  private animatePotatoMineShockwave(now: number): void {
+    const ageMs = now - this.potatoMineShockwaveStartedAt;
+    const ringState = getPotatoMineShockwaveState(ageMs, 0);
+    let hasVisibleParticle = ringState.visible;
+    this.potatoMineShockwave.visible = ringState.visible;
+    if (!ringState.visible) {
+      this.potatoMineShockwaveMaterials.forEach((material) => {
+        material.opacity = 0;
+      });
+      return;
+    }
+
+    const [ring, flash, ...debris] = this.potatoMineShockwave.children as Array<
+      THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMaterial>
+    >;
+    ring.rotation.z = ageMs / 260;
+    ring.scale.setScalar(ringState.ringScale);
+    ring.material.opacity = ringState.opacity * 0.78;
+    flash.scale.set(1.3 + ringState.ringScale * 0.74, 0.32 + ringState.ringScale * 0.18, 0.12);
+    flash.material.opacity = ringState.flashOpacity * 0.52;
+
+    debris.forEach((chunk, index) => {
+      const state = getPotatoMineShockwaveState(ageMs, index);
+      chunk.visible = state.visible;
+      if (!state.visible) {
+        chunk.material.opacity = 0;
+        return;
+      }
+      hasVisibleParticle = true;
+      chunk.position.set(state.x, state.y, state.z);
+      chunk.rotation.z = state.rotationZ;
+      chunk.rotation.x = state.rotationZ * 0.35;
+      chunk.scale.setScalar(state.scale);
+      chunk.material.opacity = state.opacity;
+    });
+
+    this.potatoMineShockwave.visible = hasVisibleParticle;
+  }
+
   private animateWaveWarningStake(now: number): void {
     const state = getWaveWarningStakeState(now - this.wavePulseStartedAt);
     this.waveWarningStake.visible = state.visible;
@@ -442,6 +547,12 @@ export class ThreeStage {
     this.seedPacketMaterials.forEach((material) => {
       material.opacity = state.opacity;
     });
+    if (this.seedPacketShine) {
+      this.seedPacketShine.visible = state.shineOpacity > 0.02;
+      this.seedPacketShine.position.x = state.shineX;
+      this.seedPacketShine.rotation.z = state.shineRotationZ;
+      this.seedPacketShine.material.opacity = state.shineOpacity * state.opacity;
+    }
   }
 
   private animateGardenTool(now: number): void {

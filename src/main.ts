@@ -56,6 +56,9 @@ scene.uiEvents.on("state-changed", (state: GameState) => {
     if (!seenThreeEventIds.has(event.id) && event.type === "wave-spawned") {
       threeStage.pulseWaveAlert();
     }
+    if (!seenThreeEventIds.has(event.id) && event.type === "potato-mine-exploded") {
+      threeStage.pulsePotatoMineExplosion();
+    }
     if (!seenThreeEventIds.has(event.id) && event.type === "level-ended") {
       threeStage.showLevelBadge(event.status);
     }

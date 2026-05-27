@@ -17,6 +17,7 @@ Completed:
 - Three.js overlay with animated 3D sun coin.
 - Combat presentation events and feedback: fire recoil, hit flashes, chewing, slow highlight, health bars, defeated effects, and sun production feedback.
 - Wave and level milestone feedback: 3D wave pulse and victory/failure badge.
+- M9 Three.js polish for seed packet shine and potato mine shockwave feedback.
 - Automated rule/UI tests and browser visual checks used before commits.
 
 Known constraints:
@@ -355,6 +356,41 @@ Dependencies:
 
 - Best after M3, because `土豆雷` is unlocked in the later level sequence.
 
+### M9: 3D Animation Juice Pass
+
+Status: complete.
+
+Goal: make the existing Three.js layer feel more expressive and surprising without adding external assets or obscuring gameplay.
+
+Scope:
+
+- Observe the current desktop and mobile visual behavior before changing it.
+- Strengthen high-value event feedback with brief procedural Three.js effects.
+- Keep the 3D layer decorative and derived from existing event state.
+
+Delivered:
+
+- Added a test-backed seed packet light sweep during select/plant flips.
+- Added a test-backed potato mine shockwave helper with warm flash, ring growth, and staggered dirt chunks.
+- Added a compact Three.js potato mine shockwave prop and wired it to `potato-mine-exploded`.
+- Kept all new visuals procedural; no external assets were added.
+
+Architecture:
+
+- Keep animation timing state in `src/game/threePresentation.ts`.
+- Keep render objects in `src/game/ThreeStage.ts`.
+- Keep event wiring in `src/main.ts` alongside existing sun, wave, and level feedback triggers.
+
+Acceptance:
+
+- Presentation helper tests cover new animation state.
+- Desktop and mobile browser checks show no console warnings/errors.
+- The 3D stage remains compact and does not block plant cards or core board reading.
+
+Dependencies:
+
+- Best after M8, because the potato mine event already exists.
+
 ## Backlog By Domain
 
 Gameplay:
@@ -409,18 +445,11 @@ If the answer is no to most of these, keep it in the backlog.
 
 ## Recommended Next Slice
 
-Start with the next gameplay-content slice from the backlog.
+Continue M9 with one more small visual-feedback slice or move to the next gameplay-content slice from the backlog.
 
 Reason:
 
-- M0-M7 now cover foundation, onboarding, audio, progression, 3D polish, visual consistency, mobile controls, and packaging.
-- The strongest next value is more replayable content: a new plant role, a clearer enemy variant, or a better victory/failure summary.
-- Keep the next slice small enough to verify with rules tests, UI tests, and browser smoke checks.
-
-Proposed first implementation plan:
-
-1. Pick one player-visible gameplay improvement from the backlog.
-2. Write a lightweight design note and implementation plan.
-3. Add rules/UI tests first.
-4. Implement in a narrow slice.
-5. Verify `npm test`, `npm run build`, and browser smoke checks before committing.
+- M0-M9 now cover foundation, onboarding, audio, progression, 3D props, visual consistency, mobile controls, packaging, potato mine rules, and the first animation juice pass.
+- The best visual follow-up is a reward ceremony pass for victory and a gentle toy-sign dip for failure.
+- The best gameplay follow-up is more replayable content: a new plant role, a clearer enemy variant, or a better victory/failure summary.
+- Keep the next slice small enough to verify with helper tests, UI/rules tests where relevant, and browser smoke checks.
