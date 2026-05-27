@@ -6,7 +6,7 @@ import {
   getZombieAssetPresentation,
   type AssetCrop
 } from "./assetPresentation";
-import { BOARD_TEXTURE, PLANT_TEXTURES, ZOMBIE_TEXTURE } from "./assets";
+import { BOARD_TEXTURE, PLANT_TEXTURES, ZOMBIE_TEXTURES } from "./assets";
 import { DIFFICULTY, LEVELS, PLANTS, ZOMBIES } from "./config";
 import {
   advanceCombat,
@@ -69,7 +69,9 @@ export class GameScene extends Phaser.Scene {
       this.load.image(`plant-${plantId}`, url);
     });
     this.load.image("garden-board", BOARD_TEXTURE);
-    this.load.image("zombie-basic", ZOMBIE_TEXTURE);
+    Object.entries(ZOMBIE_TEXTURES).forEach(([zombieId, url]) => {
+      this.load.image(`zombie-${zombieId}`, url);
+    });
   }
 
   create(): void {
@@ -505,7 +507,11 @@ export class GameScene extends Phaser.Scene {
         0.18
       )
       .setData("dynamic", true);
-    const zombieImage = this.add.image(bodyX + assetProfile.fieldOffsetX, bodyY + assetProfile.fieldOffsetY, "zombie-basic");
+    const zombieImage = this.add.image(
+      bodyX + assetProfile.fieldOffsetX,
+      bodyY + assetProfile.fieldOffsetY,
+      `zombie-${zombie.zombieId}`
+    );
     this.applyTextureCrop(zombieImage, assetProfile.crop)
       .setDisplaySize(profile.imageWidth * miniature.scaleX, profile.imageHeight * miniature.scaleY)
       .setAngle(miniature.angle)
@@ -530,7 +536,7 @@ export class GameScene extends Phaser.Scene {
     }
     this.drawZombieWear(bodyX, bodyY, profile.rimWidth * miniature.scaleX, profile.rimHeight * miniature.scaleY, wear);
 
-    if (profile.headgear === "cone") {
+    if (assetProfile.drawProceduralHeadgear && profile.headgear === "cone") {
       const halfWidth = profile.headgearWidth / 2;
       const yTop = bodyY + profile.headgearYOffset;
       this.add
@@ -549,7 +555,7 @@ export class GameScene extends Phaser.Scene {
         .setStrokeStyle(2, profile.headgearStrokeColor)
         .setData("dynamic", true);
     }
-    if (profile.headgear === "bucket") {
+    if (assetProfile.drawProceduralHeadgear && profile.headgear === "bucket") {
       this.add
         .rectangle(
           bodyX,

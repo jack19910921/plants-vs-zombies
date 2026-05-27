@@ -51,6 +51,14 @@ describe("asset presentation profiles", () => {
     });
   });
 
+  it("lets M11 toy enemy textures own their headgear silhouettes", () => {
+    zombieIds.forEach((zombieId) => {
+      const profile = getZombieAssetPresentation(zombieId);
+
+      expect(profile.drawProceduralHeadgear).toBe(false);
+    });
+  });
+
   it("defines a bounded crop for the image2 garden board", () => {
     const board = getBoardAssetPresentation();
 

@@ -18,6 +18,8 @@ Completed:
 - Combat presentation events and feedback: fire recoil, hit flashes, chewing, slow highlight, health bars, defeated effects, and sun production feedback.
 - Wave and level milestone feedback: 3D wave pulse and victory/failure badge.
 - M9 Three.js polish for seed packet shine, sun trails, wave warning beacons, planting sparks, potato mine shockwave feedback, and badge ceremony moments.
+- M10 procedural toy-garden art pass for richer tabletop props and board polish without external assets.
+- M11 asset replacement pass started with user-provided ChatGPT image-model plants/board and original toy enemy SVGs.
 - Automated rule/UI tests and browser visual checks used before commits.
 
 Known constraints:
@@ -394,6 +396,38 @@ Acceptance:
 Dependencies:
 
 - Best after M8, because the potato mine event already exists.
+
+### M10: Realistic Toy Garden Art Pass
+
+Status: complete.
+
+Goal: make the game read more like a real toy garden set on a tabletop without adding external assets.
+
+Delivered:
+
+- Added procedural Three.js tabletop props.
+- Added deterministic prop presentation helpers and tests.
+- Polished the Phaser board/table drawing and CSS background while preserving gameplay layout.
+
+### M11: Asset Replacement Pass
+
+Status: in progress.
+
+Goal: replace placeholder-feeling visuals with user-owned, generated, or original local assets while keeping licensing safe.
+
+Delivered so far:
+
+- Added the user-provided ChatGPT image-model plant and board art.
+- Converted the five plant images to transparent cropped PNGs and downscaled them for runtime weight.
+- Replaced the flat board fill with the image2 garden board texture.
+- Added bottom-center plant anchoring and card `contain` rendering for the new plant art.
+- Added original in-repository toy enemy SVG assets for basic, cone, and bucket enemy variants.
+- Registered every new non-code asset in `docs/asset-sources.md`.
+
+Remaining:
+
+- Projectile and sun particle art can still be made more consistent with the new static assets.
+- Enemy behavior and wave balance are unchanged.
 
 ## Backlog By Domain
 

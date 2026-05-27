@@ -21,6 +21,7 @@ export interface PlantAssetPresentation {
 export interface ZombieAssetPresentation {
   crop: AssetCrop;
   cssFilter: string;
+  drawProceduralHeadgear: boolean;
   fieldOffsetX: number;
   fieldOffsetY: number;
 }
@@ -97,18 +98,21 @@ const ZOMBIE_ASSET_PRESENTATION: Record<ZombieId, ZombieAssetPresentation> = {
   basic: {
     crop: { x: 0.06, y: 0.02, width: 0.88, height: 0.94 },
     cssFilter: "contrast(1.06) saturate(1.08) brightness(1.02)",
+    drawProceduralHeadgear: false,
     fieldOffsetX: 0,
     fieldOffsetY: 0
   },
   cone: {
     crop: { x: 0.05, y: 0, width: 0.9, height: 0.96 },
     cssFilter: "contrast(1.08) saturate(1.08) brightness(1.02)",
+    drawProceduralHeadgear: false,
     fieldOffsetX: 0,
     fieldOffsetY: 1
   },
   bucket: {
     crop: { x: 0.04, y: 0.02, width: 0.92, height: 0.94 },
     cssFilter: "contrast(1.08) saturate(0.96) brightness(1.04)",
+    drawProceduralHeadgear: false,
     fieldOffsetX: 0,
     fieldOffsetY: 1
   }
