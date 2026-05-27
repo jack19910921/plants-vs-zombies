@@ -171,6 +171,10 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
       <button class="chip sound-toggle" data-action="sound">${soundEnabled ? "声音开" : "声音关"}</button>
     </div>
     <div class="tutorial-strip"><span>${tutorialText}</span>${feedbackMarkup}</div>
+    <div class="lane-controls" aria-label="小队长移动">
+      <button class="lane-button" data-action="lane-up" aria-label="小队长上移">上移</button>
+      <button class="lane-button" data-action="lane-down" aria-label="小队长下移">下移</button>
+    </div>
     <div class="plant-tray">${cards}</div>
   </div>
   <div class="${modalClass}">
@@ -261,6 +265,14 @@ export function createDomOverlay(root: Element, scene: GameScene, options: DomOv
     const actionButton = target.closest("[data-action]") as HTMLElement | null;
     if (actionButton?.dataset.action === "pause") {
       scene.togglePause();
+      return;
+    }
+    if (actionButton?.dataset.action === "lane-up") {
+      scene.moveHeroLane(-1);
+      return;
+    }
+    if (actionButton?.dataset.action === "lane-down") {
+      scene.moveHeroLane(1);
       return;
     }
     if (actionButton?.dataset.action === "sound") {

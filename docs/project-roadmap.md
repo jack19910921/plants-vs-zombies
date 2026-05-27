@@ -250,7 +250,7 @@ Dependencies:
 
 ### M6: Mobile And Touch Hardening
 
-Status: planned.
+Status: complete.
 
 Goal: make the prototype comfortable on phone/tablet screens.
 
@@ -259,6 +259,14 @@ Scope:
 - Verify plant tray sizing, tap targets, pause modal, tutorial prompts, and safe-area behavior.
 - Add touch-specific affordances if needed.
 - Confirm no text overflow in Chinese labels.
+
+Delivered:
+
+- Added shared hero lane movement logic for keyboard and touch.
+- Added mobile touch buttons for moving the 小队长 up/down.
+- Reworked narrow-screen HUD sizing to avoid transform-shrunk tap targets.
+- Added safe-area-aware HUD, 3D coin, modal, tutorial, and plant tray spacing.
+- Verified mobile tap targets and Chinese labels with browser viewport checks.
 
 Architecture:
 
@@ -357,18 +365,18 @@ If the answer is no to most of these, keep it in the backlog.
 
 ## Recommended Next Slice
 
-Start with M2: Audio And Settings.
+Start with M7: Packaging And Performance.
 
 Reason:
 
-- M1 now gives the player clear textual guidance; audio is the next strongest first-minute feedback layer.
-- Generated Web Audio cues avoid external asset licensing risk.
-- The existing `CombatEvent` stream provides clean triggers for planting, sun, hit, wave, victory, and failure sounds.
+- M6 makes the mobile flow usable enough to share privately.
+- The build still produces the known Phaser/Three large chunk warning.
+- Packaging/performance work can now focus on bundle shape, preview confidence, and a lightweight production checklist.
 
 Proposed first implementation plan:
 
-1. Add a tiny audio controller using browser Web Audio.
-2. Add a sound toggle to the DOM HUD.
-3. Wire existing events to gentle generated cues after the first user gesture.
-4. Verify browser autoplay safety and clean console output.
-5. Commit as a single audio/settings slice.
+1. Inspect the production bundle and identify whether Phaser/Three can be split safely.
+2. Add Vite chunk strategy or a documented deferral if splitting is not worth it yet.
+3. Add a production preview checklist.
+4. Verify `npm test`, `npm run build`, and browser smoke checks.
+5. Commit as a packaging/performance slice.

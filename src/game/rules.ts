@@ -65,6 +65,12 @@ export function selectPlant(state: GameState, plantId: PlantId): GameState {
   return { ...state, selectedPlantId: plantId };
 }
 
+export function moveHeroLane(state: GameState, delta: -1 | 1): GameState {
+  const nextLane = Math.max(0, Math.min(4, state.heroLane + delta)) as LaneIndex;
+  if (nextLane === state.heroLane) return state;
+  return { ...state, heroLane: nextLane };
+}
+
 export function getPlantingResult(
   state: GameState,
   plantConfigs: Record<PlantId, PlantConfig>,

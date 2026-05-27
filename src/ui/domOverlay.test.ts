@@ -30,6 +30,29 @@ describe("dom overlay", () => {
     expect(html).toContain("声音开");
   });
 
+  it("renders touch lane controls for mobile play", () => {
+    const html = createDomOverlayMarkup({
+      sun: 150,
+      waveText: "第 1 波 / 8",
+      status: "playing",
+      selectedPlantId: null,
+      cooldownReadyAt: {
+        sunflower: 0,
+        peashooter: 0,
+        wallnut: 0,
+        snowpea: 0,
+        potatomine: 0
+      },
+      nowMs: 0
+    });
+
+    expect(html).toContain('class="lane-controls"');
+    expect(html).toContain('data-action="lane-up"');
+    expect(html).toContain('data-action="lane-down"');
+    expect(html).toContain("上移");
+    expect(html).toContain("下移");
+  });
+
   it("renders level name with wave text", () => {
     const html = createDomOverlayMarkup({
       sun: 150,
@@ -186,7 +209,8 @@ describe("dom overlay", () => {
       getCurrentLevel: vi.fn(() => LEVEL_ONE),
       hasNextLevel: vi.fn(() => false),
       getCurrentDifficultyId: vi.fn(() => "normal"),
-      setDifficulty: vi.fn()
+      setDifficulty: vi.fn(),
+      moveHeroLane: vi.fn()
     } as unknown as GameScene;
 
     createDomOverlay(root as unknown as Element, scene);
@@ -195,6 +219,41 @@ describe("dom overlay", () => {
     stateHandler!({ ...firstState, nowMs: firstState.nowMs + 16 });
 
     expect(writes).toBe(1);
+  });
+
+  it("moves the hero lane from touch control actions", () => {
+    let clickHandler: ((event: Event) => void) | null = null;
+    const root = {
+      innerHTML: "",
+      addEventListener: vi.fn((_eventName: string, handler: (event: Event) => void) => {
+        clickHandler = handler;
+      })
+    };
+    const scene = {
+      uiEvents: {
+        on: vi.fn()
+      },
+      setSelectedPlant: vi.fn(),
+      togglePause: vi.fn(),
+      restartLevel: vi.fn(),
+      nextLevel: vi.fn(),
+      getCurrentLevel: vi.fn(() => LEVEL_ONE),
+      hasNextLevel: vi.fn(() => false),
+      getCurrentDifficultyId: vi.fn(() => "normal"),
+      setDifficulty: vi.fn(),
+      moveHeroLane: vi.fn()
+    } as unknown as GameScene;
+    const makeActionTarget = (action: string) =>
+      ({
+        closest: vi.fn((selector: string) => (selector === "[data-action]" ? { dataset: { action } } : null))
+      }) as unknown as HTMLElement;
+
+    createDomOverlay(root as unknown as Element, scene);
+    clickHandler!({ target: makeActionTarget("lane-up") } as unknown as Event);
+    clickHandler!({ target: makeActionTarget("lane-down") } as unknown as Event);
+
+    expect(scene.moveHeroLane).toHaveBeenNthCalledWith(1, -1);
+    expect(scene.moveHeroLane).toHaveBeenNthCalledWith(2, 1);
   });
 
   it("offers restart instead of continue on terminal states", () => {

@@ -4,6 +4,7 @@ import {
   advanceCombat,
   createInitialState,
   getPlantingResult,
+  moveHeroLane,
   plantAt,
   selectPlant,
   spawnDueZombies,
@@ -197,6 +198,15 @@ describe("game rules", () => {
     const next = advanceCombat(state, PLANTS, ZOMBIES, 16);
     expect(next.projectiles.length).toBeGreaterThan(0);
     expect(next.nextHeroShotAtMs).toBeGreaterThan(state.nowMs);
+  });
+
+  it("moves the hero lane by touch or keyboard while clamping to the board", () => {
+    const state = createInitialState(LEVEL_ONE);
+
+    expect(moveHeroLane(state, -1).heroLane).toBe(1);
+    expect(moveHeroLane(state, 1).heroLane).toBe(3);
+    expect(moveHeroLane({ ...state, heroLane: 0 }, -1).heroLane).toBe(0);
+    expect(moveHeroLane({ ...state, heroLane: 4 }, 1).heroLane).toBe(4);
   });
 
   it("records combat events for presentation feedback", () => {

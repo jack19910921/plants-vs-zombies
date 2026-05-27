@@ -11,6 +11,7 @@ import {
   advanceCombat,
   createInitialState,
   getPlantingResult,
+  moveHeroLane,
   plantAt,
   selectPlant,
   spawnDueZombies,
@@ -121,6 +122,14 @@ export class GameScene extends Phaser.Scene {
     this.uiEvents.emit("state-changed", this.state);
   }
 
+  moveHeroLane(delta: -1 | 1): void {
+    const nextState = moveHeroLane(this.state, delta);
+    if (nextState === this.state) return;
+    this.state = nextState;
+    this.uiEvents.emit("sound-requested", "button");
+    this.uiEvents.emit("state-changed", this.state);
+  }
+
   togglePause(): void {
     if (this.state.status !== "playing" && this.state.status !== "paused") return;
     this.uiEvents.emit("sound-requested", "button");
@@ -163,10 +172,10 @@ export class GameScene extends Phaser.Scene {
 
   private handleKeyboard(): void {
     if (Phaser.Input.Keyboard.JustDown(this.keys.W) || Phaser.Input.Keyboard.JustDown(this.cursors.up!)) {
-      this.state = { ...this.state, heroLane: Math.max(0, this.state.heroLane - 1) as LaneIndex };
+      this.moveHeroLane(-1);
     }
     if (Phaser.Input.Keyboard.JustDown(this.keys.S) || Phaser.Input.Keyboard.JustDown(this.cursors.down!)) {
-      this.state = { ...this.state, heroLane: Math.min(4, this.state.heroLane + 1) as LaneIndex };
+      this.moveHeroLane(1);
     }
     if (Phaser.Input.Keyboard.JustDown(this.keys.ESC)) {
       this.togglePause();
