@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   getGardenToolState,
+  getPlantingSparkState,
   getPotatoMineShockwaveState,
   getSeedPacketFlipState,
   getStatusBadgeState,
@@ -86,6 +87,15 @@ describe("three presentation helpers", () => {
     expect(middle.opacity).toBeGreaterThan(0);
   });
 
+  it("adds halo and shimmer to sun trail particles during collection", () => {
+    const start = getSunTrailParticleState(0, 0);
+    const middle = getSunTrailParticleState(360, 0);
+
+    expect(middle.haloScale).toBeGreaterThan(start.haloScale);
+    expect(middle.shimmerOpacity).toBeGreaterThan(0);
+    expect(middle.rotationZ).not.toBe(start.rotationZ);
+  });
+
   it("staggers sun trail particles by index", () => {
     const first = getSunTrailParticleState(220, 0);
     const later = getSunTrailParticleState(220, 4);
@@ -96,6 +106,15 @@ describe("three presentation helpers", () => {
 
   it("hides sun trail particles after collection", () => {
     expect(getSunTrailParticleState(1000, 0)).toMatchObject({ visible: false, opacity: 0 });
+  });
+
+  it("adds a beacon pulse to the wave warning stake", () => {
+    const start = getWaveWarningStakeState(0);
+    const middle = getWaveWarningStakeState(360);
+
+    expect(middle.beaconScale).toBeGreaterThan(start.beaconScale);
+    expect(middle.beaconOpacity).toBeGreaterThan(0);
+    expect(middle.flagGlow).toBeGreaterThan(start.flagGlow);
   });
 
   it("shows a warm potato mine shockwave during the burst", () => {
@@ -147,5 +166,28 @@ describe("three presentation helpers", () => {
       particleOpacity: 0
     });
     expect(getStatusBadgeState(5200, "failure", 0)).toMatchObject({ visible: false, opacity: 0 });
+  });
+
+  it("shows planting spark particles during the garden tool landing", () => {
+    const start = getPlantingSparkState(0, 0);
+    const middle = getPlantingSparkState(180, 0);
+
+    expect(start.visible).toBe(true);
+    expect(middle.x).not.toBe(start.x);
+    expect(middle.opacity).toBeGreaterThan(0);
+    expect(middle.warmOpacity).toBeGreaterThan(0);
+  });
+
+  it("staggers planting spark particles by index", () => {
+    const first = getPlantingSparkState(160, 0);
+    const later = getPlantingSparkState(160, 5);
+
+    expect(first.visible).toBe(true);
+    expect(later.x).not.toBe(first.x);
+    expect(later.opacity).toBeLessThan(first.opacity);
+  });
+
+  it("hides planting spark particles after the landing effect", () => {
+    expect(getPlantingSparkState(760, 0)).toMatchObject({ visible: false, opacity: 0, warmOpacity: 0 });
   });
 });

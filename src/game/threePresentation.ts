@@ -26,6 +26,9 @@ export interface WaveWarningStakeState {
   rotationZ: number;
   scale: number;
   y: number;
+  beaconOpacity: number;
+  beaconScale: number;
+  flagGlow: number;
 }
 
 export interface SunTrailParticleState {
@@ -35,6 +38,9 @@ export interface SunTrailParticleState {
   y: number;
   z: number;
   scale: number;
+  haloScale: number;
+  shimmerOpacity: number;
+  rotationZ: number;
 }
 
 export interface PotatoMineShockwaveState {
@@ -42,6 +48,17 @@ export interface PotatoMineShockwaveState {
   opacity: number;
   flashOpacity: number;
   ringScale: number;
+  x: number;
+  y: number;
+  z: number;
+  scale: number;
+  rotationZ: number;
+}
+
+export interface PlantingSparkState {
+  visible: boolean;
+  opacity: number;
+  warmOpacity: number;
   x: number;
   y: number;
   z: number;
@@ -78,6 +95,8 @@ const POTATO_MINE_DEBRIS_DELAY_MS = 32;
 const STATUS_BADGE_MS = 5000;
 const STATUS_BADGE_PARTICLE_MS = 1180;
 const STATUS_BADGE_PARTICLE_DELAY_MS = 58;
+const PLANTING_SPARK_MS = 620;
+const PLANTING_SPARK_DELAY_MS = 26;
 
 export function getSeedPacketFlipState(ageMs: number, mode: SeedPacketFlipMode): SeedPacketFlipState {
   if (ageMs < 0 || ageMs > SEED_PACKET_FLIP_MS) {
@@ -134,20 +153,27 @@ export function getWaveWarningStakeState(ageMs: number): WaveWarningStakeState {
       opacity: 0,
       rotationZ: 0,
       scale: 0.1,
-      y: 0
+      y: 0,
+      beaconOpacity: 0,
+      beaconScale: 0.1,
+      flagGlow: 0
     };
   }
 
   const progress = ageMs / WAVE_WARNING_STAKE_MS;
   const pop = Math.sin(progress * Math.PI);
   const wobble = Math.sin(progress * Math.PI * 5);
+  const beaconFlicker = 0.76 + Math.sin(progress * Math.PI * 7) * 0.18;
 
   return {
     visible: true,
     opacity: Math.max(0, 1 - progress * 0.16),
     rotationZ: wobble * 0.16,
     scale: 0.55 + pop * 0.48,
-    y: -0.42 + pop * 0.16
+    y: -0.42 + pop * 0.16,
+    beaconOpacity: Math.max(0, pop * beaconFlicker),
+    beaconScale: 0.22 + pop * 1.04,
+    flagGlow: 0.32 + pop * 0.62
   };
 }
 
@@ -165,7 +191,10 @@ export function getSunTrailParticleState(ageMs: number, index: number): SunTrail
       x: startX,
       y: startY,
       z: startZ,
-      scale: 0.1
+      scale: 0.1,
+      haloScale: 0.1,
+      shimmerOpacity: 0,
+      rotationZ: particleIndex * 0.4
     };
   }
 
@@ -181,7 +210,53 @@ export function getSunTrailParticleState(ageMs: number, index: number): SunTrail
     x: startX * (1 - eased),
     y: startY * (1 - eased) + arc,
     z: startZ * (1 - eased) + Math.sin(progress * Math.PI * 2 + particleIndex) * 0.04,
-    scale: 0.42 + Math.sin(progress * Math.PI) * 0.42
+    scale: 0.42 + Math.sin(progress * Math.PI) * 0.42,
+    haloScale: 0.58 + Math.sin(progress * Math.PI) * (0.52 + (particleIndex % 2) * 0.1),
+    shimmerOpacity:
+      (0.18 + Math.sin(progress * Math.PI) ** 2 * 0.82) *
+      (0.72 + Math.sin(progress * Math.PI * 3 + particleIndex) * 0.18) *
+      fadeOut *
+      0.62,
+    rotationZ: particleIndex * 0.4 + progress * Math.PI * 1.6
+  };
+}
+
+export function getPlantingSparkState(ageMs: number, index: number): PlantingSparkState {
+  const particleIndex = Math.max(0, index);
+  const localAge = ageMs - particleIndex * PLANTING_SPARK_DELAY_MS;
+  const angle = -Math.PI * 0.82 + particleIndex * 1.18;
+  const startRadius = 0.04 + (particleIndex % 3) * 0.012;
+
+  if (ageMs < 0 || localAge < 0 || localAge > PLANTING_SPARK_MS) {
+    return {
+      visible: false,
+      opacity: 0,
+      warmOpacity: 0,
+      x: Math.cos(angle) * startRadius,
+      y: -0.04,
+      z: Math.sin(angle) * startRadius * 0.2,
+      scale: 0.1,
+      rotationZ: angle
+    };
+  }
+
+  const progress = localAge / PLANTING_SPARK_MS;
+  const eased = 1 - (1 - progress) ** 3;
+  const lift = Math.sin(progress * Math.PI) * (0.16 + (particleIndex % 3) * 0.025);
+  const spread = startRadius + eased * (0.32 + (particleIndex % 4) * 0.035);
+  const fadeIn = Math.min(1, progress * 8 + 0.2);
+  const fadeOut = Math.max(0, 1 - Math.max(0, progress - 0.44) / 0.56);
+  const opacity = fadeIn * fadeOut;
+
+  return {
+    visible: true,
+    opacity,
+    warmOpacity: Math.max(0, 1 - progress * 1.4) * 0.72,
+    x: Math.cos(angle) * spread,
+    y: -0.08 + lift,
+    z: Math.sin(angle) * spread * 0.18,
+    scale: 0.28 + Math.sin(progress * Math.PI) * 0.3,
+    rotationZ: angle + progress * Math.PI * 1.1
   };
 }
 

@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import {
   getGardenToolState,
+  getPlantingSparkState,
   getPotatoMineShockwaveState,
   getSeedPacketFlipState,
   getStatusBadgeState,
@@ -17,19 +18,24 @@ export class ThreeStage {
   private readonly coin = new THREE.Group();
   private readonly burst = new THREE.Group();
   private readonly sunTrail = new THREE.Group();
+  private readonly sunTrailHalos = new THREE.Group();
   private readonly waveRing = new THREE.Group();
   private readonly potatoMineShockwave = new THREE.Group();
   private readonly statusBadge = new THREE.Group();
   private readonly statusBadgeParticles = new THREE.Group();
   private readonly seedPacket = new THREE.Group();
   private readonly gardenTool = new THREE.Group();
+  private readonly plantingSpark = new THREE.Group();
   private readonly waveWarningStake = new THREE.Group();
+  private readonly waveWarningBeacon = new THREE.Group();
   private readonly statusBadgeMaterials: THREE.MeshStandardMaterial[] = [];
   private readonly statusBadgeParticleMaterials: THREE.MeshStandardMaterial[] = [];
   private readonly seedPacketMaterials: THREE.MeshStandardMaterial[] = [];
   private seedPacketShine?: THREE.Mesh<THREE.BoxGeometry, THREE.MeshStandardMaterial>;
+  private readonly plantingSparkMaterials: THREE.MeshStandardMaterial[] = [];
   private readonly potatoMineShockwaveMaterials: THREE.MeshStandardMaterial[] = [];
   private readonly waveWarningStakeMaterials: THREE.MeshStandardMaterial[] = [];
+  private readonly waveWarningBeaconMaterials: THREE.MeshStandardMaterial[] = [];
   private frameId = 0;
   private sunPulseStartedAt = -Infinity;
   private wavePulseStartedAt = -Infinity;
@@ -37,6 +43,7 @@ export class ThreeStage {
   private statusPulseStartedAt = -Infinity;
   private seedPacketStartedAt = -Infinity;
   private gardenToolPulseStartedAt = -Infinity;
+  private plantingSparkStartedAt = -Infinity;
   private seedPacketMode: SeedPacketFlipMode = "select";
   private statusBadgeMode: StatusBadgeMode | null = null;
 
@@ -58,6 +65,7 @@ export class ThreeStage {
     this.scene.add(this.burst);
     this.buildSunTrail();
     this.scene.add(this.sunTrail);
+    this.scene.add(this.sunTrailHalos);
     this.buildWaveRing();
     this.scene.add(this.waveRing);
     this.buildPotatoMineShockwave();
@@ -70,6 +78,8 @@ export class ThreeStage {
     this.scene.add(this.statusBadgeParticles);
     this.buildGardenTool();
     this.scene.add(this.gardenTool);
+    this.buildPlantingSpark();
+    this.scene.add(this.plantingSpark);
     this.buildSeedPacket();
     this.scene.add(this.seedPacket);
     this.resize();
@@ -102,7 +112,9 @@ export class ThreeStage {
   }
 
   swingGardenTool(): void {
-    this.gardenToolPulseStartedAt = performance.now();
+    const now = performance.now();
+    this.gardenToolPulseStartedAt = now;
+    this.plantingSparkStartedAt = now;
   }
 
   destroy(): void {
@@ -150,6 +162,7 @@ export class ThreeStage {
 
   private buildSunTrail(): void {
     const beadGeometry = new THREE.SphereGeometry(0.07, 16, 10);
+    const haloGeometry = new THREE.TorusGeometry(0.09, 0.012, 8, 28);
     for (let index = 0; index < 6; index += 1) {
       const material = new THREE.MeshStandardMaterial({
         color: index % 2 === 0 ? 0xfff1a3 : 0xffd34f,
@@ -162,8 +175,20 @@ export class ThreeStage {
       });
       const bead = new THREE.Mesh(beadGeometry, material);
       this.sunTrail.add(bead);
+      const haloMaterial = new THREE.MeshStandardMaterial({
+        color: 0xfff8df,
+        emissive: 0xffd34f,
+        emissiveIntensity: 0.55,
+        transparent: true,
+        opacity: 0,
+        roughness: 0.32
+      });
+      const halo = new THREE.Mesh(haloGeometry, haloMaterial);
+      halo.visible = false;
+      this.sunTrailHalos.add(halo);
     }
     this.sunTrail.visible = false;
+    this.sunTrailHalos.visible = false;
   }
 
   private buildWaveRing(): void {
@@ -252,10 +277,33 @@ export class ThreeStage {
     flag.position.set(0.18, 0.16, 0);
     const cap = new THREE.Mesh(new THREE.SphereGeometry(0.065, 14, 10), capMaterial);
     cap.position.y = 0.28;
+    const beaconRingMaterial = new THREE.MeshStandardMaterial({
+      color: 0xffd34f,
+      emissive: 0xff8f4d,
+      emissiveIntensity: 0.72,
+      transparent: true,
+      opacity: 0,
+      roughness: 0.36
+    });
+    const beaconCoreMaterial = new THREE.MeshStandardMaterial({
+      color: 0xfff8df,
+      emissive: 0xffd34f,
+      emissiveIntensity: 0.82,
+      transparent: true,
+      opacity: 0,
+      roughness: 0.28
+    });
+    const beaconRing = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.018, 8, 32), beaconRingMaterial);
+    const beaconCore = new THREE.Mesh(new THREE.SphereGeometry(0.055, 14, 10), beaconCoreMaterial);
+    beaconCore.position.z = 0.025;
+    this.waveWarningBeacon.position.set(0.18, 0.16, 0.02);
+    this.waveWarningBeacon.add(beaconRing, beaconCore);
+    this.waveWarningBeacon.visible = false;
     this.waveWarningStake.position.set(-1.06, 0.4, 0.08);
-    this.waveWarningStake.add(post, flag, cap);
+    this.waveWarningStake.add(post, flag, cap, this.waveWarningBeacon);
     this.waveWarningStake.visible = false;
     this.waveWarningStakeMaterials.push(postMaterial, flagMaterial, capMaterial);
+    this.waveWarningBeaconMaterials.push(beaconRingMaterial, beaconCoreMaterial);
   }
 
   private buildStatusBadge(): void {
@@ -401,6 +449,28 @@ export class ThreeStage {
     this.gardenTool.add(handle, grip, ferrule, blade);
   }
 
+  private buildPlantingSpark(): void {
+    const sparkGeometry = new THREE.SphereGeometry(0.045, 10, 8);
+    const dustGeometry = new THREE.BoxGeometry(0.055, 0.035, 0.035);
+    for (let index = 0; index < 10; index += 1) {
+      const material = new THREE.MeshStandardMaterial({
+        color: index % 3 === 0 ? 0xffd34f : index % 2 === 0 ? 0x8f5d32 : 0x6d4b2b,
+        emissive: index % 3 === 0 ? 0xff8f4d : 0x000000,
+        emissiveIntensity: 0,
+        roughness: 0.62,
+        transparent: true,
+        opacity: 0
+      });
+      const particle = new THREE.Mesh(index % 3 === 0 ? sparkGeometry : dustGeometry, material);
+      particle.userData.particleIndex = index;
+      particle.visible = false;
+      this.plantingSpark.add(particle);
+      this.plantingSparkMaterials.push(material);
+    }
+    this.plantingSpark.position.set(0.78, -0.58, 0.08);
+    this.plantingSpark.visible = false;
+  }
+
   private createStarGeometry(): THREE.ShapeGeometry {
     const shape = new THREE.Shape();
     for (let point = 0; point < 10; point += 1) {
@@ -443,6 +513,7 @@ export class ThreeStage {
     this.animateWaveWarningStake(now);
     this.animateStatusBadge(now);
     this.animateGardenTool(now);
+    this.animatePlantingSpark(now);
     this.animateSeedPacket(now);
     this.renderer.render(this.scene, this.camera);
     this.frameId = requestAnimationFrame(this.animate);
@@ -466,14 +537,22 @@ export class ThreeStage {
   private animateSunTrail(now: number): void {
     const ageMs = now - this.sunPulseStartedAt;
     let hasVisibleParticle = false;
+    let hasVisibleHalo = false;
 
     this.sunTrail.children.forEach((child, index) => {
       const bead = child as THREE.Mesh<THREE.SphereGeometry, THREE.MeshStandardMaterial>;
+      const halo = this.sunTrailHalos.children[index] as
+        | THREE.Mesh<THREE.TorusGeometry, THREE.MeshStandardMaterial>
+        | undefined;
       const state = getSunTrailParticleState(ageMs, index);
       bead.visible = state.visible;
 
       if (!state.visible) {
         bead.material.opacity = 0;
+        if (halo) {
+          halo.visible = false;
+          halo.material.opacity = 0;
+        }
         return;
       }
 
@@ -481,9 +560,20 @@ export class ThreeStage {
       bead.position.set(state.x, state.y, state.z);
       bead.scale.setScalar(state.scale);
       bead.material.opacity = state.opacity;
+      bead.material.emissiveIntensity = 0.7 + state.shimmerOpacity * 0.9;
+
+      if (halo) {
+        hasVisibleHalo = true;
+        halo.visible = true;
+        halo.position.set(state.x, state.y, state.z - 0.02);
+        halo.rotation.z = state.rotationZ;
+        halo.scale.setScalar(state.haloScale);
+        halo.material.opacity = state.shimmerOpacity * 0.82;
+      }
     });
 
     this.sunTrail.visible = hasVisibleParticle;
+    this.sunTrailHalos.visible = hasVisibleHalo;
   }
 
   private animateWaveRing(now: number): void {
@@ -547,6 +637,15 @@ export class ThreeStage {
     this.waveWarningStake.scale.setScalar(state.scale);
     this.waveWarningStakeMaterials.forEach((material) => {
       material.opacity = state.opacity;
+    });
+    this.waveWarningStakeMaterials[1].emissiveIntensity = state.flagGlow;
+    this.waveWarningStakeMaterials[2].emissiveIntensity = state.flagGlow * 0.72;
+    this.waveWarningBeacon.visible = state.beaconOpacity > 0.02;
+    this.waveWarningBeacon.scale.setScalar(state.beaconScale);
+    this.waveWarningBeacon.rotation.z = now / 260;
+    this.waveWarningBeaconMaterials.forEach((material) => {
+      material.opacity = state.beaconOpacity;
+      material.emissiveIntensity = state.flagGlow;
     });
   }
 
@@ -632,6 +731,33 @@ export class ThreeStage {
     this.gardenTool.rotation.z = state.rotationZ;
     this.gardenTool.rotation.y = state.rotationY;
     this.gardenTool.scale.setScalar(state.scale);
+  }
+
+  private animatePlantingSpark(now: number): void {
+    const ageMs = now - this.plantingSparkStartedAt;
+    let hasVisibleParticle = false;
+
+    this.plantingSpark.children.forEach((child, index) => {
+      const particle = child as THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMaterial>;
+      const state = getPlantingSparkState(ageMs, index);
+      particle.visible = state.visible;
+
+      if (!state.visible) {
+        particle.material.opacity = 0;
+        particle.material.emissiveIntensity = 0;
+        return;
+      }
+
+      hasVisibleParticle = true;
+      particle.position.set(state.x, state.y, state.z);
+      particle.rotation.z = state.rotationZ;
+      particle.rotation.x = state.rotationZ * 0.28;
+      particle.scale.setScalar(state.scale);
+      particle.material.opacity = state.opacity;
+      particle.material.emissiveIntensity = state.warmOpacity;
+    });
+
+    this.plantingSpark.visible = hasVisibleParticle;
   }
 
   private applyStatusBadgeColors(status: StatusBadgeMode): void {
