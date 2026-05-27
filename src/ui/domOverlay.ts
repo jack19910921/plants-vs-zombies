@@ -1,6 +1,6 @@
 import type { GameScene } from "../game/GameScene";
 import { getPlantAssetPresentation } from "../game/assetPresentation";
-import { PLANT_TEXTURES } from "../game/assets";
+import { PLANT_TEXTURES, SUN_TOKEN_TEXTURE } from "../game/assets";
 import { PLANTS } from "../game/config";
 import type { CombatEvent, DifficultyId, GameState, LevelConfig, PlantId, PlantingFailureReason } from "../game/types";
 import { getPlantMiniatureProfile } from "../game/worldPresentation";
@@ -146,7 +146,7 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
       return `<button class="plant-card plant-card--${plantId}${selected}${lockedClass}" data-plant="${plantId}" style="${cardStyle}" ${disabled}>
         <span class="plant-art"></span>
         <strong>${plant.name}</strong>
-        <span>${locked ? "未开放" : `☀ ${plant.cost}`}</span>
+        <span class="plant-cost">${locked ? "未开放" : `<span class="sun-icon sun-icon--small"></span>${plant.cost}`}</span>
       </button>`;
     })
     .join("");
@@ -188,9 +188,9 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
   const modalButtonText = state.status === "paused" ? "继续" : terminalAction === "next-level" ? "下一关" : "再玩一次";
   const modalSummary = getTerminalSummaryMarkup(state);
 
-  return `<div class="hud">
+  return `<div class="hud" style="--sun-art: url('${SUN_TOKEN_TEXTURE}')">
     <div class="hud-top">
-      <div class="chip">☀ ${state.sun}</div>
+      <div class="chip sun-chip"><span class="sun-icon"></span><span>${state.sun}</span></div>
       <div class="chip">${waveLabel}</div>
       <div class="difficulty-toggle">${difficultyButtons}</div>
       <button class="chip" data-action="pause">暂停</button>

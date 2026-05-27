@@ -51,7 +51,7 @@ describe("asset presentation profiles", () => {
     });
   });
 
-  it("lets M11 toy enemy textures own their headgear silhouettes", () => {
+  it("lets M11 image2 enemy textures own their headgear silhouettes", () => {
     zombieIds.forEach((zombieId) => {
       const profile = getZombieAssetPresentation(zombieId);
 

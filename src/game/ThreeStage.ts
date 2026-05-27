@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { LAWN_MOWER_TEXTURE, SUN_TOKEN_TEXTURE } from "./assets";
 import {
   getGardenToolState,
   getPlantingSparkState,
@@ -40,6 +41,7 @@ export class ThreeStage {
   private readonly potatoMineShockwaveMaterials: THREE.MeshStandardMaterial[] = [];
   private readonly waveWarningStakeMaterials: THREE.MeshStandardMaterial[] = [];
   private readonly waveWarningBeaconMaterials: THREE.MeshStandardMaterial[] = [];
+  private readonly textureLoader = new THREE.TextureLoader();
   private frameId = 0;
   private sunPulseStartedAt = -Infinity;
   private wavePulseStartedAt = -Infinity;
@@ -278,22 +280,19 @@ export class ThreeStage {
   }
 
   private buildCoin(): void {
-    const coinMaterial = new THREE.MeshStandardMaterial({
-      color: 0xffd34f,
-      metalness: 0.18,
-      roughness: 0.38
-    });
-    const rimMaterial = new THREE.MeshStandardMaterial({
-      color: 0x9d6b24,
-      metalness: 0.2,
-      roughness: 0.45
-    });
-    const face = new THREE.Mesh(new THREE.CylinderGeometry(0.76, 0.76, 0.14, 48), coinMaterial);
-    face.rotation.x = Math.PI / 2;
-    const rim = new THREE.Mesh(new THREE.TorusGeometry(0.77, 0.035, 10, 48), rimMaterial);
-    const core = new THREE.Mesh(new THREE.SphereGeometry(0.22, 24, 16), coinMaterial);
-    core.scale.set(1, 1, 0.2);
-    this.coin.add(face, rim, core);
+    const halo = new THREE.Mesh(
+      new THREE.CircleGeometry(0.82, 48),
+      new THREE.MeshBasicMaterial({
+        color: 0xffd34f,
+        transparent: true,
+        opacity: 0.22,
+        depthWrite: false,
+        side: THREE.DoubleSide
+      })
+    );
+    halo.position.z = -0.03;
+    const token = this.createTexturePlane(SUN_TOKEN_TEXTURE, 1.48, 1.5);
+    this.coin.add(halo, token);
   }
 
   private buildBurst(): void {
@@ -569,37 +568,22 @@ export class ThreeStage {
   }
 
   private buildGardenTool(): void {
-    const handleMaterial = new THREE.MeshStandardMaterial({
-      color: 0x8f5d32,
-      roughness: 0.62,
-      metalness: 0.08
-    });
-    const ferruleMaterial = new THREE.MeshStandardMaterial({
-      color: 0xc7d2d6,
-      roughness: 0.32,
-      metalness: 0.45
-    });
-    const bladeMaterial = new THREE.MeshStandardMaterial({
-      color: 0x9fb2b7,
-      roughness: 0.38,
-      metalness: 0.5
-    });
-    const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.065, 0.92, 18), handleMaterial);
-    handle.rotation.z = Math.PI / 2;
-    handle.position.x = -0.18;
-    const grip = new THREE.Mesh(new THREE.SphereGeometry(0.09, 18, 12), handleMaterial);
-    grip.scale.set(1, 0.8, 0.72);
-    grip.position.x = -0.66;
-    const ferrule = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.08, 0.18, 18), ferruleMaterial);
-    ferrule.rotation.z = Math.PI / 2;
-    ferrule.position.x = 0.31;
-    const blade = new THREE.Mesh(new THREE.CapsuleGeometry(0.12, 0.32, 8, 18), bladeMaterial);
-    blade.scale.set(0.9, 1.2, 0.2);
-    blade.rotation.z = -Math.PI / 2;
-    blade.position.x = 0.58;
+    const mower = this.createTexturePlane(LAWN_MOWER_TEXTURE, 1.08, 1.14);
     this.gardenTool.position.set(0.45, -0.28, -0.08);
-    this.gardenTool.rotation.z = -0.42;
-    this.gardenTool.add(handle, grip, ferrule, blade);
+    this.gardenTool.rotation.z = -0.28;
+    this.gardenTool.add(mower);
+  }
+
+  private createTexturePlane(url: string, width: number, height: number): THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial> {
+    const texture = this.textureLoader.load(url);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    const material = new THREE.MeshBasicMaterial({
+      map: texture,
+      transparent: true,
+      depthWrite: false,
+      side: THREE.DoubleSide
+    });
+    return new THREE.Mesh(new THREE.PlaneGeometry(width, height), material);
   }
 
   private buildPlantingSpark(): void {

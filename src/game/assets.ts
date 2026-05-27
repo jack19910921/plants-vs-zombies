@@ -11,7 +11,16 @@ export const PLANT_TEXTURES: Record<PlantId, string> = {
 export const BOARD_TEXTURE = new URL("../assets/generated/m11/image2-garden-board.png", import.meta.url).href;
 
 export const ZOMBIE_TEXTURES: Record<ZombieId, string> = {
-  basic: new URL("../assets/generated/m11/toy-zombie-basic.svg", import.meta.url).href,
-  cone: new URL("../assets/generated/m11/toy-zombie-cone.svg", import.meta.url).href,
-  bucket: new URL("../assets/generated/m11/toy-zombie-bucket.svg", import.meta.url).href
+  basic: new URL("../assets/generated/m11/image2-zombie-basic.png", import.meta.url).href,
+  cone: new URL("../assets/generated/m11/image2-zombie-cone.png", import.meta.url).href,
+  bucket: new URL("../assets/generated/m11/image2-zombie-bucket.png", import.meta.url).href
 };
+
+export const PROJECTILE_TEXTURES = {
+  pea: new URL("../assets/generated/m11/image2-pea-projectile.png", import.meta.url).href,
+  ice: new URL("../assets/generated/m11/image2-ice-projectile.png", import.meta.url).href
+} as const;
+
+export const SUN_TOKEN_TEXTURE = new URL("../assets/generated/m11/image2-sun-token.png", import.meta.url).href;
+export const BASE_SIGN_TEXTURE = new URL("../assets/generated/m11/image2-base-sign.png", import.meta.url).href;
+export const LAWN_MOWER_TEXTURE = new URL("../assets/generated/m11/image2-lawn-mower.png", import.meta.url).href;

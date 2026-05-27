@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { BOARD_TEXTURE, PLANT_TEXTURES, ZOMBIE_TEXTURES } from "./assets";
+import {
+  BASE_SIGN_TEXTURE,
+  BOARD_TEXTURE,
+  LAWN_MOWER_TEXTURE,
+  PLANT_TEXTURES,
+  PROJECTILE_TEXTURES,
+  SUN_TOKEN_TEXTURE,
+  ZOMBIE_TEXTURES
+} from "./assets";
 import type { PlantId, ZombieId } from "./types";
 
 const expectedPlantAssetNames: Record<PlantId, string> = {
@@ -11,9 +19,9 @@ const expectedPlantAssetNames: Record<PlantId, string> = {
 };
 
 const expectedZombieAssetNames: Record<ZombieId, string> = {
-  basic: "toy-zombie-basic.svg",
-  cone: "toy-zombie-cone.svg",
-  bucket: "toy-zombie-bucket.svg"
+  basic: "image2-zombie-basic.png",
+  cone: "image2-zombie-cone.png",
+  bucket: "image2-zombie-bucket.png"
 };
 
 describe("asset texture registry", () => {
@@ -31,5 +39,13 @@ describe("asset texture registry", () => {
     Object.entries(expectedZombieAssetNames).forEach(([zombieId, fileName]) => {
       expect(ZOMBIE_TEXTURES[zombieId as ZombieId]).toContain(fileName);
     });
+  });
+
+  it("exposes the M11 image2 UI prop and effect textures", () => {
+    expect(PROJECTILE_TEXTURES.pea).toContain("image2-pea-projectile.png");
+    expect(PROJECTILE_TEXTURES.ice).toContain("image2-ice-projectile.png");
+    expect(SUN_TOKEN_TEXTURE).toContain("image2-sun-token.png");
+    expect(BASE_SIGN_TEXTURE).toContain("image2-base-sign.png");
+    expect(LAWN_MOWER_TEXTURE).toContain("image2-lawn-mower.png");
   });
 });

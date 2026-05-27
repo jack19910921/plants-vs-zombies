@@ -119,6 +119,25 @@ button {
   padding-left: 104px;
 }
 
+.sun-chip {
+  gap: 8px;
+}
+
+.sun-icon {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  background: var(--sun-art) center / contain no-repeat;
+  filter: drop-shadow(0 2px 1px rgba(92, 67, 48, 0.18));
+}
+
+.sun-icon--small {
+  width: 18px;
+  height: 18px;
+  transform: translateY(2px);
+}
+
 .difficulty-toggle {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -245,6 +264,14 @@ button {
 
 .plant-card span:last-child {
   overflow-wrap: anywhere;
+}
+
+.plant-cost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 20px;
 }
 
 .plant-art {

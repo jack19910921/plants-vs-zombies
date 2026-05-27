@@ -6,7 +6,14 @@ import {
   getZombieAssetPresentation,
   type AssetCrop
 } from "./assetPresentation";
-import { BOARD_TEXTURE, PLANT_TEXTURES, ZOMBIE_TEXTURES } from "./assets";
+import {
+  BASE_SIGN_TEXTURE,
+  BOARD_TEXTURE,
+  PLANT_TEXTURES,
+  PROJECTILE_TEXTURES,
+  SUN_TOKEN_TEXTURE,
+  ZOMBIE_TEXTURES
+} from "./assets";
 import { DIFFICULTY, LEVELS, PLANTS, ZOMBIES } from "./config";
 import {
   advanceCombat,
@@ -71,6 +78,10 @@ export class GameScene extends Phaser.Scene {
       this.load.image(`plant-${plantId}`, url);
     });
     this.load.image("garden-board", BOARD_TEXTURE);
+    this.load.image("base-sign", BASE_SIGN_TEXTURE);
+    this.load.image("sun-token", SUN_TOKEN_TEXTURE);
+    this.load.image("projectile-pea", PROJECTILE_TEXTURES.pea);
+    this.load.image("projectile-ice", PROJECTILE_TEXTURES.ice);
     Object.entries(ZOMBIE_TEXTURES).forEach(([zombieId, url]) => {
       this.load.image(`zombie-${zombieId}`, url);
     });
@@ -238,10 +249,8 @@ export class GameScene extends Phaser.Scene {
       this.add.line(x, BOARD.y + BOARD.height / 2, 0, 0, 0, BOARD.height, 0x5c4330, 0.14).setLineWidth(2);
     }
     this.drawTrayPebbles();
-    this.add.rectangle(91, 332, 76, 356, 0x5c4330, 0.16);
-    this.add.rectangle(86, 326, 72, 350, 0xfff0b8).setStrokeStyle(4, 0x5c4330);
-    this.add.rectangle(86, 202, 52, 72, 0xffffff, 0.14);
-    this.add.text(70, 296, "基地", { fontSize: "24px", color: "#263238", fontStyle: "bold" }).setAngle(-90);
+    this.add.ellipse(92, 498, 92, 20, 0x5c4330, 0.16);
+    this.add.image(88, 340, "base-sign").setDisplaySize(94, 308);
   }
 
   private drawTabletop(): void {
@@ -415,11 +424,12 @@ export class GameScene extends Phaser.Scene {
         .circle(x, coinY, sunPickup.haloRadius, sunPickup.glintColor, 0.18 * sunPickup.alpha)
         .setData("dynamic", true);
       this.add
-        .circle(x, coinY, sunPickup.coinRadius, sunPickup.coinColor, sunPickup.alpha)
-        .setStrokeStyle(3, sunPickup.rimColor, sunPickup.alpha)
+        .image(x, coinY, "sun-token")
+        .setDisplaySize(sunPickup.coinRadius * 2.7, sunPickup.coinRadius * 2.7)
+        .setAlpha(sunPickup.alpha)
         .setData("dynamic", true);
       this.add
-        .star(x - 3, coinY - 4, 5, 3, 8, sunPickup.glintColor, 0.42 * sunPickup.alpha)
+        .star(x - 4, coinY - 5, 5, 3, 7, sunPickup.glintColor, 0.34 * sunPickup.alpha)
         .setData("dynamic", true);
       this.add
         .text(x + 18, coinY - 8, `+${sunEvent.amount}`, {
@@ -474,14 +484,17 @@ export class GameScene extends Phaser.Scene {
     const x = BOARD.x + projectile.x * columnWidth;
     const y = BOARD.y + projectile.lane * laneHeight + laneHeight / 2;
     const presentation = getProjectilePresentation(projectile.slows);
-    this.add.circle(x - 20, y, 7, presentation.trailColor, presentation.trailAlpha * 0.52).setData("dynamic", true);
-    this.add.circle(x - 10, y, 9, presentation.trailColor, presentation.trailAlpha).setData("dynamic", true);
+    const projectileKey = projectile.slows ? "projectile-ice" : "projectile-pea";
+    const projectileWidth = projectile.slows ? 30 : 34;
+    const projectileHeight = projectile.slows ? 30 : 26;
+    this.add.circle(x - 18, y, 8, presentation.trailColor, presentation.trailAlpha * 0.45).setData("dynamic", true);
     this.add.circle(x, y, presentation.glowRadius, presentation.glowColor, 0.24).setData("dynamic", true);
     this.add
-      .circle(x, y, presentation.coreRadius, presentation.coreColor)
-      .setStrokeStyle(2, presentation.rimColor)
+      .image(x, y, projectileKey)
+      .setDisplaySize(projectileWidth, projectileHeight)
+      .setAlpha(0.97)
       .setData("dynamic", true);
-    this.add.circle(x - 4, y - 4, 4, presentation.sparkleColor, 0.74).setData("dynamic", true);
+    this.add.circle(x - 4, y - 4, 3, presentation.sparkleColor, 0.42).setData("dynamic", true);
   }
 
   private drawZombie(zombie: ZombieEntity, laneHeight: number, columnWidth: number): void {

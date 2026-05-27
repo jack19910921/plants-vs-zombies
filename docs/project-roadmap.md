@@ -425,6 +425,7 @@ Delivered so far:
 - Added bottom-center plant anchoring and card `contain` rendering for the new plant art.
 - Added original in-repository toy enemy SVG assets for basic, cone, and bucket enemy variants.
 - Polished pea/ice projectiles and sun-produced pickup feedback to match the toy asset palette.
+- Replaced the called-out fake-looking enemies, projectiles, sun token, base sign, and left-top toy tool with the follow-up user-provided image2 assets.
 - Registered every new non-code asset in `docs/asset-sources.md`.
 
 Closeout note:

@@ -156,8 +156,8 @@ const PLANT_MINIATURE_PROFILES: Record<PlantId, PlantMiniatureProfile> = {
 
 const ZOMBIE_MINIATURE_PROFILES: Record<ZombieId, ZombieMiniatureProfile> = {
   basic: {
-    imageWidth: 74,
-    imageHeight: 74,
+    imageWidth: 58,
+    imageHeight: 92,
     shadowWidth: 70,
     shadowHeight: 19,
     backingWidth: 64,
@@ -178,8 +178,8 @@ const ZOMBIE_MINIATURE_PROFILES: Record<ZombieId, ZombieMiniatureProfile> = {
     headgearYOffset: 0
   },
   cone: {
-    imageWidth: 76,
-    imageHeight: 80,
+    imageWidth: 56,
+    imageHeight: 102,
     shadowWidth: 74,
     shadowHeight: 20,
     backingWidth: 66,
@@ -200,8 +200,8 @@ const ZOMBIE_MINIATURE_PROFILES: Record<ZombieId, ZombieMiniatureProfile> = {
     headgearYOffset: -48
   },
   bucket: {
-    imageWidth: 82,
-    imageHeight: 78,
+    imageWidth: 64,
+    imageHeight: 100,
     shadowWidth: 82,
     shadowHeight: 22,
     backingWidth: 72,
