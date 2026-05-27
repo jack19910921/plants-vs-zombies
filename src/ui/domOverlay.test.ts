@@ -158,6 +158,7 @@ describe("dom overlay", () => {
     expect(html).toContain("--plant-base:");
     expect(html).toContain("--plant-stem:");
     expect(html).toContain("--plant-art:");
+    expect(html).toContain("--plant-size: contain");
   });
 
   it("keeps profile styling on locked cards", () => {

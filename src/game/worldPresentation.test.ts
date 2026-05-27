@@ -74,6 +74,16 @@ describe("world presentation helpers", () => {
     expect(snowPea.rimColor).not.toBe(peashooter.rimColor);
   });
 
+  it("sizes M11 image2 shooter art larger without exceeding a lane", () => {
+    const peashooter = getPlantMiniatureProfile("peashooter");
+    const snowPea = getPlantMiniatureProfile("snowpea");
+
+    expect(peashooter.imageHeight).toBeGreaterThanOrEqual(72);
+    expect(snowPea.imageHeight).toBe(peashooter.imageHeight);
+    expect(peashooter.imageWidth).toBeLessThanOrEqual(88);
+    expect(snowPea.imageWidth).toBeLessThanOrEqual(88);
+  });
+
   it("keeps basic enemies unarmored", () => {
     const basic = getZombieMiniatureProfile("basic");
 

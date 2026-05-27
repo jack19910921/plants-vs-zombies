@@ -72,8 +72,8 @@ export interface HealthWearState {
 
 const PLANT_MINIATURE_PROFILES: Record<PlantId, PlantMiniatureProfile> = {
   sunflower: {
-    imageWidth: 64,
-    imageHeight: 74,
+    imageWidth: 74,
+    imageHeight: 84,
     baseWidth: 64,
     baseHeight: 20,
     stemWidth: 12,
@@ -84,8 +84,8 @@ const PLANT_MINIATURE_PROFILES: Record<PlantId, PlantMiniatureProfile> = {
     highlightAlpha: 0.26
   },
   peashooter: {
-    imageWidth: 68,
-    imageHeight: 64,
+    imageWidth: 84,
+    imageHeight: 74,
     baseWidth: 66,
     baseHeight: 20,
     stemWidth: 13,
@@ -96,9 +96,9 @@ const PLANT_MINIATURE_PROFILES: Record<PlantId, PlantMiniatureProfile> = {
     highlightAlpha: 0.2
   },
   wallnut: {
-    imageWidth: 78,
-    imageHeight: 62,
-    baseWidth: 76,
+    imageWidth: 90,
+    imageHeight: 72,
+    baseWidth: 82,
     baseHeight: 22,
     stemWidth: 16,
     stemHeight: 14,
@@ -108,8 +108,8 @@ const PLANT_MINIATURE_PROFILES: Record<PlantId, PlantMiniatureProfile> = {
     highlightAlpha: 0.18
   },
   snowpea: {
-    imageWidth: 68,
-    imageHeight: 64,
+    imageWidth: 84,
+    imageHeight: 74,
     baseWidth: 66,
     baseHeight: 20,
     stemWidth: 13,
@@ -120,8 +120,8 @@ const PLANT_MINIATURE_PROFILES: Record<PlantId, PlantMiniatureProfile> = {
     highlightAlpha: 0.24
   },
   potatomine: {
-    imageWidth: 58,
-    imageHeight: 44,
+    imageWidth: 82,
+    imageHeight: 56,
     baseWidth: 62,
     baseHeight: 18,
     stemWidth: 18,

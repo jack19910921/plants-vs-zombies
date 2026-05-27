@@ -10,7 +10,10 @@ export interface AssetCrop {
 export interface PlantAssetPresentation {
   crop: AssetCrop;
   cssObjectPosition: string;
+  cssBackgroundSize: string;
   cssFilter: string;
+  fieldAnchorX: number;
+  fieldAnchorY: number;
   fieldOffsetX: number;
   fieldOffsetY: number;
 }
@@ -29,42 +32,65 @@ export interface SourceCropPixels {
   height: number;
 }
 
+export interface BoardAssetPresentation {
+  crop: AssetCrop;
+}
+
 const PLANT_ASSET_PRESENTATION: Record<PlantId, PlantAssetPresentation> = {
   sunflower: {
-    crop: { x: 0.08, y: 0.04, width: 0.84, height: 0.88 },
-    cssObjectPosition: "50% 48%",
-    cssFilter: "contrast(1.08) saturate(1.16) brightness(1.02)",
+    crop: { x: 0, y: 0, width: 1, height: 1 },
+    cssObjectPosition: "50% 58%",
+    cssBackgroundSize: "contain",
+    cssFilter: "contrast(1.04) saturate(1.06) brightness(1.02)",
+    fieldAnchorX: 0.5,
+    fieldAnchorY: 1,
     fieldOffsetX: 0,
-    fieldOffsetY: -2
+    fieldOffsetY: 1
   },
   peashooter: {
-    crop: { x: 0.1, y: 0.12, width: 0.8, height: 0.76 },
-    cssObjectPosition: "48% 52%",
-    cssFilter: "contrast(1.1) saturate(1.14) brightness(1.02)",
-    fieldOffsetX: 1,
+    crop: { x: 0, y: 0, width: 1, height: 1 },
+    cssObjectPosition: "50% 58%",
+    cssBackgroundSize: "contain",
+    cssFilter: "contrast(1.04) saturate(1.06) brightness(1.02)",
+    fieldAnchorX: 0.5,
+    fieldAnchorY: 1,
+    fieldOffsetX: 2,
     fieldOffsetY: 1
   },
   wallnut: {
-    crop: { x: 0.06, y: 0.16, width: 0.88, height: 0.72 },
-    cssObjectPosition: "52% 58%",
-    cssFilter: "contrast(1.12) saturate(1.08) brightness(0.98)",
+    crop: { x: 0, y: 0, width: 1, height: 1 },
+    cssObjectPosition: "50% 60%",
+    cssBackgroundSize: "contain",
+    cssFilter: "contrast(1.04) saturate(1.04) brightness(1.01)",
+    fieldAnchorX: 0.5,
+    fieldAnchorY: 1,
     fieldOffsetX: 0,
-    fieldOffsetY: 4
+    fieldOffsetY: 3
   },
   snowpea: {
-    crop: { x: 0.08, y: 0.1, width: 0.84, height: 0.78 },
-    cssObjectPosition: "48% 54%",
-    cssFilter: "contrast(1.1) saturate(1.05) brightness(1.04)",
-    fieldOffsetX: 1,
+    crop: { x: 0, y: 0, width: 1, height: 1 },
+    cssObjectPosition: "50% 58%",
+    cssBackgroundSize: "contain",
+    cssFilter: "contrast(1.04) saturate(1.02) brightness(1.04)",
+    fieldAnchorX: 0.5,
+    fieldAnchorY: 1,
+    fieldOffsetX: 2,
     fieldOffsetY: 1
   },
   potatomine: {
-    crop: { x: 0.04, y: 0.2, width: 0.92, height: 0.68 },
+    crop: { x: 0, y: 0, width: 1, height: 1 },
     cssObjectPosition: "50% 62%",
-    cssFilter: "contrast(1.12) saturate(1.02) brightness(0.98)",
+    cssBackgroundSize: "contain",
+    cssFilter: "contrast(1.04) saturate(1.02) brightness(1.01)",
+    fieldAnchorX: 0.5,
+    fieldAnchorY: 1,
     fieldOffsetX: 0,
-    fieldOffsetY: 5
+    fieldOffsetY: 4
   }
+};
+
+const BOARD_ASSET_PRESENTATION: BoardAssetPresentation = {
+  crop: { x: 0.03, y: 0.12, width: 0.94, height: 0.66 }
 };
 
 const ZOMBIE_ASSET_PRESENTATION: Record<ZombieId, ZombieAssetPresentation> = {
@@ -94,6 +120,10 @@ export function getPlantAssetPresentation(plantId: PlantId): PlantAssetPresentat
 
 export function getZombieAssetPresentation(zombieId: ZombieId): ZombieAssetPresentation {
   return ZOMBIE_ASSET_PRESENTATION[zombieId];
+}
+
+export function getBoardAssetPresentation(): BoardAssetPresentation {
+  return BOARD_ASSET_PRESENTATION;
 }
 
 export function getSourceCropPixels(crop: AssetCrop, sourceWidth: number, sourceHeight: number): SourceCropPixels {

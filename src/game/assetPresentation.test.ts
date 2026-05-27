@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  getBoardAssetPresentation,
   getPlantAssetPresentation,
   getSourceCropPixels,
   getZombieAssetPresentation,
@@ -27,6 +28,9 @@ describe("asset presentation profiles", () => {
       expectValidCrop(profile.crop);
       expect(profile.cssFilter).toContain("contrast");
       expect(profile.cssObjectPosition).toContain("%");
+      expect(profile.cssBackgroundSize).toBe("contain");
+      expect(profile.fieldAnchorX).toBe(0.5);
+      expect(profile.fieldAnchorY).toBe(1);
     });
   });
 
@@ -45,6 +49,17 @@ describe("asset presentation profiles", () => {
       expectValidCrop(profile.crop);
       expect(profile.cssFilter).toContain("contrast");
     });
+  });
+
+  it("defines a bounded crop for the image2 garden board", () => {
+    const board = getBoardAssetPresentation();
+
+    expectValidCrop(board.crop);
+    const cropPixels = getSourceCropPixels(board.crop, 1672, 941);
+    const aspectRatio = cropPixels.width / cropPixels.height;
+
+    expect(aspectRatio).toBeGreaterThan(2.4);
+    expect(aspectRatio).toBeLessThan(2.7);
   });
 
   it("converts normalized crop fractions to bounded source pixels", () => {

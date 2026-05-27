@@ -75,6 +75,7 @@ function getPlantCardStyle(plantId: PlantId): string {
     `--plant-stem: ${toCssHex(profile.stemColor)}`,
     `--plant-art: url('${PLANT_TEXTURES[plantId]}')`,
     `--plant-position: ${assetProfile.cssObjectPosition}`,
+    `--plant-size: ${assetProfile.cssBackgroundSize}`,
     `--plant-filter: ${assetProfile.cssFilter}`
   ].join("; ");
 }

@@ -1,11 +1,12 @@
 import Phaser from "phaser";
 import {
+  getBoardAssetPresentation,
   getPlantAssetPresentation,
   getSourceCropPixels,
   getZombieAssetPresentation,
   type AssetCrop
 } from "./assetPresentation";
-import { PLANT_TEXTURES, ZOMBIE_TEXTURE } from "./assets";
+import { BOARD_TEXTURE, PLANT_TEXTURES, ZOMBIE_TEXTURE } from "./assets";
 import { DIFFICULTY, LEVELS, PLANTS, ZOMBIES } from "./config";
 import {
   advanceCombat,
@@ -67,6 +68,7 @@ export class GameScene extends Phaser.Scene {
     Object.entries(PLANT_TEXTURES).forEach(([plantId, url]) => {
       this.load.image(`plant-${plantId}`, url);
     });
+    this.load.image("garden-board", BOARD_TEXTURE);
     this.load.image("zombie-basic", ZOMBIE_TEXTURE);
   }
 
@@ -204,19 +206,28 @@ export class GameScene extends Phaser.Scene {
     this.add.rectangle(648, 338, 1106, 438, 0x5c4330, 0.18);
     this.add.rectangle(640, 326, 1092, 430, 0x7aa86b, 0.28).setStrokeStyle(5, 0x68482e, 0.92);
     this.add.rectangle(640, 326, 1066, 404, 0xf1cc86, 0.96).setStrokeStyle(3, 0x8a633d, 0.72);
+    const boardArt = this.add.image(BOARD.x + BOARD.width / 2, BOARD.y + BOARD.height / 2, "garden-board");
+    const boardCrop = getSourceCropPixels(getBoardAssetPresentation().crop, boardArt.width, boardArt.height);
+    const boardScaleX = BOARD.width / boardCrop.width;
+    const boardScaleY = BOARD.height / boardCrop.height;
+    const cropCenterOffsetX = (boardCrop.x + boardCrop.width / 2 - boardArt.width / 2) * boardScaleX;
+    const cropCenterOffsetY = (boardCrop.y + boardCrop.height / 2 - boardArt.height / 2) * boardScaleY;
+    boardArt
+      .setCrop(boardCrop.x, boardCrop.y, boardCrop.width, boardCrop.height)
+      .setScale(boardScaleX, boardScaleY)
+      .setPosition(BOARD.x + BOARD.width / 2 - cropCenterOffsetX, BOARD.y + BOARD.height / 2 - cropCenterOffsetY)
+      .setAlpha(0.98);
     this.add.ellipse(250, 148, 86, 20, 0xffffff, 0.12);
     this.add.ellipse(1040, 510, 120, 24, 0x5c4330, 0.1);
     const laneHeight = BOARD.height / BOARD.lanes;
     const columnWidth = BOARD.width / BOARD.columns;
     for (let lane = 0; lane < BOARD.lanes; lane += 1) {
       const y = BOARD.y + lane * laneHeight + laneHeight / 2;
-      const color = [0x8bd4bd, 0xf7df76, 0x9bd887, 0x9fd7ef, 0xf8b1a7][lane];
       this.add
-        .rectangle(BOARD.x + BOARD.width / 2, y, BOARD.width, laneHeight - 8, color)
-        .setStrokeStyle(2, 0x5c4330, 0.22);
-      this.add.rectangle(BOARD.x + BOARD.width / 2, y - 27, BOARD.width - 20, 8, 0xffffff, 0.12);
-      this.add.rectangle(BOARD.x + BOARD.width / 2, y + 24, BOARD.width - 18, 11, 0x5c4330, 0.08);
-      this.add.rectangle(BOARD.x + BOARD.width / 2, y + 33, BOARD.width - 44, 4, 0xffffff, 0.08);
+        .rectangle(BOARD.x + BOARD.width / 2, y, BOARD.width, laneHeight - 8, 0xffffff, 0.035)
+        .setStrokeStyle(2, 0x315f3a, 0.18);
+      this.add.rectangle(BOARD.x + BOARD.width / 2, y - 27, BOARD.width - 20, 8, 0xffffff, 0.08);
+      this.add.rectangle(BOARD.x + BOARD.width / 2, y + 27, BOARD.width - 18, 8, 0x174a36, 0.05);
     }
     for (let column = 1; column < BOARD.columns; column += 1) {
       const x = BOARD.x + column * columnWidth;
@@ -316,7 +327,12 @@ export class GameScene extends Phaser.Scene {
     const miniature = getPlantMiniatureState(this.state.nowMs, plant.lane, plant.column, firePulse, hitPulse);
     const wear = getHealthWearState(plant.hp, PLANTS[plant.plantId].maxHp);
     const bodyX = x + miniature.bodyXOffset;
-    const bodyY = y + miniature.bodyYOffset;
+    const imageWidth = profile.imageWidth * miniature.scaleX;
+    const imageHeight = profile.imageHeight * miniature.scaleY;
+    const imageX = bodyX + assetProfile.fieldOffsetX;
+    const imageY = y + 34 + miniature.bodyYOffset + assetProfile.fieldOffsetY;
+    const visualCenterX = imageX + imageWidth * (0.5 - assetProfile.fieldAnchorX);
+    const visualCenterY = imageY + imageHeight * (0.5 - assetProfile.fieldAnchorY);
     const tint = hitPulse > 0 ? 0xffb39b : 0xffffff;
     const highlightAlpha = Math.min(0.56, profile.highlightAlpha + firePulse * 0.14);
 
@@ -336,33 +352,30 @@ export class GameScene extends Phaser.Scene {
       .setData("dynamic", true);
     this.add
       .ellipse(
-        bodyX + 5,
-        bodyY + 7,
-        (profile.imageWidth + 8) * miniature.scaleX,
-        (profile.imageHeight + 6) * miniature.scaleY,
+        visualCenterX + 5,
+        visualCenterY + 7,
+        imageWidth + 8 * miniature.scaleX,
+        imageHeight + 6 * miniature.scaleY,
         0x1d3f2c,
         0.18
       )
       .setData("dynamic", true);
-    const plantImage = this.add.image(
-      bodyX + assetProfile.fieldOffsetX,
-      bodyY + assetProfile.fieldOffsetY,
-      `plant-${plant.plantId}`
-    );
+    const plantImage = this.add.image(imageX, imageY, `plant-${plant.plantId}`);
     this.applyTextureCrop(plantImage, assetProfile.crop)
-      .setDisplaySize(profile.imageWidth * miniature.scaleX, profile.imageHeight * miniature.scaleY)
+      .setOrigin(assetProfile.fieldAnchorX, assetProfile.fieldAnchorY)
+      .setDisplaySize(imageWidth, imageHeight)
       .setAngle(miniature.angle)
       .setTint(tint)
       .setData("dynamic", true);
     this.add
-      .circle(bodyX - 14, bodyY - 17, 11 * Math.max(miniature.scaleX, miniature.scaleY), 0xffffff, highlightAlpha)
+      .circle(visualCenterX - 14, visualCenterY - 17, 11 * Math.max(miniature.scaleX, miniature.scaleY), 0xffffff, highlightAlpha)
       .setData("dynamic", true);
     this.add
       .ellipse(
-        bodyX,
-        bodyY,
-        (profile.imageWidth + 6) * miniature.scaleX,
-        (profile.imageHeight + 6) * miniature.scaleY,
+        visualCenterX,
+        visualCenterY,
+        imageWidth + 6 * miniature.scaleX,
+        imageHeight + 6 * miniature.scaleY,
         0xffffff,
         0
       )
@@ -372,24 +385,27 @@ export class GameScene extends Phaser.Scene {
     if (miniature.flashAlpha > 0) {
       this.add
         .ellipse(
-          bodyX,
-          bodyY,
-          (profile.imageWidth + 10) * miniature.scaleX,
-          (profile.imageHeight + 8) * miniature.scaleY,
+          visualCenterX,
+          visualCenterY,
+          imageWidth + 10 * miniature.scaleX,
+          imageHeight + 8 * miniature.scaleY,
           0xfff8df,
           miniature.flashAlpha
         )
         .setData("dynamic", true);
     }
-    this.drawPlantWear(bodyX, bodyY, profile.imageWidth * miniature.scaleX, profile.imageHeight * miniature.scaleY, wear);
+    this.drawPlantWear(visualCenterX, visualCenterY, imageWidth, imageHeight, wear);
 
     if (firePulse > 0) {
-      this.add.circle(x + 42, y - 8, 10 + firePulse * 18, 0xfff1a3, 0.4 * firePulse).setData("dynamic", true);
-      this.add.star(x + 48, y - 8, 6, 6, 14 + firePulse * 10, 0xffffff, 0.42 * firePulse).setData("dynamic", true);
+      const muzzleX = imageX + imageWidth * 0.42;
+      const muzzleY = visualCenterY - imageHeight * 0.12;
+      const effectColor = plant.plantId === "snowpea" ? 0xbdefff : 0xfff1a3;
+      this.add.circle(muzzleX, muzzleY, 10 + firePulse * 18, effectColor, 0.4 * firePulse).setData("dynamic", true);
+      this.add.star(muzzleX + 6, muzzleY, 6, 6, 14 + firePulse * 10, 0xffffff, 0.42 * firePulse).setData("dynamic", true);
     }
 
     if (sunEvent?.type === "sun-produced") {
-      const coinY = y - 48 - sunProgress * 34;
+      const coinY = visualCenterY - imageHeight * 0.48 - sunProgress * 34;
       const alpha = Math.max(0, 1 - sunProgress);
       this.add.circle(x, coinY, 14, 0xffd34f, alpha).setStrokeStyle(3, 0xa56c21, alpha).setData("dynamic", true);
       this.add.text(x + 18, coinY - 8, `+${sunEvent.amount}`, { fontSize: "16px", color: "#6d4615", fontStyle: "bold" }).setData("dynamic", true);
