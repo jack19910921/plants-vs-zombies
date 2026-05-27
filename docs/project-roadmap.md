@@ -285,7 +285,7 @@ Dependencies:
 
 ### M7: Packaging And Performance
 
-Status: planned.
+Status: complete.
 
 Goal: make the prototype easier to share privately and keep load/runtime performance reasonable.
 
@@ -294,6 +294,14 @@ Scope:
 - Address the current Phaser/Three large chunk warning if it starts affecting load time.
 - Consider code splitting Three.js or lazy-loading heavier visual layers.
 - Add a simple production preview checklist.
+
+Delivered:
+
+- Added Vite production chunk strategy for separate app, Phaser, and Three.js chunks.
+- Assessed Phaser/Three as expected engine-sized dependencies instead of app code bloat.
+- Removed the previous single large entry chunk warning while keeping engine chunks explicit.
+- Added `docs/production-preview-checklist.md` for private-share build checks.
+- Verified production preview on desktop and mobile viewports with clean console output.
 
 Architecture:
 
@@ -365,18 +373,18 @@ If the answer is no to most of these, keep it in the backlog.
 
 ## Recommended Next Slice
 
-Start with M7: Packaging And Performance.
+Start with the next gameplay-content slice from the backlog.
 
 Reason:
 
-- M6 makes the mobile flow usable enough to share privately.
-- The build still produces the known Phaser/Three large chunk warning.
-- Packaging/performance work can now focus on bundle shape, preview confidence, and a lightweight production checklist.
+- M0-M7 now cover foundation, onboarding, audio, progression, 3D polish, visual consistency, mobile controls, and packaging.
+- The strongest next value is more replayable content: a new plant role, a clearer enemy variant, or a better victory/failure summary.
+- Keep the next slice small enough to verify with rules tests, UI tests, and browser smoke checks.
 
 Proposed first implementation plan:
 
-1. Inspect the production bundle and identify whether Phaser/Three can be split safely.
-2. Add Vite chunk strategy or a documented deferral if splitting is not worth it yet.
-3. Add a production preview checklist.
-4. Verify `npm test`, `npm run build`, and browser smoke checks.
-5. Commit as a packaging/performance slice.
+1. Pick one player-visible gameplay improvement from the backlog.
+2. Write a lightweight design note and implementation plan.
+3. Add rules/UI tests first.
+4. Implement in a narrow slice.
+5. Verify `npm test`, `npm run build`, and browser smoke checks before committing.
