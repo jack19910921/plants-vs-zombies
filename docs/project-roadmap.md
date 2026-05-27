@@ -426,6 +426,7 @@ Delivered so far:
 - Added original in-repository toy enemy SVG assets for basic, cone, and bucket enemy variants.
 - Polished pea/ice projectiles and sun-produced pickup feedback to match the toy asset palette.
 - Replaced the called-out fake-looking enemies, projectiles, sun token, base sign, and left-top toy tool with the follow-up user-provided image2 assets.
+- Replaced the procedural green hero shooter with image2 peashooter art and added layered projectile/sun particle feedback.
 - Registered every new non-code asset in `docs/asset-sources.md`.
 
 Closeout note:

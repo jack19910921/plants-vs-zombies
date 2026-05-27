@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   getHealthWearState,
+  getHeroPeashooterPresentation,
   getPlantMiniatureProfile,
   getPlantMiniatureState,
+  getProjectileParticleState,
   getProjectilePresentation,
   getSunPickupPresentation,
   getZombieMiniatureProfile,
@@ -116,6 +118,16 @@ describe("world presentation helpers", () => {
     expect(bucket.rimColor).not.toBe(basic.rimColor);
   });
 
+  it("uses image2 peashooter proportions for the hero instead of a flat green ball", () => {
+    const hero = getHeroPeashooterPresentation(1000, 0.8);
+
+    expect(hero.imageKey).toBe("plant-peashooter");
+    expect(hero.imageWidth).toBeGreaterThan(hero.imageHeight);
+    expect(hero.shadowWidth).toBeGreaterThan(hero.imageWidth * 0.72);
+    expect(hero.muzzleOffsetX).toBeGreaterThan(30);
+    expect(hero.glossAlpha).toBeGreaterThan(0.2);
+  });
+
   it("gives pea and ice projectiles distinct toy bead palettes", () => {
     const pea = getProjectilePresentation(false);
     const ice = getProjectilePresentation(true);
@@ -127,6 +139,19 @@ describe("world presentation helpers", () => {
     expect(ice.trailColor).not.toBe(pea.trailColor);
   });
 
+  it("adds layered particle trails to projectiles", () => {
+    const pea = getProjectilePresentation(false);
+    const ice = getProjectilePresentation(true);
+    const first = getProjectileParticleState(false, 0, 1200);
+    const later = getProjectileParticleState(false, pea.trailParticleCount - 1, 1200);
+
+    expect(pea.trailParticleCount).toBeGreaterThanOrEqual(5);
+    expect(pea.imageWidth).toBeGreaterThan(pea.coreRadius * 2);
+    expect(ice.trailParticleCount).toBeGreaterThan(pea.trailParticleCount);
+    expect(first.alpha).toBeGreaterThan(later.alpha);
+    expect(later.offsetX).toBeLessThan(first.offsetX);
+  });
+
   it("shrinks and fades sun pickup feedback as it is collected", () => {
     const start = getSunPickupPresentation(0);
     const end = getSunPickupPresentation(1);
@@ -135,6 +160,17 @@ describe("world presentation helpers", () => {
     expect(end.alpha).toBe(0);
     expect(start.coinRadius).toBeGreaterThan(end.coinRadius);
     expect(start.haloRadius).toBeLessThan(end.haloRadius);
+  });
+
+  it("adds rotating token and spark particles to sun pickup feedback", () => {
+    const start = getSunPickupPresentation(0.2);
+    const later = getSunPickupPresentation(0.7);
+
+    expect(start.tokenSize).toBeGreaterThan(start.coinRadius * 2);
+    expect(start.sparkleCount).toBeGreaterThanOrEqual(8);
+    expect(start.beamAlpha).toBeGreaterThan(0);
+    expect(later.rotationDeg).toBeGreaterThan(start.rotationDeg);
+    expect(later.sparkleRadius).toBeGreaterThan(start.sparkleRadius);
   });
 
   it("keeps full health figures clean", () => {

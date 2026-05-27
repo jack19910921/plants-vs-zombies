@@ -79,6 +79,11 @@ export interface ProjectilePresentation {
   coreRadius: number;
   rimColor: number;
   sparkleColor: number;
+  imageWidth: number;
+  imageHeight: number;
+  shadowWidth: number;
+  shadowHeight: number;
+  trailParticleCount: number;
 }
 
 export interface SunPickupPresentation {
@@ -89,6 +94,36 @@ export interface SunPickupPresentation {
   alpha: number;
   coinRadius: number;
   haloRadius: number;
+  tokenSize: number;
+  rotationDeg: number;
+  sparkleCount: number;
+  sparkleRadius: number;
+  sparkleAlpha: number;
+  beamAlpha: number;
+}
+
+export interface HeroPeashooterPresentation {
+  imageKey: "plant-peashooter";
+  imageWidth: number;
+  imageHeight: number;
+  bodyYOffset: number;
+  angle: number;
+  shadowWidth: number;
+  shadowHeight: number;
+  ringWidth: number;
+  ringHeight: number;
+  muzzleOffsetX: number;
+  muzzleOffsetY: number;
+  glossAlpha: number;
+  glowAlpha: number;
+}
+
+export interface ProjectileParticleState {
+  offsetX: number;
+  offsetY: number;
+  radius: number;
+  alpha: number;
+  rotationDeg: number;
 }
 
 const PLANT_MINIATURE_PROFILES: Record<PlantId, PlantMiniatureProfile> = {
@@ -231,6 +266,28 @@ export function getZombieMiniatureProfile(zombieId: ZombieId): ZombieMiniaturePr
   return ZOMBIE_MINIATURE_PROFILES[zombieId];
 }
 
+export function getHeroPeashooterPresentation(nowMs: number, firePulse: number): HeroPeashooterPresentation {
+  const safeFirePulse = Math.max(0, Math.min(1, firePulse));
+  const idle = Math.sin(nowMs / 360);
+  const breathe = Math.sin(nowMs / 520);
+
+  return {
+    imageKey: "plant-peashooter",
+    imageWidth: 96 + safeFirePulse * 5 + breathe * 2,
+    imageHeight: 80 - safeFirePulse * 2 + idle * 2,
+    bodyYOffset: -4 + idle * 3 - safeFirePulse * 3,
+    angle: -3 + Math.sin(nowMs / 480) * 2 - safeFirePulse * 5,
+    shadowWidth: 84 + safeFirePulse * 12,
+    shadowHeight: 20 - safeFirePulse * 2,
+    ringWidth: 86 + safeFirePulse * 6,
+    ringHeight: 24 + safeFirePulse * 2,
+    muzzleOffsetX: 39 + safeFirePulse * 10,
+    muzzleOffsetY: -15 + idle * 2,
+    glossAlpha: 0.28 + safeFirePulse * 0.16,
+    glowAlpha: safeFirePulse * 0.52
+  };
+}
+
 export function getProjectilePresentation(slows: boolean): ProjectilePresentation {
   return slows
     ? {
@@ -241,7 +298,12 @@ export function getProjectilePresentation(slows: boolean): ProjectilePresentatio
         coreColor: 0x8fe7ff,
         coreRadius: 10,
         rimColor: 0x3f6f86,
-        sparkleColor: 0xffffff
+        sparkleColor: 0xffffff,
+        imageWidth: 31,
+        imageHeight: 31,
+        shadowWidth: 32,
+        shadowHeight: 9,
+        trailParticleCount: 6
       }
     : {
         trailColor: 0xa6e56f,
@@ -251,13 +313,35 @@ export function getProjectilePresentation(slows: boolean): ProjectilePresentatio
         coreColor: 0x7edb65,
         coreRadius: 10,
         rimColor: 0x315f3a,
-        sparkleColor: 0xffffe4
+        sparkleColor: 0xffffe4,
+        imageWidth: 38,
+        imageHeight: 28,
+        shadowWidth: 36,
+        shadowHeight: 8,
+        trailParticleCount: 5
       };
+}
+
+export function getProjectileParticleState(slows: boolean, index: number, nowMs: number): ProjectileParticleState {
+  const count = slows ? 6 : 5;
+  const safeIndex = Math.max(0, Math.min(count - 1, index));
+  const progress = count <= 1 ? 0 : safeIndex / (count - 1);
+  const shimmer = 0.5 + Math.sin(nowMs / 96 + safeIndex * 1.37) * 0.5;
+
+  return {
+    offsetX: -10 - safeIndex * (slows ? 8 : 7),
+    offsetY: Math.sin(nowMs / 124 + safeIndex * 1.18) * (slows ? 4.5 : 3.2),
+    radius: (slows ? 5.6 : 5) * (1 - progress * 0.5) + shimmer * 1.2,
+    alpha: (slows ? 0.36 : 0.32) * (1 - progress * 0.82) * (0.72 + shimmer * 0.28),
+    rotationDeg: (nowMs / (slows ? 9 : 12) + safeIndex * 28) % 360
+  };
 }
 
 export function getSunPickupPresentation(progress: number): SunPickupPresentation {
   const safeProgress = Math.max(0, Math.min(1, progress));
   const alpha = 1 - safeProgress;
+  const coinRadius = 14 - safeProgress * 4;
+  const haloRadius = 20 + safeProgress * 18;
 
   return {
     coinColor: 0xffd34f,
@@ -265,8 +349,14 @@ export function getSunPickupPresentation(progress: number): SunPickupPresentatio
     glintColor: 0xfff8df,
     textColor: "#6d4615",
     alpha,
-    coinRadius: 14 - safeProgress * 4,
-    haloRadius: 20 + safeProgress * 18
+    coinRadius,
+    haloRadius,
+    tokenSize: coinRadius * 2.9 + alpha * 4,
+    rotationDeg: safeProgress * 260,
+    sparkleCount: 9,
+    sparkleRadius: 18 + safeProgress * 30,
+    sparkleAlpha: alpha * (0.62 + safeProgress * 0.18),
+    beamAlpha: alpha * 0.28
   };
 }
 

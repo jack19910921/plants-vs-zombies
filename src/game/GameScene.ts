@@ -26,9 +26,11 @@ import {
   updateStatus
 } from "./rules";
 import {
+  getHeroPeashooterPresentation,
   getHealthWearState,
   getPlantMiniatureProfile,
   getPlantMiniatureState,
+  getProjectileParticleState,
   getProjectilePresentation,
   getSunPickupPresentation,
   getZombieMiniatureProfile,
@@ -308,12 +310,37 @@ export class GameScene extends Phaser.Scene {
     const y = BOARD.y + this.state.heroLane * laneHeight + laneHeight / 2;
     const fireEvent = this.findRecentEvent((event) => event.type === "hero-fired", SHORT_EFFECT_MS);
     const firePulse = fireEvent ? 1 - this.eventProgress(fireEvent, SHORT_EFFECT_MS) : 0;
-    this.add.ellipse(x, y + 28, 72, 18, 0x163622, 0.24).setData("dynamic", true);
-    this.add.circle(x, y + 4, 31 + firePulse * 4, 0x4abb6e).setStrokeStyle(4, 0x174a36).setData("dynamic", true);
-    this.add.circle(x - 10, y - 8, 10, 0xffffff, 0.24).setData("dynamic", true);
-    this.add.rectangle(x + 32, y, 38 + firePulse * 8, 12, 0x2a8952).setStrokeStyle(3, 0x174a36).setData("dynamic", true);
+    const hero = getHeroPeashooterPresentation(this.state.nowMs, firePulse);
+    const assetProfile = getPlantAssetPresentation("peashooter");
+    const imageY = y + 37 + hero.bodyYOffset;
+    const muzzleX = x + hero.muzzleOffsetX;
+    const muzzleY = y + hero.muzzleOffsetY;
+
+    this.add.ellipse(x, y + 30, hero.shadowWidth, hero.shadowHeight, 0x163622, 0.26).setData("dynamic", true);
+    this.add
+      .ellipse(x, y + 24, hero.ringWidth, hero.ringHeight, 0x8f5d32, 0.84)
+      .setStrokeStyle(3, 0x35513f, 0.62)
+      .setData("dynamic", true);
+    this.add.ellipse(x, y + 18, hero.ringWidth * 0.72, 10, 0xfff1a3, 0.18).setData("dynamic", true);
+    this.add
+      .ellipse(x + 5, imageY - hero.imageHeight * 0.48, hero.imageWidth + 10, hero.imageHeight + 8, 0x1d3f2c, 0.16)
+      .setData("dynamic", true);
+    const heroImage = this.add.image(x, imageY, hero.imageKey);
+    this.applyTextureCrop(heroImage, assetProfile.crop)
+      .setOrigin(assetProfile.fieldAnchorX, assetProfile.fieldAnchorY)
+      .setDisplaySize(hero.imageWidth, hero.imageHeight)
+      .setAngle(hero.angle)
+      .setData("dynamic", true);
+    this.add
+      .circle(x - 18, imageY - hero.imageHeight * 0.72, 11, 0xffffff, hero.glossAlpha)
+      .setData("dynamic", true);
+    this.add
+      .ellipse(x, imageY - hero.imageHeight * 0.48, hero.imageWidth + 5, hero.imageHeight + 5, 0xffffff, 0)
+      .setStrokeStyle(3, 0x35513f, 0.9)
+      .setData("dynamic", true);
     if (firePulse > 0) {
-      this.add.circle(x + 58, y, 10 + firePulse * 15, 0xfff1a3, 0.42 * firePulse).setData("dynamic", true);
+      this.add.circle(muzzleX, muzzleY, 12 + firePulse * 22, 0xfff1a3, hero.glowAlpha).setData("dynamic", true);
+      this.add.star(muzzleX + 6, muzzleY, 6, 5, 14 + firePulse * 10, 0xffffff, 0.46 * firePulse).setData("dynamic", true);
     }
   }
 
@@ -420,12 +447,31 @@ export class GameScene extends Phaser.Scene {
     if (sunEvent?.type === "sun-produced") {
       const coinY = visualCenterY - imageHeight * 0.48 - sunProgress * 34;
       const sunPickup = getSunPickupPresentation(sunProgress);
+      for (let index = 0; index < sunPickup.sparkleCount; index += 1) {
+        const angle = (Math.PI * 2 * index) / sunPickup.sparkleCount + this.state.nowMs / 420;
+        const distance = sunPickup.sparkleRadius * (0.58 + (index % 3) * 0.18);
+        const sparkleX = x + Math.cos(angle) * distance;
+        const sparkleY = coinY + Math.sin(angle) * distance * 0.72;
+        this.add
+          .line(x, coinY, 0, 0, Math.cos(angle) * sunPickup.haloRadius, Math.sin(angle) * sunPickup.haloRadius * 0.72, sunPickup.glintColor, sunPickup.beamAlpha)
+          .setLineWidth(2)
+          .setData("dynamic", true);
+        this.add
+          .star(sparkleX, sparkleY, 5, 2, 5 + (index % 2) * 2, sunPickup.glintColor, sunPickup.sparkleAlpha)
+          .setAngle(sunPickup.rotationDeg + index * 23)
+          .setData("dynamic", true);
+      }
       this.add
-        .circle(x, coinY, sunPickup.haloRadius, sunPickup.glintColor, 0.18 * sunPickup.alpha)
+        .circle(x, coinY, sunPickup.haloRadius, sunPickup.glintColor, 0.16 * sunPickup.alpha)
+        .setData("dynamic", true);
+      this.add
+        .circle(x, coinY, sunPickup.haloRadius * 0.62, sunPickup.coinColor, 0)
+        .setStrokeStyle(3, sunPickup.coinColor, 0.36 * sunPickup.alpha)
         .setData("dynamic", true);
       this.add
         .image(x, coinY, "sun-token")
-        .setDisplaySize(sunPickup.coinRadius * 2.7, sunPickup.coinRadius * 2.7)
+        .setDisplaySize(sunPickup.tokenSize, sunPickup.tokenSize)
+        .setAngle(sunPickup.rotationDeg)
         .setAlpha(sunPickup.alpha)
         .setData("dynamic", true);
       this.add
@@ -485,16 +531,30 @@ export class GameScene extends Phaser.Scene {
     const y = BOARD.y + projectile.lane * laneHeight + laneHeight / 2;
     const presentation = getProjectilePresentation(projectile.slows);
     const projectileKey = projectile.slows ? "projectile-ice" : "projectile-pea";
-    const projectileWidth = projectile.slows ? 30 : 34;
-    const projectileHeight = projectile.slows ? 30 : 26;
-    this.add.circle(x - 18, y, 8, presentation.trailColor, presentation.trailAlpha * 0.45).setData("dynamic", true);
-    this.add.circle(x, y, presentation.glowRadius, presentation.glowColor, 0.24).setData("dynamic", true);
+    this.add
+      .ellipse(x - 2, y + 12, presentation.shadowWidth, presentation.shadowHeight, 0x163622, 0.16)
+      .setData("dynamic", true);
+    for (let index = presentation.trailParticleCount - 1; index >= 0; index -= 1) {
+      const particle = getProjectileParticleState(projectile.slows, index, this.state.nowMs);
+      const particleX = x + particle.offsetX;
+      const particleY = y + particle.offsetY;
+      this.add
+        .circle(particleX, particleY, particle.radius, presentation.trailColor, particle.alpha)
+        .setData("dynamic", true);
+      this.add
+        .star(particleX - 1, particleY - 1, 5, 2, particle.radius + 2, presentation.sparkleColor, particle.alpha * 0.42)
+        .setAngle(particle.rotationDeg)
+        .setData("dynamic", true);
+    }
+    this.add.circle(x, y, presentation.glowRadius + 3, presentation.glowColor, 0.22).setData("dynamic", true);
+    this.add.circle(x, y, presentation.coreRadius + 7, presentation.trailColor, 0).setStrokeStyle(2, presentation.rimColor, 0.34).setData("dynamic", true);
     this.add
       .image(x, y, projectileKey)
-      .setDisplaySize(projectileWidth, projectileHeight)
+      .setDisplaySize(presentation.imageWidth, presentation.imageHeight)
+      .setAngle(projectile.slows ? (this.state.nowMs / 18) % 360 : Math.sin(this.state.nowMs / 140) * 2)
       .setAlpha(0.97)
       .setData("dynamic", true);
-    this.add.circle(x - 4, y - 4, 3, presentation.sparkleColor, 0.42).setData("dynamic", true);
+    this.add.circle(x - 5, y - 5, 3, presentation.sparkleColor, 0.48).setData("dynamic", true);
   }
 
   private drawZombie(zombie: ZombieEntity, laneHeight: number, columnWidth: number): void {
