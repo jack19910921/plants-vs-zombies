@@ -189,6 +189,58 @@ describe("game rules", () => {
     expect(next.plants[0].hp).toBeLessThan(planted.plants[0].hp);
   });
 
+  it("keeps potato mines quiet until they finish arming", () => {
+    const planted = plantAt(selectPlant(createInitialState(LEVEL_ONE), "potatomine"), PLANTS, 0, 3);
+    const state = {
+      ...planted,
+      nowMs: PLANTS.potatomine.armsAfterMs - 100,
+      zombies: [{ id: "z1", zombieId: "basic" as const, lane: 0 as const, x: 3.25, hp: 70, slowedUntilMs: 0 }]
+    };
+
+    const next = advanceCombat(state, PLANTS, ZOMBIES, 16);
+
+    expect(next.plants).toEqual(expect.arrayContaining([expect.objectContaining({ plantId: "potatomine" })]));
+    expect(next.zombies).toEqual(expect.arrayContaining([expect.objectContaining({ id: "z1" })]));
+    expect(next.events.some((event) => event.type === "potato-mine-exploded")).toBe(false);
+  });
+
+  it("explodes armed potato mines when zombies step into their cell", () => {
+    const planted = plantAt(selectPlant(createInitialState(LEVEL_ONE), "potatomine"), PLANTS, 0, 3);
+    const mine = planted.plants[0];
+    const state = {
+      ...planted,
+      nowMs: PLANTS.potatomine.armsAfterMs,
+      zombies: [
+        { id: "z1", zombieId: "basic" as const, lane: 0 as const, x: 3.25, hp: 70, slowedUntilMs: 0 },
+        { id: "z2", zombieId: "bucket" as const, lane: 0 as const, x: 3.55, hp: 180, slowedUntilMs: 0 },
+        { id: "z3", zombieId: "basic" as const, lane: 1 as const, x: 3.25, hp: 70, slowedUntilMs: 0 }
+      ]
+    };
+
+    const next = advanceCombat(state, PLANTS, ZOMBIES, 16);
+
+    expect(next.plants.some((plant) => plant.id === mine.id)).toBe(false);
+    expect(next.zombies).toEqual([
+      expect.objectContaining({ id: "z2", hp: 60 }),
+      expect.objectContaining({ id: "z3", hp: 70 })
+    ]);
+    expect(next.events).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: "potato-mine-exploded",
+          sourceId: mine.id,
+          lane: 0,
+          column: 3,
+          damage: 120
+        }),
+        expect.objectContaining({
+          type: "zombie-defeated",
+          targetId: "z1"
+        })
+      ])
+    );
+  });
+
   it("fires from the hero lane so movement affects combat", () => {
     const state = {
       ...createInitialState(LEVEL_ONE),

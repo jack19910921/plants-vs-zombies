@@ -128,6 +128,16 @@ export type CombatEvent =
     }
   | {
       id: string;
+      type: "potato-mine-exploded";
+      sourceId: string;
+      lane: LaneIndex;
+      column: ColumnIndex;
+      damage: number;
+      radiusCells: number;
+      atMs: number;
+    }
+  | {
+      id: string;
       type: "wave-spawned";
       waveIndex: number;
       lane: LaneIndex;

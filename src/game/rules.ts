@@ -14,6 +14,8 @@ import type {
 
 let entityCounter = 0;
 const EVENT_TTL_MS = 700;
+const POTATO_MINE_TRIGGER_RADIUS_CELLS = 0.65;
+const POTATO_MINE_BLAST_RADIUS_CELLS = 0.75;
 const NORMAL_DIFFICULTY: DifficultyConfig = {
   zombieHpMultiplier: 1,
   zombieSpeedMultiplier: 1,
@@ -197,6 +199,7 @@ export function advanceCombat(
   const deltaSeconds = deltaMs / 1000;
   const newProjectiles = [...state.projectiles];
   const plants = state.plants.map((plant) => ({ ...plant }));
+  const spentPlantIds = new Set<string>();
   let zombies = state.zombies.map((zombie) => ({ ...zombie }));
   const events = state.events.filter((event) => state.nowMs - event.atMs <= EVENT_TTL_MS);
   let sun = state.sun;
@@ -291,10 +294,69 @@ export function advanceCombat(
   }
 
   zombies = zombies.filter((zombie) => zombie.hp > 0);
+
+  for (const plant of plants) {
+    const config = plantConfigs[plant.plantId];
+    if (spentPlantIds.has(plant.id)) continue;
+    if (config.armsAfterMs <= 0 || config.damage <= 0) continue;
+    if (state.nowMs - plant.plantedAtMs < config.armsAfterMs) continue;
+    zombies = zombies.filter((zombie) => zombie.hp > 0);
+    const trigger = zombies.find(
+      (zombie) =>
+        zombie.lane === plant.lane && Math.abs(zombie.x - plant.column) <= POTATO_MINE_TRIGGER_RADIUS_CELLS
+    );
+    if (!trigger) continue;
+
+    spentPlantIds.add(plant.id);
+    events.push(
+      makeEvent({
+        type: "potato-mine-exploded",
+        sourceId: plant.id,
+        lane: plant.lane,
+        column: plant.column,
+        damage: config.damage,
+        radiusCells: POTATO_MINE_BLAST_RADIUS_CELLS,
+        atMs: state.nowMs
+      })
+    );
+
+    for (const zombie of zombies) {
+      if (zombie.lane !== plant.lane || Math.abs(zombie.x - plant.column) > POTATO_MINE_BLAST_RADIUS_CELLS) continue;
+      zombie.hp -= config.damage;
+      events.push(
+        makeEvent({
+          type: "zombie-hit",
+          targetId: zombie.id,
+          lane: zombie.lane,
+          x: zombie.x,
+          damage: config.damage,
+          slows: false,
+          atMs: state.nowMs
+        })
+      );
+      if (zombie.hp <= 0) {
+        events.push(
+          makeEvent({
+            type: "zombie-defeated",
+            targetId: zombie.id,
+            lane: zombie.lane,
+            x: zombie.x,
+            atMs: state.nowMs
+          })
+        );
+      }
+    }
+  }
+
+  zombies = zombies.filter((zombie) => zombie.hp > 0);
   zombies = zombies.map((zombie) => {
     const config = zombieConfigs[zombie.zombieId];
     const blockingPlant = plants.find(
-      (plant) => plant.lane === zombie.lane && zombie.x <= plant.column + 0.75 && zombie.x >= plant.column - 0.2
+      (plant) =>
+        !spentPlantIds.has(plant.id) &&
+        plant.lane === zombie.lane &&
+        zombie.x <= plant.column + 0.75 &&
+        zombie.x >= plant.column - 0.2
     );
     if (blockingPlant) {
       const damage = config.damagePerSecond * deltaSeconds;
@@ -322,7 +384,7 @@ export function advanceCombat(
     ...state,
     sun,
     nextHeroShotAtMs,
-    plants: plants.filter((plant) => plant.hp > 0),
+    plants: plants.filter((plant) => plant.hp > 0 && !spentPlantIds.has(plant.id)),
     zombies,
     projectiles: remainingProjectiles,
     events

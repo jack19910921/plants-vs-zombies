@@ -48,6 +48,18 @@ describe("audio", () => {
         atMs: 1000
       })
     ).toBe("wave");
+    expect(
+      getSoundForCombatEvent({
+        id: "event-mine",
+        type: "potato-mine-exploded",
+        sourceId: "plant-1",
+        lane: 2,
+        column: 3,
+        damage: 120,
+        radiusCells: 0.75,
+        atMs: 1000
+      })
+    ).toBe("hit");
   });
 
   it("maps status changes to terminal sounds", () => {

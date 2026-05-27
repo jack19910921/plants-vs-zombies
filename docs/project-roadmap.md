@@ -318,13 +318,49 @@ Dependencies:
 
 - Best after M1-M4, when major runtime surfaces are known.
 
+### M8: Potato Mine Arming
+
+Status: complete.
+
+Goal: make the existing `土豆雷` unlock a real delayed-trap tactic.
+
+Scope:
+
+- Use the existing `armsAfterMs` and `damage` plant config fields.
+- Trigger only after the mine is armed.
+- Damage lane-local zombies near the planted cell.
+- Add visible and audible feedback without new external assets.
+
+Delivered:
+
+- Added rules for armed potato mines to explode when zombies enter the same cell.
+- Kept unarmed potato mines quiet until their arming delay finishes.
+- Added a `potato-mine-exploded` combat event for renderer/audio integration.
+- Added Phaser dirt-burst shockwave feedback using existing primitives.
+- Mapped the explosion to the existing generated `hit` sound.
+
+Architecture:
+
+- Keep trap behavior deterministic in `src/game/rules.ts`.
+- Keep presentation derived from combat events in `src/game/GameScene.ts`.
+- Reuse generated audio rather than adding external sound assets.
+
+Acceptance:
+
+- Rules tests cover unarmed and armed mine behavior.
+- Audio tests cover the new event mapping.
+- Build and browser smoke remain clean.
+
+Dependencies:
+
+- Best after M3, because `土豆雷` is unlocked in the later level sequence.
+
 ## Backlog By Domain
 
 Gameplay:
 
 - More plants with distinct but simple roles.
 - More zombie variants with clear silhouettes and behaviors.
-- Potato mine arming/explosion behavior if not already fully expressed.
 - Level progression and difficulty.
 
 UX:

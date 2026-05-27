@@ -236,6 +236,7 @@ export class GameScene extends Phaser.Scene {
 
     this.state.zombies.forEach((zombie) => this.drawZombie(zombie, laneHeight, columnWidth));
     this.drawExpiredZombieEffects(laneHeight, columnWidth);
+    this.drawPotatoMineEffects(laneHeight, columnWidth);
   }
 
   private drawHero(laneHeight: number, columnWidth: number): void {
@@ -573,6 +574,24 @@ export class GameScene extends Phaser.Scene {
         this.add.circle(x, y - 4, 24 + progress * 36, 0xfff8df, 0.28 * alpha).setData("dynamic", true);
         this.add.circle(x - 18, y - 18 - progress * 18, 7, 0xffd34f, 0.45 * alpha).setData("dynamic", true);
         this.add.circle(x + 18, y - 12 - progress * 12, 6, 0x9bd887, 0.42 * alpha).setData("dynamic", true);
+      });
+  }
+
+  private drawPotatoMineEffects(laneHeight: number, columnWidth: number): void {
+    this.state.events
+      .filter((event) => event.type === "potato-mine-exploded")
+      .forEach((event) => {
+        const progress = this.eventProgress(event, LONG_EFFECT_MS);
+        if (progress >= 1) return;
+        const x = BOARD.x + event.column * columnWidth + columnWidth / 2;
+        const y = BOARD.y + event.lane * laneHeight + laneHeight / 2;
+        const alpha = 1 - progress;
+        const radius = columnWidth * event.radiusCells * (0.5 + progress);
+
+        this.add.ellipse(x, y + 28, radius * 1.35, 22 + progress * 18, 0x6d4b2b, 0.24 * alpha).setData("dynamic", true);
+        this.add.circle(x, y + 2, 26 + progress * 42, 0xffd34f, 0.28 * alpha).setData("dynamic", true);
+        this.add.circle(x, y + 4, 16 + progress * 26, 0x8f5d32, 0.36 * alpha).setData("dynamic", true);
+        this.add.star(x, y - 4, 7, 7, 24 + progress * 18, 0xfff8df, 0.42 * alpha).setData("dynamic", true);
       });
   }
 
