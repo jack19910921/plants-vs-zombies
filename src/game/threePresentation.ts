@@ -85,6 +85,22 @@ export interface StatusBadgeState {
   particleRotationZ: number;
 }
 
+export type ToyGardenPropKind = "terracotta-pot" | "watering-can" | "seed-crate" | "pebble" | "plant-label";
+export type ToyGardenMaterialFamily = "ceramic" | "metal" | "wood" | "stone" | "leaf";
+
+export interface ToyGardenPropProfile {
+  id: string;
+  kind: ToyGardenPropKind;
+  materialFamily: ToyGardenMaterialFamily;
+  x: number;
+  y: number;
+  z: number;
+  scale: number;
+  rotationZ: number;
+  primaryColor: number;
+  secondaryColor: number;
+}
+
 const SEED_PACKET_FLIP_MS = 720;
 const GARDEN_TOOL_PULSE_MS = 620;
 const WAVE_WARNING_STAKE_MS = 860;
@@ -97,6 +113,109 @@ const STATUS_BADGE_PARTICLE_MS = 1180;
 const STATUS_BADGE_PARTICLE_DELAY_MS = 58;
 const PLANTING_SPARK_MS = 620;
 const PLANTING_SPARK_DELAY_MS = 26;
+
+const TOY_GARDEN_PROP_PROFILES: ToyGardenPropProfile[] = [
+  {
+    id: "left-clay-pot",
+    kind: "terracotta-pot",
+    materialFamily: "ceramic",
+    x: -1.1,
+    y: -0.68,
+    z: -0.24,
+    scale: 0.34,
+    rotationZ: -0.08,
+    primaryColor: 0xc87545,
+    secondaryColor: 0x5f3a24
+  },
+  {
+    id: "right-clay-pot",
+    kind: "terracotta-pot",
+    materialFamily: "ceramic",
+    x: 0.44,
+    y: -0.84,
+    z: -0.28,
+    scale: 0.24,
+    rotationZ: 0.1,
+    primaryColor: 0xd58b58,
+    secondaryColor: 0x6a4127
+  },
+  {
+    id: "mint-watering-can",
+    kind: "watering-can",
+    materialFamily: "metal",
+    x: 1.05,
+    y: -0.58,
+    z: -0.26,
+    scale: 0.32,
+    rotationZ: -0.1,
+    primaryColor: 0x8fc9c2,
+    secondaryColor: 0x4d8f92
+  },
+  {
+    id: "seed-crate",
+    kind: "seed-crate",
+    materialFamily: "wood",
+    x: 0.98,
+    y: 0.55,
+    z: -0.32,
+    scale: 0.33,
+    rotationZ: 0.08,
+    primaryColor: 0x9a6638,
+    secondaryColor: 0x5b3b22
+  },
+  {
+    id: "left-pebble",
+    kind: "pebble",
+    materialFamily: "stone",
+    x: -0.78,
+    y: 0.58,
+    z: -0.34,
+    scale: 0.18,
+    rotationZ: 0.22,
+    primaryColor: 0xb7aaa0,
+    secondaryColor: 0x756a62
+  },
+  {
+    id: "top-pebble",
+    kind: "pebble",
+    materialFamily: "stone",
+    x: -0.44,
+    y: 0.68,
+    z: -0.34,
+    scale: 0.14,
+    rotationZ: -0.18,
+    primaryColor: 0xd0c4b3,
+    secondaryColor: 0x81746a
+  },
+  {
+    id: "sprout-label",
+    kind: "plant-label",
+    materialFamily: "wood",
+    x: 0.36,
+    y: 0.72,
+    z: -0.3,
+    scale: 0.25,
+    rotationZ: -0.18,
+    primaryColor: 0xffe3a4,
+    secondaryColor: 0x7a5834
+  },
+  {
+    id: "leaf-marker",
+    kind: "plant-label",
+    materialFamily: "leaf",
+    x: -1.18,
+    y: 0.12,
+    z: -0.31,
+    scale: 0.2,
+    rotationZ: 0.2,
+    primaryColor: 0x7fcf72,
+    secondaryColor: 0x315f3a
+  }
+];
+
+export function getToyGardenPropProfiles(): ToyGardenPropProfile[] {
+  return TOY_GARDEN_PROP_PROFILES.map((profile) => ({ ...profile }));
+}
 
 export function getSeedPacketFlipState(ageMs: number, mode: SeedPacketFlipMode): SeedPacketFlipState {
   if (ageMs < 0 || ageMs > SEED_PACKET_FLIP_MS) {

@@ -200,8 +200,12 @@ export class GameScene extends Phaser.Scene {
   }
 
   private drawStaticBoard(): void {
-    this.add.rectangle(640, 360, 1280, 720, 0xeebf7a);
-    this.add.rectangle(640, 326, 1080, 420, 0xf5cf8c).setStrokeStyle(4, 0x7b5737);
+    this.drawTabletop();
+    this.add.rectangle(648, 338, 1106, 438, 0x5c4330, 0.18);
+    this.add.rectangle(640, 326, 1092, 430, 0x7aa86b, 0.28).setStrokeStyle(5, 0x68482e, 0.92);
+    this.add.rectangle(640, 326, 1066, 404, 0xf1cc86, 0.96).setStrokeStyle(3, 0x8a633d, 0.72);
+    this.add.ellipse(250, 148, 86, 20, 0xffffff, 0.12);
+    this.add.ellipse(1040, 510, 120, 24, 0x5c4330, 0.1);
     const laneHeight = BOARD.height / BOARD.lanes;
     const columnWidth = BOARD.width / BOARD.columns;
     for (let lane = 0; lane < BOARD.lanes; lane += 1) {
@@ -209,15 +213,51 @@ export class GameScene extends Phaser.Scene {
       const color = [0x8bd4bd, 0xf7df76, 0x9bd887, 0x9fd7ef, 0xf8b1a7][lane];
       this.add
         .rectangle(BOARD.x + BOARD.width / 2, y, BOARD.width, laneHeight - 8, color)
-        .setStrokeStyle(2, 0x5c4330, 0.25);
-      this.add.rectangle(BOARD.x + BOARD.width / 2, y + 24, BOARD.width - 18, 10, 0x5c4330, 0.06);
+        .setStrokeStyle(2, 0x5c4330, 0.22);
+      this.add.rectangle(BOARD.x + BOARD.width / 2, y - 27, BOARD.width - 20, 8, 0xffffff, 0.12);
+      this.add.rectangle(BOARD.x + BOARD.width / 2, y + 24, BOARD.width - 18, 11, 0x5c4330, 0.08);
+      this.add.rectangle(BOARD.x + BOARD.width / 2, y + 33, BOARD.width - 44, 4, 0xffffff, 0.08);
     }
     for (let column = 1; column < BOARD.columns; column += 1) {
       const x = BOARD.x + column * columnWidth;
       this.add.line(x, BOARD.y + BOARD.height / 2, 0, 0, 0, BOARD.height, 0x5c4330, 0.14).setLineWidth(2);
     }
-    this.add.rectangle(86, 326, 72, 350, 0xfff0b8).setStrokeStyle(3, 0x5c4330);
+    this.drawTrayPebbles();
+    this.add.rectangle(91, 332, 76, 356, 0x5c4330, 0.16);
+    this.add.rectangle(86, 326, 72, 350, 0xfff0b8).setStrokeStyle(4, 0x5c4330);
+    this.add.rectangle(86, 202, 52, 72, 0xffffff, 0.14);
     this.add.text(70, 296, "基地", { fontSize: "24px", color: "#263238", fontStyle: "bold" }).setAngle(-90);
+  }
+
+  private drawTabletop(): void {
+    this.add.rectangle(640, 360, 1280, 720, 0xeab674);
+    for (let plank = 0; plank < 16; plank += 1) {
+      const x = plank * 88 + 44;
+      const color = [0xe8ad68, 0xf0c07b, 0xe4a45f, 0xf3c889][plank % 4];
+      this.add.rectangle(x, 360, 88, 720, color, 0.42);
+      this.add.line(x + 44, 360, 0, -360, 0, 360, 0x7a4d2e, 0.13).setLineWidth(2);
+      this.add.rectangle(x - 18, 128 + (plank % 5) * 118, 42, 3, 0xfff0b8, 0.16).setAngle((plank % 3) * 4 - 4);
+      this.add.rectangle(x + 14, 184 + (plank % 4) * 126, 58, 3, 0x7a4d2e, 0.08).setAngle((plank % 2) * 5 - 2);
+    }
+    this.add.rectangle(640, 360, 1280, 720, 0x5c4330, 0.04);
+    this.add.ellipse(100, 650, 360, 70, 0x6d4b2b, 0.08);
+    this.add.ellipse(1170, 70, 320, 64, 0xffffff, 0.08);
+  }
+
+  private drawTrayPebbles(): void {
+    const pebbleColors = [0xd6c7aa, 0xbda984, 0x8f7b63, 0xe7d5b8];
+    for (let index = 0; index < 18; index += 1) {
+      const x = BOARD.x + 28 + ((index * 137) % (BOARD.width - 56));
+      const y = index % 2 === 0 ? BOARD.y - 21 + (index % 3) * 5 : BOARD.y + BOARD.height + 15 + (index % 4) * 4;
+      const width = 8 + (index % 3) * 4;
+      const height = 5 + (index % 2) * 3;
+      this.add.ellipse(x, y, width, height, pebbleColors[index % pebbleColors.length], 0.72).setStrokeStyle(1, 0x5c4330, 0.12);
+    }
+    for (let marker = 0; marker < 5; marker += 1) {
+      const x = BOARD.x + 74 + marker * 194;
+      this.add.rectangle(x, BOARD.y - 34, 42, 14, 0xffe6a8, 0.74).setStrokeStyle(1, 0x8a633d, 0.22);
+      this.add.line(x - 10, BOARD.y - 26, 0, 0, 20, 0, 0x8a633d, 0.2).setLineWidth(2);
+    }
   }
 
   private redrawDynamicWorld(): void {

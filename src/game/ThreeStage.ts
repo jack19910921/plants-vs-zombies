@@ -6,15 +6,19 @@ import {
   getSeedPacketFlipState,
   getStatusBadgeState,
   getSunTrailParticleState,
+  getToyGardenPropProfiles,
   getWaveWarningStakeState,
   type SeedPacketFlipMode,
-  type StatusBadgeMode
+  type StatusBadgeMode,
+  type ToyGardenMaterialFamily,
+  type ToyGardenPropProfile
 } from "./threePresentation";
 
 export class ThreeStage {
   private readonly renderer: THREE.WebGLRenderer;
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.PerspectiveCamera(38, 1, 0.1, 20);
+  private readonly toyGardenProps = new THREE.Group();
   private readonly coin = new THREE.Group();
   private readonly burst = new THREE.Group();
   private readonly sunTrail = new THREE.Group();
@@ -58,7 +62,12 @@ export class ThreeStage {
     const keyLight = new THREE.DirectionalLight(0xffffff, 2.1);
     keyLight.position.set(2.4, 2.2, 4);
     this.scene.add(keyLight);
+    const tableLight = new THREE.PointLight(0xffd39a, 0.55, 4);
+    tableLight.position.set(-1.3, -0.8, 2.4);
+    this.scene.add(tableLight);
 
+    this.buildToyGardenProps();
+    this.scene.add(this.toyGardenProps);
     this.buildCoin();
     this.scene.add(this.coin);
     this.buildBurst();
@@ -122,6 +131,150 @@ export class ThreeStage {
     window.removeEventListener("resize", this.resize);
     this.renderer.dispose();
     this.root.replaceChildren();
+  }
+
+  private buildToyGardenProps(): void {
+    const trayMaterial = new THREE.MeshStandardMaterial({
+      color: 0x86c894,
+      emissive: 0x1f3c24,
+      emissiveIntensity: 0.05,
+      roughness: 0.86,
+      transparent: true,
+      opacity: 0.22,
+      depthWrite: false
+    });
+    const tray = new THREE.Mesh(new THREE.CircleGeometry(1.32, 64), trayMaterial);
+    tray.position.set(0, -0.06, -0.42);
+    tray.scale.set(1, 0.62, 1);
+    this.toyGardenProps.add(tray);
+
+    getToyGardenPropProfiles().forEach((profile, index) => {
+      const prop = this.createToyGardenProp(profile);
+      prop.position.set(profile.x, profile.y, profile.z);
+      prop.rotation.z = profile.rotationZ;
+      prop.scale.setScalar(profile.scale);
+      prop.userData.baseY = profile.y;
+      prop.userData.idlePhase = index * 0.72;
+      this.toyGardenProps.add(prop);
+    });
+  }
+
+  private createToyGardenProp(profile: ToyGardenPropProfile): THREE.Group {
+    if (profile.kind === "terracotta-pot") return this.createTerracottaPot(profile);
+    if (profile.kind === "watering-can") return this.createWateringCan(profile);
+    if (profile.kind === "seed-crate") return this.createSeedCrate(profile);
+    if (profile.kind === "plant-label") return this.createPlantLabel(profile);
+    return this.createPebble(profile);
+  }
+
+  private createPropMaterial(color: number, family: ToyGardenMaterialFamily): THREE.MeshStandardMaterial {
+    return new THREE.MeshStandardMaterial({
+      color,
+      metalness: family === "metal" ? 0.38 : 0.04,
+      roughness: family === "metal" ? 0.36 : family === "stone" ? 0.72 : 0.62
+    });
+  }
+
+  private createTerracottaPot(profile: ToyGardenPropProfile): THREE.Group {
+    const group = new THREE.Group();
+    const clay = this.createPropMaterial(profile.primaryColor, "ceramic");
+    const darkClay = this.createPropMaterial(profile.secondaryColor, "ceramic");
+    const soil = this.createPropMaterial(0x4d3523, "stone");
+    const leaf = this.createPropMaterial(0x69b96f, "leaf");
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.3, 0.34, 24), clay);
+    const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.29, 0.27, 0.075, 24), darkClay);
+    const soilTop = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.03, 22), soil);
+    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.022, 0.22, 10), leaf);
+    const leftLeaf = new THREE.Mesh(new THREE.SphereGeometry(0.065, 14, 10), leaf);
+    const rightLeaf = new THREE.Mesh(new THREE.SphereGeometry(0.055, 14, 10), leaf);
+    body.position.y = -0.06;
+    body.scale.z = 0.62;
+    rim.position.y = 0.13;
+    rim.scale.z = 0.56;
+    soilTop.position.y = 0.18;
+    soilTop.scale.z = 0.52;
+    stem.position.y = 0.28;
+    stem.rotation.z = -0.14;
+    leftLeaf.position.set(-0.055, 0.36, 0.018);
+    leftLeaf.scale.set(1.35, 0.62, 0.36);
+    leftLeaf.rotation.z = 0.56;
+    rightLeaf.position.set(0.07, 0.32, 0.018);
+    rightLeaf.scale.set(1.2, 0.58, 0.34);
+    rightLeaf.rotation.z = -0.46;
+    group.add(body, rim, soilTop, stem, leftLeaf, rightLeaf);
+    return group;
+  }
+
+  private createWateringCan(profile: ToyGardenPropProfile): THREE.Group {
+    const group = new THREE.Group();
+    const metal = this.createPropMaterial(profile.primaryColor, "metal");
+    const darkMetal = this.createPropMaterial(profile.secondaryColor, "metal");
+    const body = new THREE.Mesh(new THREE.SphereGeometry(0.26, 24, 16), metal);
+    body.scale.set(1.18, 0.82, 0.46);
+    const top = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 0.16, 16), darkMetal);
+    top.position.y = 0.2;
+    const spout = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.038, 0.52, 12), darkMetal);
+    spout.rotation.z = -1.05;
+    spout.position.set(0.32, 0.1, 0);
+    const rose = new THREE.Mesh(new THREE.SphereGeometry(0.06, 14, 10), darkMetal);
+    rose.position.set(0.58, 0.2, 0);
+    rose.scale.set(1.1, 0.72, 0.38);
+    const handle = new THREE.Mesh(new THREE.TorusGeometry(0.21, 0.025, 8, 28), darkMetal);
+    handle.position.set(-0.24, 0.02, -0.01);
+    handle.scale.set(0.74, 1, 0.28);
+    group.add(body, top, spout, rose, handle);
+    return group;
+  }
+
+  private createSeedCrate(profile: ToyGardenPropProfile): THREE.Group {
+    const group = new THREE.Group();
+    const wood = this.createPropMaterial(profile.primaryColor, "wood");
+    const darkWood = this.createPropMaterial(profile.secondaryColor, "wood");
+    const seed = this.createPropMaterial(0xd8a24a, "ceramic");
+    const crate = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.3, 0.18), wood);
+    const frontSlat = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.055, 0.2), darkWood);
+    const topSlat = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.045, 0.2), darkWood);
+    frontSlat.position.y = -0.04;
+    topSlat.position.y = 0.11;
+    group.add(crate, frontSlat, topSlat);
+    for (let index = 0; index < 6; index += 1) {
+      const bead = new THREE.Mesh(new THREE.SphereGeometry(0.035, 10, 8), seed);
+      bead.position.set(-0.16 + index * 0.065, 0.18 + (index % 2) * 0.018, 0.02);
+      bead.scale.set(1.2, 0.72, 0.5);
+      group.add(bead);
+    }
+    return group;
+  }
+
+  private createPlantLabel(profile: ToyGardenPropProfile): THREE.Group {
+    const group = new THREE.Group();
+    const primary = this.createPropMaterial(profile.primaryColor, profile.materialFamily);
+    const secondary = this.createPropMaterial(profile.secondaryColor, profile.materialFamily);
+    const stake = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.022, 0.42, 10), secondary);
+    stake.position.y = -0.08;
+    const sign = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.16, 0.045), primary);
+    sign.position.y = 0.16;
+    group.add(stake, sign);
+    if (profile.materialFamily === "leaf") {
+      const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.075, 14, 10), primary);
+      leaf.position.set(0.03, 0.2, 0.03);
+      leaf.scale.set(1.3, 0.55, 0.3);
+      leaf.rotation.z = -0.52;
+      group.add(leaf);
+    }
+    return group;
+  }
+
+  private createPebble(profile: ToyGardenPropProfile): THREE.Group {
+    const group = new THREE.Group();
+    const stone = this.createPropMaterial(profile.primaryColor, "stone");
+    const pebble = new THREE.Mesh(new THREE.SphereGeometry(0.2, 18, 12), stone);
+    pebble.scale.set(1.25, 0.58, 0.36);
+    const highlight = new THREE.Mesh(new THREE.SphereGeometry(0.07, 12, 8), this.createPropMaterial(0xfff8df, "stone"));
+    highlight.position.set(-0.06, 0.04, 0.07);
+    highlight.scale.set(1.2, 0.52, 0.24);
+    group.add(pebble, highlight);
+    return group;
   }
 
   private buildCoin(): void {
@@ -506,6 +659,7 @@ export class ThreeStage {
     this.coin.rotation.z = seconds * 0.35 + pulseEase * 0.45;
     this.coin.position.y = Math.sin(seconds * 2.2) * 0.08 + pulseEase * 0.1;
     this.coin.scale.setScalar(1 + pulseEase * 0.24);
+    this.animateToyGardenProps(seconds);
     this.animateBurst(pulseAge);
     this.animateSunTrail(now);
     this.animateWaveRing(now);
@@ -518,6 +672,21 @@ export class ThreeStage {
     this.renderer.render(this.scene, this.camera);
     this.frameId = requestAnimationFrame(this.animate);
   };
+
+  private animateToyGardenProps(seconds: number): void {
+    this.toyGardenProps.children.forEach((child, index) => {
+      const prop = child as THREE.Group;
+      const baseY = prop.userData.baseY as number | undefined;
+      if (baseY === undefined) {
+        prop.rotation.z = Math.sin(seconds * 0.18) * 0.018;
+        return;
+      }
+
+      const phase = prop.userData.idlePhase as number;
+      prop.position.y = baseY + Math.sin(seconds * 0.86 + phase) * 0.012;
+      prop.rotation.y = Math.sin(seconds * 0.52 + phase) * 0.06;
+    });
+  }
 
   private animateBurst(pulseAge: number): void {
     this.burst.visible = pulseAge >= 0 && pulseAge <= 1;

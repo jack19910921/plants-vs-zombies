@@ -23,7 +23,9 @@ body,
 body {
   overflow: hidden;
   background:
-    linear-gradient(90deg, rgba(217, 157, 85, 0.18) 1px, transparent 1px) 0 0 / 42px 100%,
+    linear-gradient(90deg, rgba(104, 72, 46, 0.16) 1px, transparent 1px) 0 0 / 88px 100%,
+    linear-gradient(180deg, rgba(255, 248, 223, 0.2), rgba(138, 89, 47, 0.1)),
+    linear-gradient(90deg, rgba(255, 240, 184, 0.14) 0 24%, rgba(122, 77, 46, 0.08) 24% 26%, transparent 26%),
     var(--wood);
   color: var(--ink);
   font-family:

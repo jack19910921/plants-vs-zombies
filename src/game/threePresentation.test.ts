@@ -6,6 +6,7 @@ import {
   getSeedPacketFlipState,
   getStatusBadgeState,
   getSunTrailParticleState,
+  getToyGardenPropProfiles,
   getWaveWarningStakeState
 } from "./threePresentation";
 
@@ -189,5 +190,29 @@ describe("three presentation helpers", () => {
 
   it("hides planting spark particles after the landing effect", () => {
     expect(getPlantingSparkState(760, 0)).toMatchObject({ visible: false, opacity: 0, warmOpacity: 0 });
+  });
+
+  it("defines a varied procedural toy garden prop set", () => {
+    const props = getToyGardenPropProfiles();
+    const materialFamilies = new Set(props.map((prop) => prop.materialFamily));
+
+    expect(props.length).toBeGreaterThanOrEqual(7);
+    expect(materialFamilies.size).toBeGreaterThanOrEqual(4);
+    expect(props.map((prop) => prop.kind)).toEqual(
+      expect.arrayContaining(["terracotta-pot", "watering-can", "seed-crate", "pebble"])
+    );
+  });
+
+  it("keeps persistent toy garden props inside the compact Three stage", () => {
+    const props = getToyGardenPropProfiles();
+
+    props.forEach((prop) => {
+      expect(Math.abs(prop.x)).toBeLessThanOrEqual(1.34);
+      expect(prop.y).toBeGreaterThanOrEqual(-1);
+      expect(prop.y).toBeLessThanOrEqual(0.86);
+      expect(prop.z).toBeLessThanOrEqual(0.04);
+      expect(prop.scale).toBeGreaterThan(0);
+      expect(prop.scale).toBeLessThanOrEqual(1);
+    });
   });
 });
