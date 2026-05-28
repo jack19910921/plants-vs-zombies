@@ -28,8 +28,10 @@ describe("dom overlay", () => {
     expect(html).toContain("暂停");
     expect(html).toContain('data-action="sound"');
     expect(html).toContain("声音开");
+    expect(html).toContain('data-short-label="音开"');
     expect(html).toContain('data-action="motion"');
     expect(html).toContain("动效正常");
+    expect(html).toContain('data-short-label="动效"');
   });
 
   it("renders touch lane controls for mobile play", () => {
@@ -51,8 +53,10 @@ describe("dom overlay", () => {
     expect(html).toContain('class="lane-controls"');
     expect(html).toContain('data-action="lane-up"');
     expect(html).toContain('data-action="lane-down"');
-    expect(html).toContain("上移");
-    expect(html).toContain("下移");
+    expect(html).toContain('aria-label="小队长上移"');
+    expect(html).toContain('aria-label="小队长下移"');
+    expect(html).toContain("↑");
+    expect(html).toContain("↓");
   });
 
   it("renders a transparent board touch grid for tablet planting", () => {
@@ -540,6 +544,30 @@ describe("dom overlay", () => {
     });
 
     expect(html).toContain("先选一张植物卡片");
+  });
+
+  it("renders touch-specific tutorial copy after planting", () => {
+    const html = createDomOverlayMarkup({
+      sun: 250,
+      waveText: "第 1 波 / 8",
+      status: "playing",
+      selectedPlantId: null,
+      cooldownReadyAt: {
+        sunflower: 0,
+        peashooter: 0,
+        wallnut: 0,
+        snowpea: 0,
+        potatomine: 0
+      },
+      nowMs: 0,
+      plantsCount: 1,
+      recentFeedback: null,
+      recentEvents: [],
+      inputMode: "touch"
+    });
+
+    expect(html).toContain("点植物卡，再点草坪格子种植");
+    expect(html).not.toContain("W/S");
   });
 
   it("renders specific invalid action feedback", () => {

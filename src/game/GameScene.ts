@@ -295,8 +295,8 @@ export class GameScene extends Phaser.Scene {
     }
     for (let marker = 0; marker < 5; marker += 1) {
       const x = BOARD.x + 74 + marker * 194;
-      this.add.rectangle(x, BOARD.y - 34, 42, 14, 0xffe6a8, 0.74).setStrokeStyle(1, 0x8a633d, 0.22);
-      this.add.line(x - 10, BOARD.y - 26, 0, 0, 20, 0, 0x8a633d, 0.2).setLineWidth(2);
+      this.add.rectangle(x, BOARD.y - 31, 30, 9, 0xffe6a8, 0.38).setStrokeStyle(1, 0x8a633d, 0.14);
+      this.add.line(x - 7, BOARD.y - 26, 0, 0, 14, 0, 0x8a633d, 0.12).setLineWidth(1);
     }
   }
 

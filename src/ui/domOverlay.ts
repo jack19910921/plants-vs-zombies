@@ -46,6 +46,7 @@ interface OverlayRenderState {
   totalWaveCount?: number;
   recentFeedback?: OverlayFeedback | null;
   recentEvents?: CombatEvent[];
+  inputMode?: "keyboard" | "touch";
 }
 
 export interface DomOverlayOptions {
@@ -116,13 +117,16 @@ export function getNextAchievementFeedback(
 }
 
 function getTutorialText(state: OverlayRenderState): string {
+  const isTouchInput = state.inputMode === "touch";
   if (state.status === "victory")
     return state.hasNextLevel ? "守住啦，点“下一关”继续。" : "全部守住啦，点“再玩一次”可以重来。";
   if (state.status === "failure") return "没关系，换个位置再试一次。";
   if (state.status === "paused") return "休息一下，准备好了就继续。";
   if (state.recentEvents?.some((event) => event.type === "wave-spawned")) return "僵尸来了，守住基地！";
+  if (isTouchInput && (state.plantsCount ?? 0) > 0) return "点植物卡，再点草坪格子种植。";
   if ((state.plantsCount ?? 0) > 0) return "很好！用 W/S 或方向键移动小队长。";
   if (state.selectedPlantId) return "点草坪格子，把植物放上去。";
+  if (isTouchInput) return "点植物卡，再点草坪格子种植。";
   return "先选一张植物卡片。";
 }
 
@@ -234,14 +238,14 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
       <div class="chip">${waveLabel}</div>
       <div class="difficulty-toggle">${difficultyButtons}</div>
       <button class="chip" data-action="pause">暂停</button>
-      <button class="chip sound-toggle" data-action="sound">${soundEnabled ? "声音开" : "声音关"}</button>
-      <button class="chip motion-toggle" data-action="motion">${reducedMotion ? "动效柔和" : "动效正常"}</button>
+      <button class="chip sound-toggle" data-action="sound" data-short-label="${soundEnabled ? "音开" : "音关"}" aria-label="${soundEnabled ? "声音开启" : "声音关闭"}">${soundEnabled ? "声音开" : "声音关"}</button>
+      <button class="chip motion-toggle" data-action="motion" data-short-label="${reducedMotion ? "柔和" : "动效"}" aria-label="${reducedMotion ? "动效柔和" : "动效正常"}">${reducedMotion ? "动效柔和" : "动效正常"}</button>
     </div>
     <div class="tutorial-strip"><span>${tutorialText}</span>${feedbackMarkup}</div>
     ${getBoardTouchGridMarkup()}
     <div class="lane-controls" aria-label="小队长移动">
-      <button class="lane-button" data-action="lane-up" aria-label="小队长上移">上移</button>
-      <button class="lane-button" data-action="lane-down" aria-label="小队长下移">下移</button>
+      <button class="lane-button" data-action="lane-up" aria-label="小队长上移">↑</button>
+      <button class="lane-button" data-action="lane-down" aria-label="小队长下移">↓</button>
     </div>
     <div class="plant-tray">${cards}</div>
   </div>
@@ -279,6 +283,10 @@ export function createDomOverlay(root: Element, scene: GameScene, options: DomOv
     rootElement.style.setProperty("--board-top", `${rect.top}px`);
     rootElement.style.setProperty("--board-width", `${rect.width}px`);
     rootElement.style.setProperty("--board-height", `${rect.height}px`);
+  }
+
+  function getInputMode(): "keyboard" | "touch" {
+    return rootWindow?.matchMedia?.("(pointer: coarse)").matches ? "touch" : "keyboard";
   }
 
   function showFeedback(feedback: OverlayFeedback): void {
@@ -327,7 +335,8 @@ export function createDomOverlay(root: Element, scene: GameScene, options: DomOv
       spawnedWaveCount: state.spawnedWaveIndexes.length,
       totalWaveCount: level.waves.length,
       recentFeedback,
-      recentEvents: state.events
+      recentEvents: state.events,
+      inputMode: getInputMode()
     });
     if (nextMarkup === lastMarkup) return;
     root.innerHTML = nextMarkup;
