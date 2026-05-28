@@ -2,7 +2,16 @@ import type { GameScene } from "../game/GameScene";
 import { getPlantAssetPresentation } from "../game/assetPresentation";
 import { PLANT_TEXTURES, SUN_TOKEN_TEXTURE } from "../game/assets";
 import { PLANTS } from "../game/config";
-import type { CombatEvent, DifficultyId, GameState, LevelConfig, PlantId, PlantingFailureReason } from "../game/types";
+import type {
+  ColumnIndex,
+  CombatEvent,
+  DifficultyId,
+  GameState,
+  LaneIndex,
+  LevelConfig,
+  PlantId,
+  PlantingFailureReason
+} from "../game/types";
 import { getPlantMiniatureProfile } from "../game/worldPresentation";
 
 export interface OverlayPlantingFeedback {
@@ -47,6 +56,8 @@ export interface DomOverlayOptions {
 }
 
 const plantOrder: PlantId[] = ["sunflower", "peashooter", "wallnut", "snowpea", "potatomine"];
+const GAME_VIEWPORT = { width: 1280, height: 720 };
+const BOARD_TOUCH_GRID = { x: 148, y: 132, width: 980, height: 388, lanes: 5, columns: 9 };
 const difficultyOptions: Array<{ id: DifficultyId; label: string }> = [
   { id: "easy", label: "轻松" },
   { id: "normal", label: "普通" }
@@ -133,6 +144,35 @@ function getTerminalSummaryMarkup(state: OverlayRenderState): string {
       </div>`;
 }
 
+export function getBoardViewportRect(viewportWidth: number, viewportHeight: number): {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+} {
+  const scale = Math.min(viewportWidth / GAME_VIEWPORT.width, viewportHeight / GAME_VIEWPORT.height);
+  const renderedGameWidth = GAME_VIEWPORT.width * scale;
+  const renderedGameHeight = GAME_VIEWPORT.height * scale;
+  return {
+    left: (viewportWidth - renderedGameWidth) / 2 + BOARD_TOUCH_GRID.x * scale,
+    top: (viewportHeight - renderedGameHeight) / 2 + BOARD_TOUCH_GRID.y * scale,
+    width: BOARD_TOUCH_GRID.width * scale,
+    height: BOARD_TOUCH_GRID.height * scale
+  };
+}
+
+function getBoardTouchGridMarkup(): string {
+  const cells: string[] = [];
+  for (let lane = 0; lane < BOARD_TOUCH_GRID.lanes; lane += 1) {
+    for (let column = 0; column < BOARD_TOUCH_GRID.columns; column += 1) {
+      cells.push(
+        `<button class="board-touch-cell" data-board-lane="${lane}" data-board-column="${column}" aria-label="在第 ${lane + 1} 行第 ${column + 1} 列种植"></button>`
+      );
+    }
+  }
+  return `<div class="board-touch-grid" aria-label="草坪种植格">${cells.join("")}</div>`;
+}
+
 export function createDomOverlayMarkup(state: OverlayRenderState): string {
   const allowedPlantIds = new Set(state.allowedPlantIds ?? plantOrder);
   const cards = plantOrder
@@ -198,6 +238,7 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
       <button class="chip motion-toggle" data-action="motion">${reducedMotion ? "动效柔和" : "动效正常"}</button>
     </div>
     <div class="tutorial-strip"><span>${tutorialText}</span>${feedbackMarkup}</div>
+    ${getBoardTouchGridMarkup()}
     <div class="lane-controls" aria-label="小队长移动">
       <button class="lane-button" data-action="lane-up" aria-label="小队长上移">上移</button>
       <button class="lane-button" data-action="lane-down" aria-label="小队长下移">下移</button>
@@ -228,6 +269,17 @@ export function createDomOverlay(root: Element, scene: GameScene, options: DomOv
   let reducedMotion = options.reducedMotion ?? false;
   const shownAchievements = new Set<AchievementId>();
   const queuedFeedback: OverlayAchievementFeedback[] = [];
+  const rootElement = root as HTMLElement;
+  const rootWindow = root.ownerDocument?.defaultView ?? (typeof window !== "undefined" ? window : null);
+
+  function updateBoardTouchBounds(): void {
+    if (!rootElement.style || !rootWindow) return;
+    const rect = getBoardViewportRect(rootWindow.innerWidth, rootWindow.innerHeight);
+    rootElement.style.setProperty("--board-left", `${rect.left}px`);
+    rootElement.style.setProperty("--board-top", `${rect.top}px`);
+    rootElement.style.setProperty("--board-width", `${rect.width}px`);
+    rootElement.style.setProperty("--board-height", `${rect.height}px`);
+  }
 
   function showFeedback(feedback: OverlayFeedback): void {
     recentFeedback = feedback;
@@ -280,6 +332,7 @@ export function createDomOverlay(root: Element, scene: GameScene, options: DomOv
     if (nextMarkup === lastMarkup) return;
     root.innerHTML = nextMarkup;
     lastMarkup = nextMarkup;
+    updateBoardTouchBounds();
   }
 
   scene.uiEvents.on("state-changed", render);
@@ -287,13 +340,27 @@ export function createDomOverlay(root: Element, scene: GameScene, options: DomOv
     showFeedback(feedback);
     if (lastState) render(lastState);
   });
-  root.addEventListener("click", (event) => {
+  root.addEventListener("pointerdown", (event) => {
     const target = event.target as HTMLElement;
     const plantButton = target.closest("[data-plant]") as HTMLElement | null;
     if (plantButton) {
+      event.preventDefault();
+      event.stopPropagation();
       scene.setSelectedPlant(plantButton.dataset.plant as PlantId);
       return;
     }
+    const boardCell = target.closest("[data-board-lane][data-board-column]") as HTMLElement | null;
+    if (boardCell) {
+      event.preventDefault();
+      event.stopPropagation();
+      scene.plantAtCell(
+        Number(boardCell.dataset.boardLane) as LaneIndex,
+        Number(boardCell.dataset.boardColumn) as ColumnIndex
+      );
+    }
+  });
+  root.addEventListener("click", (event) => {
+    const target = event.target as HTMLElement;
     const actionButton = target.closest("[data-action]") as HTMLElement | null;
     if (actionButton?.dataset.action === "pause") {
       scene.togglePause();
@@ -332,4 +399,7 @@ export function createDomOverlay(root: Element, scene: GameScene, options: DomOv
       scene.setDifficulty(difficultyButton.dataset.difficulty as DifficultyId);
     }
   });
+  updateBoardTouchBounds();
+  rootWindow?.addEventListener("resize", updateBoardTouchBounds);
+  rootWindow?.addEventListener("orientationchange", updateBoardTouchBounds);
 }

@@ -55,6 +55,28 @@ describe("dom overlay", () => {
     expect(html).toContain("下移");
   });
 
+  it("renders a transparent board touch grid for tablet planting", () => {
+    const html = createDomOverlayMarkup({
+      sun: 150,
+      waveText: "第 1 波 / 8",
+      status: "playing",
+      selectedPlantId: "sunflower",
+      cooldownReadyAt: {
+        sunflower: 0,
+        peashooter: 0,
+        wallnut: 0,
+        snowpea: 0,
+        potatomine: 0
+      },
+      nowMs: 0
+    });
+
+    expect(html).toContain('class="board-touch-grid"');
+    expect(html.match(/data-board-lane=/g)).toHaveLength(45);
+    expect(html).toContain('data-board-lane="0" data-board-column="0"');
+    expect(html).toContain('data-board-lane="4" data-board-column="8"');
+  });
+
   it("renders level name with wave text", () => {
     const html = createDomOverlayMarkup({
       sun: 150,
@@ -257,6 +279,91 @@ describe("dom overlay", () => {
 
     expect(scene.moveHeroLane).toHaveBeenNthCalledWith(1, -1);
     expect(scene.moveHeroLane).toHaveBeenNthCalledWith(2, 1);
+  });
+
+  it("selects every plant card immediately from pointer input", () => {
+    let pointerHandler: ((event: Event) => void) | null = null;
+    const root = {
+      innerHTML: "",
+      addEventListener: vi.fn((eventName: string, handler: (event: Event) => void) => {
+        if (eventName === "pointerdown") pointerHandler = handler;
+      })
+    };
+    const scene = {
+      uiEvents: {
+        on: vi.fn()
+      },
+      setSelectedPlant: vi.fn(),
+      plantAtCell: vi.fn(),
+      togglePause: vi.fn(),
+      restartLevel: vi.fn(),
+      nextLevel: vi.fn(),
+      getCurrentLevel: vi.fn(() => LEVEL_ONE),
+      hasNextLevel: vi.fn(() => false),
+      getCurrentDifficultyId: vi.fn(() => "normal"),
+      setDifficulty: vi.fn(),
+      moveHeroLane: vi.fn()
+    } as unknown as GameScene;
+    createDomOverlay(root as unknown as Element, scene);
+
+    (["sunflower", "peashooter", "wallnut", "snowpea", "potatomine"] as const).forEach((plantId) => {
+      const target = {
+        closest: vi.fn((selector: string) =>
+          selector === "[data-plant]" ? { dataset: { plant: plantId } } : null
+        )
+      } as unknown as HTMLElement;
+      const event = {
+        target,
+        preventDefault: vi.fn(),
+        stopPropagation: vi.fn()
+      } as unknown as Event;
+
+      pointerHandler!(event);
+
+      expect(scene.setSelectedPlant).toHaveBeenLastCalledWith(plantId);
+      expect(event.preventDefault).toHaveBeenCalled();
+    });
+  });
+
+  it("plants from the board touch grid on pointer input", () => {
+    let pointerHandler: ((event: Event) => void) | null = null;
+    const root = {
+      innerHTML: "",
+      addEventListener: vi.fn((eventName: string, handler: (event: Event) => void) => {
+        if (eventName === "pointerdown") pointerHandler = handler;
+      })
+    };
+    const scene = {
+      uiEvents: {
+        on: vi.fn()
+      },
+      setSelectedPlant: vi.fn(),
+      plantAtCell: vi.fn(),
+      togglePause: vi.fn(),
+      restartLevel: vi.fn(),
+      nextLevel: vi.fn(),
+      getCurrentLevel: vi.fn(() => LEVEL_ONE),
+      hasNextLevel: vi.fn(() => false),
+      getCurrentDifficultyId: vi.fn(() => "normal"),
+      setDifficulty: vi.fn(),
+      moveHeroLane: vi.fn()
+    } as unknown as GameScene;
+    const target = {
+      closest: vi.fn((selector: string) =>
+        selector === "[data-board-lane][data-board-column]" ? { dataset: { boardLane: "3", boardColumn: "6" } } : null
+      )
+    } as unknown as HTMLElement;
+    const event = {
+      target,
+      preventDefault: vi.fn(),
+      stopPropagation: vi.fn()
+    } as unknown as Event;
+
+    createDomOverlay(root as unknown as Element, scene);
+    pointerHandler!(event);
+
+    expect(scene.plantAtCell).toHaveBeenCalledWith(3, 6);
+    expect(event.stopPropagation).toHaveBeenCalled();
   });
 
   it("toggles reduced motion from the HUD", () => {

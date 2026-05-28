@@ -154,6 +154,17 @@ export class GameScene extends Phaser.Scene {
     this.uiEvents.emit("state-changed", this.state);
   }
 
+  plantAtCell(lane: LaneIndex, column: ColumnIndex): void {
+    const plantingResult = getPlantingResult(this.state, PLANTS, lane, column);
+    if (!plantingResult.ok) {
+      this.uiEvents.emit("feedback-changed", { type: "planting", reason: plantingResult.reason });
+      return;
+    }
+    this.state = plantAt(this.state, PLANTS, lane, column);
+    this.uiEvents.emit("sound-requested", "plant");
+    this.uiEvents.emit("state-changed", this.state);
+  }
+
   togglePause(): void {
     if (this.state.status !== "playing" && this.state.status !== "paused") return;
     this.uiEvents.emit("sound-requested", "button");
@@ -213,14 +224,7 @@ export class GameScene extends Phaser.Scene {
       this.uiEvents.emit("feedback-changed", { type: "planting", reason: "outside-board" });
       return;
     }
-    const plantingResult = getPlantingResult(this.state, PLANTS, lane as LaneIndex, column as ColumnIndex);
-    if (!plantingResult.ok) {
-      this.uiEvents.emit("feedback-changed", { type: "planting", reason: plantingResult.reason });
-      return;
-    }
-    this.state = plantAt(this.state, PLANTS, lane as LaneIndex, column as ColumnIndex);
-    this.uiEvents.emit("sound-requested", "plant");
-    this.uiEvents.emit("state-changed", this.state);
+    this.plantAtCell(lane as LaneIndex, column as ColumnIndex);
   }
 
   private drawStaticBoard(): void {
