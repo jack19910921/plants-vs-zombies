@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  getGrassFleckCount,
+  getGrassFleckMotionState,
+  getGrassTileMotionState,
   getHealthWearState,
   getHeroPeashooterPresentation,
   getPlantMiniatureProfile,
@@ -171,6 +174,63 @@ describe("world presentation helpers", () => {
     expect(start.beamAlpha).toBeGreaterThan(0);
     expect(later.rotationDeg).toBeGreaterThan(start.rotationDeg);
     expect(later.sparkleRadius).toBeGreaterThan(start.sparkleRadius);
+  });
+
+  it("keeps grass tile animation opacity and shimmer values bounded", () => {
+    [0, 700, 1800, 3600].forEach((nowMs) => {
+      for (let lane = 0; lane < 5; lane += 1) {
+        for (let column = 0; column < 9; column += 1) {
+          const tile = getGrassTileMotionState(nowMs, lane, column);
+
+          expect(tile.cellWashAlpha).toBeGreaterThanOrEqual(0);
+          expect(tile.cellWashAlpha).toBeLessThanOrEqual(0.06);
+          expect(tile.topHighlightAlpha).toBeGreaterThanOrEqual(0);
+          expect(tile.topHighlightAlpha).toBeLessThanOrEqual(0.11);
+          expect(tile.bottomShadowAlpha).toBeGreaterThanOrEqual(0);
+          expect(tile.bottomShadowAlpha).toBeLessThanOrEqual(0.11);
+          expect(tile.shimmerAlpha).toBeGreaterThanOrEqual(0);
+          expect(tile.shimmerAlpha).toBeLessThanOrEqual(0.08);
+          expect(tile.shimmerXRatio).toBeGreaterThanOrEqual(-0.42);
+          expect(tile.shimmerXRatio).toBeLessThanOrEqual(0.42);
+          expect(tile.shimmerWidthRatio).toBeGreaterThanOrEqual(0.24);
+          expect(tile.shimmerWidthRatio).toBeLessThanOrEqual(0.36);
+        }
+      }
+    });
+  });
+
+  it("adds deeper row shadows toward the front of the grass board", () => {
+    const backLane = getGrassTileMotionState(1000, 0, 4);
+    const frontLane = getGrassTileMotionState(1000, 4, 4);
+
+    expect(frontLane.bottomShadowAlpha).toBeGreaterThan(backLane.bottomShadowAlpha);
+    expect(frontLane.ridgeAlpha).toBeGreaterThan(backLane.ridgeAlpha);
+  });
+
+  it("moves grass shimmer over time without changing the logical grid", () => {
+    const early = getGrassTileMotionState(0, 2, 3);
+    const later = getGrassTileMotionState(1300, 2, 3);
+
+    expect(later.shimmerXRatio).not.toBe(early.shimmerXRatio);
+    expect(later.bladeLeanX).not.toBe(early.bladeLeanX);
+    expect(Math.abs(later.bladeYOffset)).toBeLessThanOrEqual(3);
+  });
+
+  it("keeps procedural grass flecks lightweight and inside the board", () => {
+    expect(getGrassFleckCount()).toBeGreaterThanOrEqual(12);
+    expect(getGrassFleckCount()).toBeLessThanOrEqual(24);
+
+    for (let index = 0; index < getGrassFleckCount(); index += 1) {
+      const fleck = getGrassFleckMotionState(1200, index);
+
+      expect(fleck.xRatio).toBeGreaterThanOrEqual(0.04);
+      expect(fleck.xRatio).toBeLessThanOrEqual(0.96);
+      expect(fleck.yRatio).toBeGreaterThanOrEqual(0.06);
+      expect(fleck.yRatio).toBeLessThanOrEqual(0.94);
+      expect(fleck.alpha).toBeGreaterThanOrEqual(0);
+      expect(fleck.alpha).toBeLessThanOrEqual(0.12);
+      expect(fleck.width).toBeGreaterThan(fleck.height);
+    }
   });
 
   it("keeps full health figures clean", () => {

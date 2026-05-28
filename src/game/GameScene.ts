@@ -27,6 +27,9 @@ import {
   updateStatus
 } from "./rules";
 import {
+  getGrassFleckCount,
+  getGrassFleckMotionState,
+  getGrassTileMotionState,
   getHeroPeashooterPresentation,
   getHealthWearState,
   getPlantMiniatureProfile,
@@ -236,21 +239,26 @@ export class GameScene extends Phaser.Scene {
       .setScale(boardScaleX, boardScaleY)
       .setPosition(BOARD.x + BOARD.width / 2 - cropCenterOffsetX, BOARD.y + BOARD.height / 2 - cropCenterOffsetY)
       .setAlpha(0.98);
+    this.add.rectangle(BOARD.x + BOARD.width / 2, BOARD.y + BOARD.height + 10, BOARD.width - 26, 20, 0x163622, 0.08);
+    this.add.rectangle(BOARD.x + BOARD.width / 2, BOARD.y + 18, BOARD.width - 38, 16, 0xfff8df, 0.06);
     this.add.ellipse(250, 148, 86, 20, 0xffffff, 0.12);
     this.add.ellipse(1040, 510, 120, 24, 0x5c4330, 0.1);
     const laneHeight = BOARD.height / BOARD.lanes;
     const columnWidth = BOARD.width / BOARD.columns;
     for (let lane = 0; lane < BOARD.lanes; lane += 1) {
       const y = BOARD.y + lane * laneHeight + laneHeight / 2;
+      const laneDepth = lane / Math.max(1, BOARD.lanes - 1);
       this.add
-        .rectangle(BOARD.x + BOARD.width / 2, y, BOARD.width, laneHeight - 8, 0xffffff, 0.035)
-        .setStrokeStyle(2, 0x315f3a, 0.18);
-      this.add.rectangle(BOARD.x + BOARD.width / 2, y - 27, BOARD.width - 20, 8, 0xffffff, 0.08);
-      this.add.rectangle(BOARD.x + BOARD.width / 2, y + 27, BOARD.width - 18, 8, 0x174a36, 0.05);
+        .rectangle(BOARD.x + BOARD.width / 2, y, BOARD.width, laneHeight - 8, 0xffffff, 0.026 + laneDepth * 0.012)
+        .setStrokeStyle(2, 0x315f3a, 0.16 + laneDepth * 0.04);
+      this.add.rectangle(BOARD.x + BOARD.width / 2, y - 28, BOARD.width - 24, 7, 0xfff8df, 0.08);
+      this.add.rectangle(BOARD.x + BOARD.width / 2, y + 30, BOARD.width - 22, 9, 0x174a36, 0.055 + laneDepth * 0.035);
+      this.add.rectangle(BOARD.x + BOARD.width / 2, y + 36, BOARD.width - 44, 3, 0x0f2b1f, 0.04 + laneDepth * 0.02);
     }
     for (let column = 1; column < BOARD.columns; column += 1) {
       const x = BOARD.x + column * columnWidth;
-      this.add.line(x, BOARD.y + BOARD.height / 2, 0, 0, 0, BOARD.height, 0x5c4330, 0.14).setLineWidth(2);
+      this.add.line(x - 1, BOARD.y + BOARD.height / 2, 0, 0, 0, BOARD.height, 0x174a36, 0.1).setLineWidth(3);
+      this.add.line(x + 2, BOARD.y + BOARD.height / 2, 0, 0, 0, BOARD.height, 0xfff8df, 0.045).setLineWidth(1);
     }
     this.drawTrayPebbles();
     this.add.ellipse(92, 498, 92, 20, 0x5c4330, 0.16);
@@ -296,6 +304,7 @@ export class GameScene extends Phaser.Scene {
     const laneHeight = BOARD.height / BOARD.lanes;
     const columnWidth = BOARD.width / BOARD.columns;
 
+    this.drawGrassMotionLayer(laneHeight, columnWidth);
     this.drawArmedLawnMowers(laneHeight, columnWidth);
     this.drawHero(laneHeight, columnWidth);
 
@@ -309,11 +318,97 @@ export class GameScene extends Phaser.Scene {
     this.drawPotatoMineEffects(laneHeight, columnWidth);
   }
 
+  private drawGrassMotionLayer(laneHeight: number, columnWidth: number): void {
+    const graphics = this.add.graphics();
+    graphics.setData("dynamic", true);
+
+    graphics.fillStyle(0x0f2b1f, 0.05);
+    graphics.fillRect(BOARD.x + 12, BOARD.y + BOARD.height - 24, BOARD.width - 24, 18);
+    graphics.fillStyle(0xfff8df, 0.04);
+    graphics.fillRect(BOARD.x + 18, BOARD.y + 13, BOARD.width - 36, 8);
+
+    for (let lane = 0; lane < BOARD.lanes; lane += 1) {
+      const laneTop = BOARD.y + lane * laneHeight;
+      const laneCenterY = laneTop + laneHeight / 2;
+      const laneDepth = lane / Math.max(1, BOARD.lanes - 1);
+      graphics.fillStyle(0xfff8df, 0.035 + (1 - laneDepth) * 0.025);
+      graphics.fillRect(BOARD.x + 18, laneTop + 8, BOARD.width - 36, 5);
+      graphics.fillStyle(0x0f2b1f, 0.05 + laneDepth * 0.045);
+      graphics.fillRect(BOARD.x + 18, laneTop + laneHeight - 13, BOARD.width - 36, 8);
+      graphics.lineStyle(2, 0xffffff, 0.03);
+      graphics.strokeLineShape(new Phaser.Geom.Line(BOARD.x + 16, laneCenterY - 22, BOARD.x + BOARD.width - 16, laneCenterY - 22));
+    }
+
+    for (let column = 1; column < BOARD.columns; column += 1) {
+      const x = BOARD.x + column * columnWidth;
+      graphics.fillStyle(0x0f2b1f, 0.04);
+      graphics.fillRect(x - 2, BOARD.y + 14, 3, BOARD.height - 28);
+      graphics.fillStyle(0xfff8df, 0.035);
+      graphics.fillRect(x + 2, BOARD.y + 18, 1, BOARD.height - 36);
+    }
+
+    for (let lane = 0; lane < BOARD.lanes; lane += 1) {
+      for (let column = 0; column < BOARD.columns; column += 1) {
+        const tile = getGrassTileMotionState(this.state.nowMs, lane, column);
+        const cellX = BOARD.x + column * columnWidth;
+        const cellY = BOARD.y + lane * laneHeight;
+        const cellCenterX = cellX + columnWidth / 2;
+        const cellCenterY = cellY + laneHeight / 2;
+
+        graphics.fillStyle(0xbde26c, tile.cellWashAlpha);
+        graphics.fillRect(cellX + 5, cellY + 7, columnWidth - 10, laneHeight - 14);
+        graphics.fillStyle(0xfff8df, tile.topHighlightAlpha);
+        graphics.fillRect(cellX + 10, cellY + 11, columnWidth - 20, 3);
+        graphics.fillStyle(0x174a36, tile.bottomShadowAlpha);
+        graphics.fillRect(cellX + 8, cellY + laneHeight - 15, columnWidth - 16, 5);
+        graphics.lineStyle(1, 0x315f3a, tile.ridgeAlpha);
+        graphics.strokeRect(cellX + 7, cellY + 8, columnWidth - 14, laneHeight - 16);
+
+        const shimmerX = cellCenterX + tile.shimmerXRatio * columnWidth;
+        const shimmerLength = laneHeight * 1.25;
+        const shimmerAngle = -Math.PI / 3.2;
+        const shimmerDx = Math.cos(shimmerAngle) * shimmerLength * 0.5;
+        const shimmerDy = Math.sin(shimmerAngle) * shimmerLength * 0.5;
+        graphics.lineStyle(Math.max(5, columnWidth * tile.shimmerWidthRatio), 0xfff8df, tile.shimmerAlpha);
+        graphics.strokeLineShape(
+          new Phaser.Geom.Line(
+            shimmerX - shimmerDx,
+            cellCenterY - shimmerDy,
+            shimmerX + shimmerDx,
+            cellCenterY + shimmerDy
+          )
+        );
+
+        if ((lane + column) % 2 === 0) {
+          const bladeX = cellX + columnWidth * (0.22 + ((lane * 2 + column) % 4) * 0.14);
+          const bladeY = cellY + laneHeight * 0.74 + tile.bladeYOffset;
+          graphics.lineStyle(2, 0xaee06e, tile.bladeAlpha);
+          graphics.strokeLineShape(new Phaser.Geom.Line(bladeX, bladeY, bladeX + tile.bladeLeanX, bladeY - 12));
+          graphics.lineStyle(1, 0xfff8df, tile.bladeAlpha * 0.28);
+          graphics.strokeLineShape(new Phaser.Geom.Line(bladeX + 3, bladeY - 2, bladeX + tile.bladeLeanX * 0.62, bladeY - 10));
+        }
+      }
+    }
+
+    for (let index = 0; index < getGrassFleckCount(); index += 1) {
+      const fleck = getGrassFleckMotionState(this.state.nowMs, index);
+      const x = BOARD.x + fleck.xRatio * BOARD.width + fleck.driftX;
+      const y = BOARD.y + fleck.yRatio * BOARD.height + fleck.driftY;
+      const angle = Phaser.Math.DegToRad(fleck.rotationDeg);
+      const dx = Math.cos(angle) * fleck.width;
+      const dy = Math.sin(angle) * fleck.width * 0.45;
+      graphics.lineStyle(Math.max(1, fleck.height), index % 3 === 0 ? 0xfff8df : 0xc6ec82, fleck.alpha);
+      graphics.strokeLineShape(new Phaser.Geom.Line(x - dx, y - dy, x + dx, y + dy));
+    }
+  }
+
   private drawArmedLawnMowers(laneHeight: number, columnWidth: number): void {
     const x = BOARD.x + columnWidth * 0.22;
     this.state.mowerLanes.forEach((lane) => {
       const y = BOARD.y + lane * laneHeight + laneHeight / 2 + 10;
-      this.add.ellipse(x, y + 22, 70, 15, 0x163622, 0.22).setData("dynamic", true);
+      this.add.ellipse(x + 2, y + 25, 88, 19, 0x0f2b1f, 0.14).setData("dynamic", true);
+      this.add.ellipse(x, y + 22, 70, 15, 0x163622, 0.24).setData("dynamic", true);
+      this.add.rectangle(x - 6, y + 31, 64, 4, 0xbde26c, 0.12).setData("dynamic", true);
       this.add
         .image(x, y, "lawn-mower")
         .setDisplaySize(70, 74)
@@ -337,6 +432,7 @@ export class GameScene extends Phaser.Scene {
         const y = BOARD.y + event.lane * laneHeight + laneHeight / 2 + 10;
         const alpha = 1 - progress * 0.2;
 
+        this.add.ellipse(x - 4, y + 26, 106, 22, 0x0f2b1f, 0.14 * alpha).setData("dynamic", true);
         this.add.ellipse(x - 8, y + 23, 88, 18, 0x163622, 0.22 * alpha).setData("dynamic", true);
         this.add.rectangle(x - 44, y + 12, 70, 8, 0xbde26c, 0.24 * alpha).setData("dynamic", true);
         this.add.rectangle(x - 64, y + 2, 42, 5, 0xfff1a3, 0.22 * alpha).setData("dynamic", true);
@@ -369,7 +465,8 @@ export class GameScene extends Phaser.Scene {
     const muzzleX = x + hero.muzzleOffsetX;
     const muzzleY = y + hero.muzzleOffsetY;
 
-    this.add.ellipse(x, y + 30, hero.shadowWidth, hero.shadowHeight, 0x163622, 0.26).setData("dynamic", true);
+    this.add.ellipse(x, y + 34, hero.shadowWidth + 20, hero.shadowHeight + 7, 0x0f2b1f, 0.12).setData("dynamic", true);
+    this.add.ellipse(x, y + 30, hero.shadowWidth, hero.shadowHeight, 0x163622, 0.28).setData("dynamic", true);
     this.add
       .ellipse(x, y + 24, hero.ringWidth, hero.ringHeight, 0x8f5d32, 0.84)
       .setStrokeStyle(3, 0x35513f, 0.62)
@@ -429,6 +526,9 @@ export class GameScene extends Phaser.Scene {
     const tint = hitPulse > 0 ? 0xffb39b : 0xffffff;
     const highlightAlpha = Math.min(0.56, profile.highlightAlpha + firePulse * 0.14);
 
+    this.add
+      .ellipse(x, y + 32, profile.baseWidth + 24, profile.baseHeight + 9, 0x0f2b1f, 0.11 + hitPulse * 0.04)
+      .setData("dynamic", true);
     this.add
       .ellipse(x, y + 28, 74 * miniature.shadowScaleX, 18 * miniature.shadowScaleY, 0x163622, miniature.shadowAlpha)
       .setData("dynamic", true);
@@ -628,6 +728,16 @@ export class GameScene extends Phaser.Scene {
     const bodyY = y + miniature.bodyYOffset;
     const tint = hitPulse > 0 ? (hitEvent?.type === "zombie-hit" && hitEvent.slows ? 0xbbefff : 0xffa899) : profile.tintColor;
 
+    this.add
+      .ellipse(
+        x,
+        y + 34,
+        profile.shadowWidth * miniature.shadowScaleX + 18,
+        profile.shadowHeight * miniature.shadowScaleY + 7,
+        0x0f2b1f,
+        0.12 + (chewing ? 0.03 : 0)
+      )
+      .setData("dynamic", true);
     this.add
       .ellipse(
         x,

@@ -20,6 +20,7 @@ Completed:
 - M9 Three.js polish for seed packet shine, sun trails, wave warning beacons, planting sparks, potato mine shockwave feedback, and badge ceremony moments.
 - M10 procedural toy-garden art pass for richer tabletop props and board polish without external assets.
 - M11 asset replacement pass started with user-provided ChatGPT image-model plants/board, original toy enemy SVGs, and matching projectile/sun pickup polish.
+- M11g grass animation polish adds subtle 3D board depth, moving shimmer, grass flecks, and better contact shadows without new assets.
 - M12 terminal summary adds compact victory/failure stats for wave progress, remaining plants, and sun.
 - Final acceptance closeout adds a gentle motion setting and a small bucket enemy ice-resistance behavior.
 - Automated rule/UI tests and browser visual checks used before commits.
@@ -428,6 +429,7 @@ Delivered so far:
 - Replaced the called-out fake-looking enemies, projectiles, sun token, base sign, and lawn mower with the follow-up user-provided image2 assets.
 - Replaced the procedural green hero shooter with image2 peashooter art and added layered projectile/sun particle feedback.
 - Moved the lawn mower onto the grass as a limited one-shot final defense on only one or two configured lanes per level.
+- Added a test-backed procedural grass animation layer with tile breathing, moving light shimmer, row/column depth, flecks, and blended contact shadows.
 - Registered every new non-code asset in `docs/asset-sources.md`.
 
 Closeout note:
@@ -475,6 +477,7 @@ Visual:
 
 - Deeper particle choreography if it stays lightweight.
 - Further lane readability tuning after hands-on验收.
+- Optional gentle-motion integration for the new grass shimmer if family testing finds it too lively.
 
 Audio:
 
@@ -510,6 +513,6 @@ Pause for user验收.
 
 Reason:
 
-- M0-M12 and the final closeout now cover foundation, onboarding, audio, progression, mobile controls, packaging, asset replacement, terminal summaries, gentle motion, and one extra enemy behavior distinction.
+- M0-M12 and the final closeout now cover foundation, onboarding, audio, progression, mobile controls, packaging, asset replacement, grass board polish, terminal summaries, gentle motion, and one extra enemy behavior distinction.
 - Remaining items are future enhancements rather than acceptance blockers.
 - After验收, choose the next slice from family feedback instead of guessing.

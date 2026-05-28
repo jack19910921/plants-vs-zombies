@@ -126,6 +126,33 @@ export interface ProjectileParticleState {
   rotationDeg: number;
 }
 
+export interface GrassTileMotionState {
+  cellWashAlpha: number;
+  topHighlightAlpha: number;
+  bottomShadowAlpha: number;
+  ridgeAlpha: number;
+  shimmerAlpha: number;
+  shimmerXRatio: number;
+  shimmerWidthRatio: number;
+  bladeAlpha: number;
+  bladeLeanX: number;
+  bladeYOffset: number;
+}
+
+export interface GrassFleckMotionState {
+  xRatio: number;
+  yRatio: number;
+  width: number;
+  height: number;
+  alpha: number;
+  driftX: number;
+  driftY: number;
+  rotationDeg: number;
+}
+
+const GRASS_FLECK_COUNT = 18;
+const clamp = (value: number, min: number, max: number): number => Math.max(min, Math.min(max, value));
+
 const PLANT_MINIATURE_PROFILES: Record<PlantId, PlantMiniatureProfile> = {
   sunflower: {
     imageWidth: 74,
@@ -357,6 +384,52 @@ export function getSunPickupPresentation(progress: number): SunPickupPresentatio
     sparkleRadius: 18 + safeProgress * 30,
     sparkleAlpha: alpha * (0.62 + safeProgress * 0.18),
     beamAlpha: alpha * 0.28
+  };
+}
+
+export function getGrassTileMotionState(nowMs: number, lane: number, column: number): GrassTileMotionState {
+  const safeLane = Math.max(0, lane);
+  const safeColumn = Math.max(0, column);
+  const laneDepth = clamp(safeLane / 4, 0, 1);
+  const breathe = 0.5 + Math.sin(nowMs / 1120 + safeLane * 0.82 + safeColumn * 0.47) * 0.5;
+  const gust = 0.5 + Math.sin(nowMs / 680 + safeColumn * 0.58 - safeLane * 0.34) * 0.5;
+  const shimmerSweep = (nowMs / 2600 + safeColumn * 0.113 + safeLane * 0.067) % 1;
+
+  return {
+    cellWashAlpha: 0.018 + laneDepth * 0.014 + breathe * 0.018,
+    topHighlightAlpha: 0.046 + (1 - laneDepth) * 0.028 + gust * 0.026,
+    bottomShadowAlpha: 0.04 + laneDepth * 0.042 + (1 - breathe) * 0.018,
+    ridgeAlpha: 0.045 + laneDepth * 0.024,
+    shimmerAlpha: 0.018 + gust * 0.054,
+    shimmerXRatio: -0.42 + shimmerSweep * 0.84,
+    shimmerWidthRatio: 0.24 + (safeColumn % 3) * 0.035 + gust * 0.04,
+    bladeAlpha: 0.14 + breathe * 0.14,
+    bladeLeanX: Math.sin(nowMs / 520 + safeColumn * 0.9 + safeLane * 0.52) * 7,
+    bladeYOffset: Math.sin(nowMs / 760 + safeLane * 0.7 + safeColumn * 0.19) * 3
+  };
+}
+
+export function getGrassFleckCount(): number {
+  return GRASS_FLECK_COUNT;
+}
+
+export function getGrassFleckMotionState(nowMs: number, index: number): GrassFleckMotionState {
+  const safeIndex = Math.max(0, index);
+  const baseX = 0.06 + (((safeIndex * 37) % 88) / 100);
+  const baseY = 0.08 + (((safeIndex * 53) % 84) / 100);
+  const phase = nowMs / 940 + safeIndex * 0.74;
+  const shimmer = 0.5 + Math.sin(phase) * 0.5;
+  const drift = Math.sin(nowMs / 1640 + safeIndex * 1.31);
+
+  return {
+    xRatio: clamp(baseX + drift * 0.014, 0.04, 0.96),
+    yRatio: clamp(baseY + Math.cos(nowMs / 1380 + safeIndex * 0.9) * 0.012, 0.06, 0.94),
+    width: 5 + (safeIndex % 4) * 1.8 + shimmer * 1.2,
+    height: 1.8 + (safeIndex % 3) * 0.7 + shimmer * 0.6,
+    alpha: 0.035 + shimmer * 0.078,
+    driftX: drift * 8,
+    driftY: Math.sin(nowMs / 1180 + safeIndex * 0.52) * 3,
+    rotationDeg: -16 + ((safeIndex * 29) % 32) + Math.sin(phase) * 5
   };
 }
 
