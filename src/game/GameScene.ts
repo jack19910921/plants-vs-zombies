@@ -9,6 +9,7 @@ import {
 import {
   BASE_SIGN_TEXTURE,
   BOARD_TEXTURE,
+  LAWN_MOWER_TEXTURE,
   PLANT_TEXTURES,
   PROJECTILE_TEXTURES,
   SUN_TOKEN_TEXTURE,
@@ -82,6 +83,7 @@ export class GameScene extends Phaser.Scene {
     this.load.image("garden-board", BOARD_TEXTURE);
     this.load.image("base-sign", BASE_SIGN_TEXTURE);
     this.load.image("sun-token", SUN_TOKEN_TEXTURE);
+    this.load.image("lawn-mower", LAWN_MOWER_TEXTURE);
     this.load.image("projectile-pea", PROJECTILE_TEXTURES.pea);
     this.load.image("projectile-ice", PROJECTILE_TEXTURES.ice);
     Object.entries(ZOMBIE_TEXTURES).forEach(([zombieId, url]) => {
@@ -294,6 +296,7 @@ export class GameScene extends Phaser.Scene {
     const laneHeight = BOARD.height / BOARD.lanes;
     const columnWidth = BOARD.width / BOARD.columns;
 
+    this.drawArmedLawnMowers(laneHeight, columnWidth);
     this.drawHero(laneHeight, columnWidth);
 
     this.state.plants.forEach((plant) => this.drawPlant(plant, laneHeight, columnWidth));
@@ -301,8 +304,58 @@ export class GameScene extends Phaser.Scene {
     this.state.projectiles.forEach((projectile) => this.drawProjectile(projectile, laneHeight, columnWidth));
 
     this.state.zombies.forEach((zombie) => this.drawZombie(zombie, laneHeight, columnWidth));
+    this.drawLawnMowerEffects(laneHeight, columnWidth);
     this.drawExpiredZombieEffects(laneHeight, columnWidth);
     this.drawPotatoMineEffects(laneHeight, columnWidth);
+  }
+
+  private drawArmedLawnMowers(laneHeight: number, columnWidth: number): void {
+    const x = BOARD.x + columnWidth * 0.22;
+    this.state.mowerLanes.forEach((lane) => {
+      const y = BOARD.y + lane * laneHeight + laneHeight / 2 + 10;
+      this.add.ellipse(x, y + 22, 70, 15, 0x163622, 0.22).setData("dynamic", true);
+      this.add
+        .image(x, y, "lawn-mower")
+        .setDisplaySize(70, 74)
+        .setAngle(-6)
+        .setData("dynamic", true);
+      this.add
+        .rectangle(x + 16, y - 32, 38, 5, 0xffd34f, 0.9)
+        .setStrokeStyle(1, 0x8a633d, 0.34)
+        .setData("dynamic", true);
+    });
+  }
+
+  private drawLawnMowerEffects(laneHeight: number, columnWidth: number): void {
+    this.state.events
+      .filter((event) => event.type === "lawn-mower-triggered")
+      .forEach((event) => {
+        const progress = this.eventProgress(event, LONG_EFFECT_MS);
+        if (progress >= 1) return;
+        const eased = Phaser.Math.Easing.Cubic.Out(progress);
+        const x = Phaser.Math.Linear(BOARD.x + columnWidth * 0.22, BOARD.x + BOARD.width + columnWidth * 0.45, eased);
+        const y = BOARD.y + event.lane * laneHeight + laneHeight / 2 + 10;
+        const alpha = 1 - progress * 0.2;
+
+        this.add.ellipse(x - 8, y + 23, 88, 18, 0x163622, 0.22 * alpha).setData("dynamic", true);
+        this.add.rectangle(x - 44, y + 12, 70, 8, 0xbde26c, 0.24 * alpha).setData("dynamic", true);
+        this.add.rectangle(x - 64, y + 2, 42, 5, 0xfff1a3, 0.22 * alpha).setData("dynamic", true);
+        this.add
+          .image(x, y, "lawn-mower")
+          .setDisplaySize(86, 90)
+          .setAngle(-3 + progress * 8)
+          .setAlpha(alpha)
+          .setData("dynamic", true);
+        this.add
+          .text(x - 4, y - 46, `清线 x${event.clearedCount}`, {
+            fontSize: "14px",
+            color: "#5c4330",
+            fontStyle: "bold"
+          })
+          .setOrigin(0.5)
+          .setAlpha(1 - progress)
+          .setData("dynamic", true);
+      });
   }
 
   private drawHero(laneHeight: number, columnWidth: number): void {

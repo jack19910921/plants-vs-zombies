@@ -106,6 +106,56 @@ describe("game rules", () => {
     expect(next.status).toBe("failure");
   });
 
+  it("starts each level with only its configured mower lanes armed", () => {
+    const state = createInitialState(LEVEL_ONE);
+
+    expect(state.mowerLanes).toEqual(LEVEL_ONE.mowerLanes);
+    expect(state.mowerLanes.length).toBeLessThanOrEqual(2);
+  });
+
+  it("uses an armed mower lane as a one-shot final defense before failure", () => {
+    const mowerLane = LEVEL_ONE.mowerLanes[0];
+    const state = {
+      ...createInitialState(LEVEL_ONE),
+      nowMs: 3000,
+      status: "playing" as const,
+      zombies: [
+        { id: "z1", zombieId: "basic" as const, lane: mowerLane, x: 0.01, hp: 70, slowedUntilMs: 0 },
+        { id: "z2", zombieId: "bucket" as const, lane: mowerLane, x: 4.2, hp: 180, slowedUntilMs: 0 },
+        { id: "z3", zombieId: "basic" as const, lane: 4 as const, x: 4.2, hp: 70, slowedUntilMs: 0 }
+      ]
+    };
+
+    const afterMower = advanceCombat(state, PLANTS, ZOMBIES, 1000);
+    const afterStatus = updateStatus(afterMower, LEVEL_ONE);
+
+    expect(afterStatus.status).toBe("playing");
+    expect(afterMower.mowerLanes).not.toContain(mowerLane);
+    expect(afterMower.zombies).toEqual([expect.objectContaining({ id: "z3" })]);
+    expect(afterMower.events).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: "lawn-mower-triggered",
+          lane: mowerLane,
+          clearedCount: 2
+        }),
+        expect.objectContaining({ type: "zombie-defeated", targetId: "z1" }),
+        expect.objectContaining({ type: "zombie-defeated", targetId: "z2" })
+      ])
+    );
+  });
+
+  it("fails when an unarmed lane is breached", () => {
+    const unarmedLane = ([0, 1, 2, 3, 4] as const).find((lane) => !LEVEL_ONE.mowerLanes.includes(lane))!;
+    const state = {
+      ...createInitialState(LEVEL_ONE),
+      status: "playing" as const,
+      zombies: [{ id: "z1", zombieId: "basic" as const, lane: unarmedLane, x: -0.1, hp: 70, slowedUntilMs: 0 }]
+    };
+
+    expect(updateStatus(state, LEVEL_ONE).status).toBe("failure");
+  });
+
   it("records a level-ended event when the status changes", () => {
     const state = {
       ...createInitialState(LEVEL_ONE),

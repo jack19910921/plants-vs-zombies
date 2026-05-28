@@ -138,6 +138,13 @@ export type CombatEvent =
     }
   | {
       id: string;
+      type: "lawn-mower-triggered";
+      lane: LaneIndex;
+      clearedCount: number;
+      atMs: number;
+    }
+  | {
+      id: string;
       type: "wave-spawned";
       waveIndex: number;
       lane: LaneIndex;
@@ -163,6 +170,7 @@ export interface LevelConfig {
   startingSun: number;
   durationMs: number;
   allowedPlants: PlantId[];
+  mowerLanes: LaneIndex[];
   waves: WaveEntry[];
 }
 
@@ -180,4 +188,5 @@ export interface GameState {
   heroLane: LaneIndex;
   nextHeroShotAtMs: number;
   nextBaseSunAtMs: number;
+  mowerLanes: LaneIndex[];
 }

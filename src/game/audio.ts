@@ -67,6 +67,7 @@ export function getSoundForCombatEvent(event: CombatEvent): SoundId | null {
     case "plant-bitten":
     case "zombie-defeated":
     case "potato-mine-exploded":
+    case "lawn-mower-triggered":
       return "hit";
     case "wave-spawned":
       return "wave";

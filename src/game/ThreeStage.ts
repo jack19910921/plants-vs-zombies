@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { LAWN_MOWER_TEXTURE, SUN_TOKEN_TEXTURE } from "./assets";
+import { SUN_TOKEN_TEXTURE } from "./assets";
 import {
   getGardenToolState,
   getPlantingSparkState,
@@ -568,10 +568,7 @@ export class ThreeStage {
   }
 
   private buildGardenTool(): void {
-    const mower = this.createTexturePlane(LAWN_MOWER_TEXTURE, 1.08, 1.14);
-    this.gardenTool.position.set(0.45, -0.28, -0.08);
-    this.gardenTool.rotation.z = -0.28;
-    this.gardenTool.add(mower);
+    this.gardenTool.visible = false;
   }
 
   private createTexturePlane(url: string, width: number, height: number): THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial> {

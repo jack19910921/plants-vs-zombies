@@ -11,4 +11,16 @@ describe("level config", () => {
     expect(LEVELS[1].allowedPlants).toContain("snowpea");
     expect(LEVELS[2].allowedPlants).toContain("potatomine");
   });
+
+  it("limits lawn mower defenses to one or two configured lanes per level", () => {
+    LEVELS.forEach((level) => {
+      expect(level.mowerLanes.length).toBeGreaterThanOrEqual(1);
+      expect(level.mowerLanes.length).toBeLessThanOrEqual(2);
+      expect(new Set(level.mowerLanes).size).toBe(level.mowerLanes.length);
+      level.mowerLanes.forEach((lane) => {
+        expect(lane).toBeGreaterThanOrEqual(0);
+        expect(lane).toBeLessThanOrEqual(4);
+      });
+    });
+  });
 });

@@ -64,7 +64,8 @@ export function createInitialState(level: LevelConfig, difficulty: DifficultyCon
     },
     heroLane: 2,
     nextHeroShotAtMs: 0,
-    nextBaseSunAtMs: BASE_SUN_INTERVAL_MS
+    nextBaseSunAtMs: BASE_SUN_INTERVAL_MS,
+    mowerLanes: [...level.mowerLanes]
   };
 }
 
@@ -210,6 +211,7 @@ export function advanceCombat(
   let sun = state.sun;
   let nextHeroShotAtMs = state.nextHeroShotAtMs;
   let nextBaseSunAtMs = state.nextBaseSunAtMs;
+  let mowerLanes = [...state.mowerLanes];
 
   if (state.nowMs >= nextBaseSunAtMs) {
     sun += BASE_SUN_AMOUNT;
@@ -401,6 +403,34 @@ export function advanceCombat(
     };
   });
 
+  const triggeredMowerLanes = mowerLanes.filter((lane) => zombies.some((zombie) => zombie.lane === lane && zombie.x <= 0));
+  if (triggeredMowerLanes.length > 0) {
+    for (const lane of triggeredMowerLanes) {
+      const clearedZombies = zombies.filter((zombie) => zombie.lane === lane);
+      events.push(
+        makeEvent({
+          type: "lawn-mower-triggered",
+          lane,
+          clearedCount: clearedZombies.length,
+          atMs: state.nowMs
+        })
+      );
+      for (const zombie of clearedZombies) {
+        events.push(
+          makeEvent({
+            type: "zombie-defeated",
+            targetId: zombie.id,
+            lane: zombie.lane,
+            x: zombie.x,
+            atMs: state.nowMs
+          })
+        );
+      }
+    }
+    zombies = zombies.filter((zombie) => !triggeredMowerLanes.includes(zombie.lane));
+    mowerLanes = mowerLanes.filter((lane) => !triggeredMowerLanes.includes(lane));
+  }
+
   return {
     ...state,
     sun,
@@ -409,6 +439,7 @@ export function advanceCombat(
     plants: plants.filter((plant) => plant.hp > 0 && !spentPlantIds.has(plant.id)),
     zombies,
     projectiles: remainingProjectiles,
-    events
+    events,
+    mowerLanes
   };
 }

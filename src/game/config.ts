@@ -91,6 +91,7 @@ export const LEVELS: LevelConfig[] = [
     startingSun: 250,
     durationMs: 105000,
     allowedPlants: ["sunflower", "peashooter", "wallnut"],
+    mowerLanes: [2],
     waves: [
       { atMs: 8000, lane: 2, zombieId: "basic" },
       { atMs: 18000, lane: 1, zombieId: "basic" },
@@ -108,6 +109,7 @@ export const LEVELS: LevelConfig[] = [
     startingSun: 225,
     durationMs: 115000,
     allowedPlants: ["sunflower", "peashooter", "wallnut", "snowpea"],
+    mowerLanes: [0, 3],
     waves: [
       { atMs: 6000, lane: 1, zombieId: "basic" },
       { atMs: 14000, lane: 3, zombieId: "basic" },
@@ -126,6 +128,7 @@ export const LEVELS: LevelConfig[] = [
     startingSun: 200,
     durationMs: 128000,
     allowedPlants: ["sunflower", "peashooter", "wallnut", "snowpea", "potatomine"],
+    mowerLanes: [1, 4],
     waves: [
       { atMs: 5000, lane: 2, zombieId: "basic" },
       { atMs: 12000, lane: 0, zombieId: "basic" },
