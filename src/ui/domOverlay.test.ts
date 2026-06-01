@@ -688,4 +688,121 @@ describe("dom overlay", () => {
 
     expect(html).toContain("声音关");
   });
+
+  it("renders objective chip, short labels, and modifier announcement", () => {
+    const html = createDomOverlayMarkup({
+      sun: 150,
+      levelName: "暮色农圃",
+      waveText: "第 2 波 / 10",
+      compactWaveText: "第 2/10 波",
+      status: "playing",
+      selectedPlantId: null,
+      cooldownReadyAt: {
+        sunflower: 0,
+        peashooter: 0,
+        wallnut: 0,
+        snowpea: 0,
+        potatomine: 0
+      },
+      nowMs: 0,
+      runChallenge: {
+        objective: {
+          id: "plant-sunflowers",
+          kind: "plant-count",
+          target: 3,
+          label: "种 3 朵向日葵",
+          plantId: "sunflower"
+        },
+        modifier: {
+          id: "sunny-day",
+          name: "阳光日",
+          shortLabel: "阳光来得快",
+          announcement: "阳光日：阳光来得快",
+          adjustments: {}
+        },
+        current: 2,
+        completed: false
+      },
+      modifierAnnouncement: "阳光日：阳光来得快"
+    });
+
+    expect(html).toContain('class="chip wave-chip"');
+    expect(html).toContain('data-short-label="第 2/10 波"');
+    expect(html).toContain('class="chip objective-chip"');
+    expect(html).toContain("目标：种 3 朵向日葵");
+    expect(html).toContain("阳光日：阳光来得快");
+    expect(html).not.toContain("还差 1 朵向日葵");
+  });
+
+  it("renders objective nudge when no modifier announcement is active", () => {
+    const html = createDomOverlayMarkup({
+      sun: 150,
+      waveText: "第 5 波 / 10",
+      status: "playing",
+      selectedPlantId: null,
+      cooldownReadyAt: {
+        sunflower: 0,
+        peashooter: 0,
+        wallnut: 0,
+        snowpea: 0,
+        potatomine: 0
+      },
+      nowMs: 0,
+      runChallenge: {
+        objective: {
+          id: "plant-sunflowers",
+          kind: "plant-count",
+          target: 3,
+          label: "种 3 朵向日葵",
+          plantId: "sunflower"
+        },
+        modifier: {
+          id: "sunny-day",
+          name: "阳光日",
+          shortLabel: "阳光来得快",
+          announcement: "阳光日：阳光来得快",
+          adjustments: {}
+        },
+        current: 2,
+        completed: false
+      }
+    });
+
+    expect(html).toContain("还差 1 朵向日葵");
+  });
+
+  it("renders objective result in terminal summary", () => {
+    const html = createDomOverlayMarkup({
+      sun: 120,
+      waveText: "第 8 波 / 8",
+      status: "victory",
+      selectedPlantId: null,
+      cooldownReadyAt: {
+        sunflower: 0,
+        peashooter: 0,
+        wallnut: 0,
+        snowpea: 0,
+        potatomine: 0
+      },
+      nowMs: 0,
+      plantsCount: 4,
+      spawnedWaveCount: 8,
+      totalWaveCount: 8,
+      runChallenge: {
+        objective: { id: "defeat-zombies", kind: "defeat-count", target: 5, label: "打倒 5 个僵尸" },
+        modifier: {
+          id: "slow-start",
+          name: "慢慢来",
+          shortLabel: "第一波晚一点",
+          announcement: "慢慢来：第一波晚一点",
+          adjustments: {}
+        },
+        current: 5,
+        completed: true
+      }
+    });
+
+    expect(html).toContain("小任务完成");
+    expect(html).toContain("objective-result");
+  });
 });

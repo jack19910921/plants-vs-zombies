@@ -2,6 +2,7 @@ import type { GameScene } from "../game/GameScene";
 import { getPlantAssetPresentation } from "../game/assetPresentation";
 import { PLANT_TEXTURES, SUN_TOKEN_TEXTURE } from "../game/assets";
 import { PLANTS } from "../game/config";
+import { getChallengeHudLabel, getChallengeNudgeText, getChallengeResultLabel } from "../game/runChallenges";
 import type {
   ColumnIndex,
   CombatEvent,
@@ -10,7 +11,8 @@ import type {
   LaneIndex,
   LevelConfig,
   PlantId,
-  PlantingFailureReason
+  PlantingFailureReason,
+  RunChallengeState
 } from "../game/types";
 import { getPlantMiniatureProfile } from "../game/worldPresentation";
 
@@ -32,6 +34,7 @@ interface OverlayRenderState {
   sun: number;
   levelName?: string;
   waveText: string;
+  compactWaveText?: string;
   status: GameState["status"];
   selectedPlantId: PlantId | null;
   cooldownReadyAt: GameState["cooldownReadyAt"];
@@ -47,6 +50,8 @@ interface OverlayRenderState {
   recentFeedback?: OverlayFeedback | null;
   recentEvents?: CombatEvent[];
   inputMode?: "keyboard" | "touch";
+  runChallenge?: RunChallengeState | null;
+  modifierAnnouncement?: string | null;
 }
 
 export interface DomOverlayOptions {
@@ -140,11 +145,14 @@ function getTerminalSummaryMarkup(state: OverlayRenderState): string {
       : `守到 ${state.spawnedWaveCount}/${state.totalWaveCount} 波`;
   const plantLabel = `剩余植物 ${state.plantsCount ?? 0}`;
   const sunLabel = `阳光 ${state.sun}`;
+  const objectiveLabel = state.runChallenge ? getChallengeResultLabel(state.runChallenge) : "";
+  const objectiveMarkup = objectiveLabel ? `<span class="objective-result">${objectiveLabel}</span>` : "";
 
   return `<div class="modal-summary">
         <span>${waveLabel}</span>
         <span>${plantLabel}</span>
         <span>${sunLabel}</span>
+        ${objectiveMarkup}
       </div>`;
 }
 
@@ -194,11 +202,18 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
       </button>`;
     })
     .join("");
-  const tutorialText = getTutorialText(state);
+  const objectiveNudge =
+    state.runChallenge && state.status === "playing" && !state.modifierAnnouncement
+      ? getChallengeNudgeText(state.runChallenge)
+      : "";
+  const tutorialText = (state.modifierAnnouncement ?? objectiveNudge) || getTutorialText(state);
   const soundEnabled = state.soundEnabled ?? true;
   const reducedMotion = state.reducedMotion ?? false;
   const difficultyId = state.difficultyId ?? "normal";
   const waveLabel = state.levelName ? `${state.levelName} · ${state.waveText}` : state.waveText;
+  const objectiveMarkup = state.runChallenge
+    ? `<div class="chip objective-chip">${getChallengeHudLabel(state.runChallenge)}</div>`
+    : "";
   const difficultyButtons = difficultyOptions
     .map((option) => {
       const selected = difficultyId === option.id ? " is-selected" : "";
@@ -235,7 +250,8 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
   return `<div class="hud" style="--sun-art: url('${SUN_TOKEN_TEXTURE}')">
     <div class="hud-top">
       <div class="chip sun-chip"><span class="sun-icon"></span><span>${state.sun}</span></div>
-      <div class="chip">${waveLabel}</div>
+      <div class="chip wave-chip" data-short-label="${state.compactWaveText ?? state.waveText}">${waveLabel}</div>
+      ${objectiveMarkup}
       <div class="difficulty-toggle">${difficultyButtons}</div>
       <button class="chip" data-action="pause">暂停</button>
       <button class="chip sound-toggle" data-action="sound" data-short-label="${soundEnabled ? "音开" : "音关"}" aria-label="${soundEnabled ? "声音开启" : "声音关闭"}">${soundEnabled ? "声音开" : "声音关"}</button>
@@ -262,6 +278,11 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
 function getWaveText(state: GameState, level: LevelConfig): string {
   const spawned = state.spawnedWaveIndexes.length;
   return `第 ${Math.min(spawned + 1, level.waves.length)} 波 / ${level.waves.length}`;
+}
+
+function getCompactWaveText(state: GameState, level: LevelConfig): string {
+  const spawned = state.spawnedWaveIndexes.length;
+  return `第 ${Math.min(spawned + 1, level.waves.length)}/${level.waves.length} 波`;
 }
 
 export function createDomOverlay(root: Element, scene: GameScene, options: DomOverlayOptions = {}): void {
@@ -305,6 +326,10 @@ export function createDomOverlay(root: Element, scene: GameScene, options: DomOv
   function render(state: GameState): void {
     lastState = state;
     const level = scene.getCurrentLevel();
+    const challengeScene = scene as GameScene & {
+      getCurrentRunChallenge?: () => RunChallengeState | null;
+      getCurrentModifierAnnouncement?: () => string | null;
+    };
     if (!recentFeedback) {
       const achievementFeedback = getNextAchievementFeedback(state, shownAchievements);
       if (achievementFeedback) {
@@ -322,6 +347,7 @@ export function createDomOverlay(root: Element, scene: GameScene, options: DomOv
       sun: state.sun,
       levelName: level.name,
       waveText: getWaveText(state, level),
+      compactWaveText: getCompactWaveText(state, level),
       status: state.status,
       selectedPlantId: state.selectedPlantId,
       cooldownReadyAt: state.cooldownReadyAt,
@@ -336,7 +362,9 @@ export function createDomOverlay(root: Element, scene: GameScene, options: DomOv
       totalWaveCount: level.waves.length,
       recentFeedback,
       recentEvents: state.events,
-      inputMode: getInputMode()
+      inputMode: getInputMode(),
+      runChallenge: challengeScene.getCurrentRunChallenge?.() ?? null,
+      modifierAnnouncement: challengeScene.getCurrentModifierAnnouncement?.() ?? null
     });
     if (nextMarkup === lastMarkup) return;
     root.innerHTML = nextMarkup;

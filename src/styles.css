@@ -93,11 +93,12 @@ button {
 
 .hud-top {
   display: grid;
-  grid-template-columns: 200px 1fr 132px 64px 92px 104px;
-  gap: 12px;
+  grid-template-columns: 180px minmax(170px, 1fr) minmax(190px, 1.05fr) 132px 64px 92px 104px;
+  gap: 10px;
 }
 
-.hud-top .chip:nth-child(2) {
+.wave-chip,
+.objective-chip {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -440,6 +441,11 @@ button {
   line-height: 1.15;
 }
 
+.modal-summary .objective-result {
+  grid-column: 1 / -1;
+  background: #ffd34f;
+}
+
 @media (max-width: 900px), (pointer: coarse) {
   #three-root {
     top: calc(10px + env(safe-area-inset-top, 0px));
@@ -460,13 +466,13 @@ button {
 
   .hud-top {
     grid-template-columns: minmax(94px, 1fr) minmax(96px, 1fr) minmax(82px, 0.9fr);
-    grid-template-rows: repeat(3, 46px);
+    grid-template-rows: repeat(4, 46px);
     gap: 6px;
     width: auto;
   }
 
   .hud {
-    grid-template-rows: 150px minmax(0, 1fr) auto;
+    grid-template-rows: 196px minmax(0, 1fr) auto;
   }
 
   .chip {
@@ -475,8 +481,13 @@ button {
     font-size: 16px;
   }
 
-  .hud-top .chip:nth-child(2) {
+  .wave-chip {
     grid-column: 2 / 4;
+  }
+
+  .objective-chip {
+    grid-column: 1 / 4;
+    grid-row: 2;
   }
 
   .hud-top .chip:first-child {
@@ -486,22 +497,22 @@ button {
 
   .hud-top .difficulty-toggle {
     grid-column: 1;
-    grid-row: 2;
+    grid-row: 3;
   }
 
   .hud-top [data-action="pause"] {
     grid-column: 2;
-    grid-row: 2;
+    grid-row: 3;
   }
 
   .hud-top .sound-toggle {
     grid-column: 3;
-    grid-row: 2;
+    grid-row: 3;
   }
 
   .hud-top .motion-toggle {
     grid-column: 1 / 4;
-    grid-row: 3;
+    grid-row: 4;
   }
 
   .difficulty-toggle {
@@ -600,7 +611,7 @@ button {
   }
 
   .hud-top {
-    grid-template-columns: 92px minmax(180px, 1fr) 124px 56px 56px 58px;
+    grid-template-columns: 82px minmax(92px, 0.85fr) minmax(138px, 1.25fr) 104px 52px 50px 54px;
     grid-template-rows: 38px;
     gap: 5px;
   }
@@ -615,7 +626,8 @@ button {
     line-height: 1;
   }
 
-  .hud-top .chip:nth-child(2),
+  .wave-chip,
+  .objective-chip,
   .hud-top .difficulty-toggle,
   .hud-top [data-action="pause"],
   .hud-top .sound-toggle,
@@ -630,9 +642,20 @@ button {
     font-size: 14px;
   }
 
-  .hud-top .chip:nth-child(2) {
+  .wave-chip {
     padding: 0 8px;
+    font-size: 0;
+  }
+
+  .wave-chip::before {
+    content: attr(data-short-label);
     font-size: 13px;
+    line-height: 1;
+  }
+
+  .objective-chip {
+    padding: 0 6px;
+    font-size: 12px;
   }
 
   .sun-icon {
