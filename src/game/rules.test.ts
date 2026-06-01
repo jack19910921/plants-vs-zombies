@@ -474,4 +474,124 @@ describe("game rules", () => {
     const next = advanceCombat(state, PLANTS, ZOMBIES, 1000);
     expect(next.zombies[0].x).toBeGreaterThan(7.9);
   });
+
+  it("tracks planting and slow-hit objectives through rules", () => {
+    const plantingChallenge = {
+      objective: {
+        id: "plant-sunflowers",
+        kind: "plant-count",
+        target: 3,
+        label: "种 3 朵向日葵",
+        plantId: "sunflower"
+      },
+      modifier: {
+        id: "sunny-day",
+        name: "阳光日",
+        shortLabel: "阳光来得快",
+        announcement: "阳光日：阳光来得快",
+        adjustments: {}
+      },
+      current: 0,
+      completed: false
+    } as const;
+    const planted = plantAt(
+      selectPlant(createInitialState(LEVEL_ONE, DIFFICULTY.normal, plantingChallenge), "sunflower"),
+      PLANTS,
+      0,
+      0
+    );
+    expect(planted.runChallenge).toMatchObject({ current: 1, completed: false });
+
+    const slowChallenge = {
+      objective: {
+        id: "slow-hit-count",
+        kind: "slow-hit-count",
+        target: 1,
+        label: "冻住 1 次敌人",
+        plantId: "snowpea"
+      },
+      modifier: {
+        id: "sunny-day",
+        name: "阳光日",
+        shortLabel: "阳光来得快",
+        announcement: "阳光日：阳光来得快",
+        adjustments: {}
+      },
+      current: 0,
+      completed: false
+    } as const;
+    const afterHit = advanceCombat(
+      {
+        ...createInitialState(LEVEL_ONE, DIFFICULTY.normal, slowChallenge),
+        nowMs: 2400,
+        zombies: [{ id: "z1", zombieId: "basic" as const, lane: 0 as const, x: 2.1, hp: 70, slowedUntilMs: 0 }],
+        projectiles: [{ id: "p1", lane: 0 as const, x: 2.05, damage: 20, slows: true }]
+      },
+      PLANTS,
+      ZOMBIES,
+      16
+    );
+    expect(afterHit.runChallenge).toMatchObject({ current: 1, completed: true });
+  });
+
+  it("tracks defeat, mower, and sun reserve objectives through rules", () => {
+    const defeatChallenge = {
+      objective: { id: "defeat-zombies", kind: "defeat-count", target: 1, label: "打倒 1 个僵尸" },
+      modifier: {
+        id: "sunny-day",
+        name: "阳光日",
+        shortLabel: "阳光来得快",
+        announcement: "阳光日：阳光来得快",
+        adjustments: {}
+      },
+      current: 0,
+      completed: false
+    } as const;
+    const afterDefeat = advanceCombat(
+      {
+        ...createInitialState(LEVEL_ONE, DIFFICULTY.normal, defeatChallenge),
+        nowMs: 2400,
+        zombies: [{ id: "z1", zombieId: "basic" as const, lane: 0 as const, x: 2.1, hp: 10, slowedUntilMs: 0 }],
+        projectiles: [{ id: "p1", lane: 0 as const, x: 2.05, damage: 20, slows: false }]
+      },
+      PLANTS,
+      ZOMBIES,
+      16
+    );
+    expect(afterDefeat.runChallenge).toMatchObject({ current: 1, completed: true });
+
+    const mowerChallenge = {
+      objective: { id: "protect-mowers", kind: "mower-protection", target: 1, label: "保护 1 台小车" },
+      modifier: {
+        id: "sunny-day",
+        name: "阳光日",
+        shortLabel: "阳光来得快",
+        announcement: "阳光日：阳光来得快",
+        adjustments: {}
+      },
+      current: 0,
+      completed: false
+    } as const;
+    expect(createInitialState(LEVEL_ONE, DIFFICULTY.normal, mowerChallenge).runChallenge).toMatchObject({
+      current: LEVEL_ONE.mowerLanes.length,
+      completed: true
+    });
+
+    const sunChallenge = {
+      objective: { id: "save-sun", kind: "sun-reserve", target: 100, label: "留下 100 阳光" },
+      modifier: {
+        id: "sunny-day",
+        name: "阳光日",
+        shortLabel: "阳光来得快",
+        announcement: "阳光日：阳光来得快",
+        adjustments: {}
+      },
+      current: 0,
+      completed: false
+    } as const;
+    expect(createInitialState(LEVEL_ONE, DIFFICULTY.normal, sunChallenge).runChallenge).toMatchObject({
+      current: 250,
+      completed: true
+    });
+  });
 });

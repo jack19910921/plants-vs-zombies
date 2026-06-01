@@ -1,6 +1,7 @@
 import type {
   ChallengeObjective,
   DifficultyId,
+  GameState,
   LevelConfig,
   PlantId,
   RunChallengeState,
@@ -103,4 +104,49 @@ export function getChallengeNudgeText(challenge: RunChallengeState): string {
 export function getChallengeResultLabel(challenge: RunChallengeState): string {
   if (challenge.completed) return "小任务完成";
   return `差一点 ${Math.min(challenge.current, challenge.objective.target)}/${challenge.objective.target}`;
+}
+
+type ChallengeProgressEvent =
+  | { type: "plant"; plantId: PlantId }
+  | { type: "defeat" }
+  | { type: "slow-hit" };
+
+function completeByTarget(challenge: RunChallengeState, current: number): RunChallengeState {
+  const nextCurrent = Math.max(0, current);
+  return {
+    ...challenge,
+    current: nextCurrent,
+    completed: nextCurrent >= challenge.objective.target
+  };
+}
+
+export function updateChallengeForEvent(
+  challenge: RunChallengeState | undefined,
+  event: ChallengeProgressEvent
+): RunChallengeState | undefined {
+  if (!challenge) return undefined;
+  if (event.type === "plant") {
+    if (challenge.objective.kind !== "plant-count" || challenge.objective.plantId !== event.plantId) return challenge;
+    return completeByTarget(challenge, challenge.current + 1);
+  }
+  if (event.type === "defeat") {
+    if (challenge.objective.kind !== "defeat-count") return challenge;
+    return completeByTarget(challenge, challenge.current + 1);
+  }
+  if (challenge.objective.kind !== "slow-hit-count") return challenge;
+  return completeByTarget(challenge, challenge.current + 1);
+}
+
+export function syncChallengeProgressFromState(
+  challenge: RunChallengeState | undefined,
+  state: Pick<GameState, "sun" | "mowerLanes">
+): RunChallengeState | undefined {
+  if (!challenge) return undefined;
+  if (challenge.objective.kind === "mower-protection") {
+    return completeByTarget(challenge, state.mowerLanes.length);
+  }
+  if (challenge.objective.kind === "sun-reserve") {
+    return completeByTarget(challenge, state.sun);
+  }
+  return challenge;
 }

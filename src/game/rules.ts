@@ -12,6 +12,7 @@ import type {
   RunChallengeState,
   ZombieConfig
 } from "./types";
+import { syncChallengeProgressFromState, updateChallengeForEvent } from "./runChallenges";
 
 let entityCounter = 0;
 const EVENT_TTL_MS = 700;
@@ -61,6 +62,8 @@ export function createInitialState(
     applySunMultiplier(level.startingSun, difficulty) + (runChallenge?.modifier.adjustments.startingSunDelta ?? 0)
   );
 
+  const initialRunChallenge = syncChallengeProgressFromState(runChallenge, { sun, mowerLanes });
+
   return {
     status: "menu",
     nowMs: 0,
@@ -83,7 +86,7 @@ export function createInitialState(
     nextBaseSunAtMs: baseSunIntervalMs,
     baseSunIntervalMs,
     mowerLanes,
-    runChallenge
+    runChallenge: initialRunChallenge
   };
 }
 
@@ -125,7 +128,7 @@ export function plantAt(
   const cooldownMultiplier = state.runChallenge?.modifier.adjustments.plantCooldownMultiplier?.[plantingResult.plantId] ?? 1;
   const cooldownMs = Math.max(0, Math.round(plantConfig.cooldownMs * cooldownMultiplier));
 
-  return {
+  const nextState = {
     ...state,
     sun: state.sun - plantConfig.cost,
     selectedPlantId: null,
@@ -146,6 +149,15 @@ export function plantAt(
         nextSunAtMs: state.nowMs + 5000
       }
     ]
+  };
+
+  const withPlantProgress = {
+    ...nextState,
+    runChallenge: updateChallengeForEvent(nextState.runChallenge, { type: "plant", plantId: plantingResult.plantId })
+  };
+  return {
+    ...withPlantProgress,
+    runChallenge: syncChallengeProgressFromState(withPlantProgress.runChallenge, withPlantProgress)
   };
 }
 
@@ -233,6 +245,7 @@ export function advanceCombat(
   let nextHeroShotAtMs = state.nextHeroShotAtMs;
   let nextBaseSunAtMs = state.nextBaseSunAtMs;
   let mowerLanes = [...state.mowerLanes];
+  let runChallenge = state.runChallenge;
 
   if (state.nowMs >= nextBaseSunAtMs) {
     sun += BASE_SUN_AMOUNT;
@@ -312,6 +325,7 @@ export function advanceCombat(
       continue;
     }
     target.hp -= projectile.damage;
+    if (projectile.slows) runChallenge = updateChallengeForEvent(runChallenge, { type: "slow-hit" });
     events.push(
       makeEvent({
         type: "zombie-hit",
@@ -325,6 +339,7 @@ export function advanceCombat(
     );
     if (projectile.slows) target.slowedUntilMs = state.nowMs + (target.zombieId === "bucket" ? BUCKET_ICE_SLOW_MS : ICE_SLOW_MS);
     if (target.hp <= 0) {
+      runChallenge = updateChallengeForEvent(runChallenge, { type: "defeat" });
       events.push(
         makeEvent({
           type: "zombie-defeated",
@@ -379,6 +394,7 @@ export function advanceCombat(
         })
       );
       if (zombie.hp <= 0) {
+        runChallenge = updateChallengeForEvent(runChallenge, { type: "defeat" });
         events.push(
           makeEvent({
             type: "zombie-defeated",
@@ -444,6 +460,7 @@ export function advanceCombat(
         })
       );
       for (const zombie of clearedZombies) {
+        runChallenge = updateChallengeForEvent(runChallenge, { type: "defeat" });
         events.push(
           makeEvent({
             type: "zombie-defeated",
@@ -459,7 +476,7 @@ export function advanceCombat(
     mowerLanes = mowerLanes.filter((lane) => !triggeredMowerLanes.includes(lane));
   }
 
-  return {
+  const nextState = {
     ...state,
     sun,
     nextHeroShotAtMs,
@@ -468,6 +485,12 @@ export function advanceCombat(
     zombies,
     projectiles: remainingProjectiles,
     events,
-    mowerLanes
+    mowerLanes,
+    runChallenge
+  };
+
+  return {
+    ...nextState,
+    runChallenge: syncChallengeProgressFromState(nextState.runChallenge, nextState)
   };
 }
