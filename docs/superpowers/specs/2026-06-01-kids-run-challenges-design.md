@@ -75,6 +75,50 @@ Required UI changes:
 
 Avoid adding new required buttons, setup screens, or a challenge picker. The child should be able to start playing exactly as before.
 
+## UI Layout Notes
+
+Visual direction should stay close to the existing toy tabletop interface:
+
+- Material language: paper chips, warm garden colors, chunky borders, and small sticker-like reward states.
+- Typography: the current heavy Chinese HUD type, with short labels and no paragraph text during live play.
+- Motion tone: brief reward/danger/objective transitions only, respecting the existing gentle-motion setting.
+- Playfield protection: no center-screen panels during normal play, no new lower-middle overlay, and no always-open task drawer.
+
+Desktop and roomy tablet layout:
+
+```text
+[阳光] [关卡 · 第 2 波 / 8] [目标：种 3 朵向日葵] [轻松/普通] [暂停] [声音] [动效]
+
+                         [阳光日：阳光来得快]
+
+                         playable board stays clear
+
+[植物卡] [植物卡] [植物卡] [植物卡] [植物卡]
+```
+
+iPad landscape layout:
+
+```text
+[阳光] [第 2/8 波] [目标：种 3 朵向日葵] [难度] [暂停] [音] [动效]
+                 [还差 1 朵向日葵]
+```
+
+The iPad top row should remain a single compact HUD strip. The objective chip should use the shortest available copy and truncate only as a last resort. If the wave label and objective compete for space, the wave label should shorten first, for example from `暮色农圃 · 第 2 波 / 10` to `第 2/10 波`.
+
+End modal layout:
+
+```text
+守住啦！
+获得本关植物奖章。
+
+[守住 8/8 波] [剩余植物 6] [阳光 125]
+[小任务完成]
+
+[下一关]
+```
+
+When incomplete, the objective result chip should use progress copy such as `[差一点 2/3]`. It should feel encouraging rather than corrective.
+
 ## Architecture
 
 The implementation should preserve existing boundaries:
