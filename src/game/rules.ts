@@ -9,6 +9,7 @@ import type {
   PlantId,
   PlantingResult,
   ProjectileEntity,
+  RunChallengeState,
   ZombieConfig
 } from "./types";
 
@@ -44,11 +45,26 @@ function applyZombieHp(maxHp: number, difficulty: DifficultyConfig): number {
   return Math.max(1, Math.round(maxHp * difficulty.zombieHpMultiplier));
 }
 
-export function createInitialState(level: LevelConfig, difficulty: DifficultyConfig = NORMAL_DIFFICULTY): GameState {
+export function createInitialState(
+  level: LevelConfig,
+  difficulty: DifficultyConfig = NORMAL_DIFFICULTY,
+  runChallenge?: RunChallengeState
+): GameState {
+  const baseSunIntervalMs = Math.max(
+    1000,
+    Math.round(BASE_SUN_INTERVAL_MS * (runChallenge?.modifier.adjustments.baseSunIntervalMultiplier ?? 1))
+  );
+  const mowerLaneLimit = runChallenge?.modifier.adjustments.mowerLaneLimit;
+  const mowerLanes = mowerLaneLimit ? level.mowerLanes.slice(0, mowerLaneLimit) : [...level.mowerLanes];
+  const sun = Math.max(
+    0,
+    applySunMultiplier(level.startingSun, difficulty) + (runChallenge?.modifier.adjustments.startingSunDelta ?? 0)
+  );
+
   return {
     status: "menu",
     nowMs: 0,
-    sun: applySunMultiplier(level.startingSun, difficulty),
+    sun,
     selectedPlantId: null,
     plants: [],
     zombies: [],
@@ -64,8 +80,10 @@ export function createInitialState(level: LevelConfig, difficulty: DifficultyCon
     },
     heroLane: 2,
     nextHeroShotAtMs: 0,
-    nextBaseSunAtMs: BASE_SUN_INTERVAL_MS,
-    mowerLanes: [...level.mowerLanes]
+    nextBaseSunAtMs: baseSunIntervalMs,
+    baseSunIntervalMs,
+    mowerLanes,
+    runChallenge
   };
 }
 
@@ -104,6 +122,8 @@ export function plantAt(
   const plantingResult = getPlantingResult(state, plantConfigs, lane, column);
   if (!plantingResult.ok) return state;
   const plantConfig = plantConfigs[plantingResult.plantId];
+  const cooldownMultiplier = state.runChallenge?.modifier.adjustments.plantCooldownMultiplier?.[plantingResult.plantId] ?? 1;
+  const cooldownMs = Math.max(0, Math.round(plantConfig.cooldownMs * cooldownMultiplier));
 
   return {
     ...state,
@@ -111,7 +131,7 @@ export function plantAt(
     selectedPlantId: null,
     cooldownReadyAt: {
       ...state.cooldownReadyAt,
-      [plantingResult.plantId]: state.nowMs + plantConfig.cooldownMs
+      [plantingResult.plantId]: state.nowMs + cooldownMs
     },
     plants: [
       ...state.plants,
@@ -135,9 +155,10 @@ export function spawnDueZombies(
   zombieConfigs: Record<string, ZombieConfig>,
   difficulty: DifficultyConfig = NORMAL_DIFFICULTY
 ): GameState {
+  const firstWaveDelayMs = state.runChallenge?.modifier.adjustments.firstWaveDelayMs ?? 0;
   const newZombies = level.waves
-    .map((wave, index) => ({ wave, index }))
-    .filter(({ wave, index }) => wave.atMs <= state.nowMs && !state.spawnedWaveIndexes.includes(index));
+    .map((wave, index) => ({ wave, index, spawnAtMs: wave.atMs + (index === 0 ? firstWaveDelayMs : 0) }))
+    .filter(({ index, spawnAtMs }) => spawnAtMs <= state.nowMs && !state.spawnedWaveIndexes.includes(index));
 
   if (newZombies.length === 0) return state;
 
@@ -225,7 +246,7 @@ export function advanceCombat(
         atMs: state.nowMs
       })
     );
-    nextBaseSunAtMs = state.nowMs + BASE_SUN_INTERVAL_MS;
+    nextBaseSunAtMs = state.nowMs + state.baseSunIntervalMs;
   }
 
   for (const plant of plants) {
@@ -372,6 +393,7 @@ export function advanceCombat(
   }
 
   zombies = zombies.filter((zombie) => zombie.hp > 0);
+  const runSpeedMultiplier = state.runChallenge?.modifier.adjustments.zombieSpeedMultiplier ?? 1;
   zombies = zombies.map((zombie) => {
     const config = zombieConfigs[zombie.zombieId];
     const blockingPlant = plants.find(
@@ -399,7 +421,13 @@ export function advanceCombat(
     const slowMultiplier = zombie.slowedUntilMs > state.nowMs ? 0.45 : 1;
     return {
       ...zombie,
-      x: zombie.x - config.speedCellsPerSecond * difficulty.zombieSpeedMultiplier * slowMultiplier * deltaSeconds
+      x:
+        zombie.x -
+        config.speedCellsPerSecond *
+          difficulty.zombieSpeedMultiplier *
+          runSpeedMultiplier *
+          slowMultiplier *
+          deltaSeconds
     };
   });
 

@@ -234,6 +234,7 @@ export interface GameState {
   heroLane: LaneIndex;
   nextHeroShotAtMs: number;
   nextBaseSunAtMs: number;
+  baseSunIntervalMs: number;
   mowerLanes: LaneIndex[];
   runChallenge?: RunChallengeState;
 }

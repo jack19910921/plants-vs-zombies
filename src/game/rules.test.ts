@@ -399,4 +399,79 @@ describe("game rules", () => {
     expect(bucketHit.zombies[0].slowedUntilMs).toBeLessThan(basicHit.zombies[0].slowedUntilMs);
     expect(bucketHit.zombies[0].slowedUntilMs).toBe(base.nowMs + 1000);
   });
+
+  it("applies run modifiers to starting sun and base sun cadence", () => {
+    const state = createInitialState(LEVEL_ONE, DIFFICULTY.normal, {
+      objective: { id: "save-sun", kind: "sun-reserve", target: 100, label: "留下 100 阳光" },
+      modifier: {
+        id: "sunny-day",
+        name: "阳光日",
+        shortLabel: "阳光来得快",
+        announcement: "阳光日：阳光来得快",
+        adjustments: { startingSunDelta: -25, baseSunIntervalMultiplier: 0.5 }
+      },
+      current: 0,
+      completed: false
+    });
+
+    expect(state.sun).toBe(225);
+    expect(state.baseSunIntervalMs).toBe(4500);
+    expect(state.nextBaseSunAtMs).toBe(4500);
+  });
+
+  it("delays only the first wave when a run modifier asks for it", () => {
+    const challenge = {
+      objective: { id: "defeat-zombies", kind: "defeat-count", target: 5, label: "打倒 5 个僵尸" },
+      modifier: {
+        id: "slow-start",
+        name: "慢慢来",
+        shortLabel: "第一波晚一点",
+        announcement: "慢慢来：第一波晚一点",
+        adjustments: { firstWaveDelayMs: 3500 }
+      },
+      current: 0,
+      completed: false
+    } as const;
+    const tooEarly = { ...createInitialState(LEVEL_ONE, DIFFICULTY.normal, challenge), nowMs: 9000 };
+    const delayed = spawnDueZombies(tooEarly, LEVEL_ONE, ZOMBIES);
+    const ready = spawnDueZombies({ ...tooEarly, nowMs: 12000 }, LEVEL_ONE, ZOMBIES);
+
+    expect(delayed.zombies).toHaveLength(0);
+    expect(ready.zombies).toHaveLength(1);
+  });
+
+  it("applies plant cooldown and zombie speed modifier adjustments", () => {
+    const challenge = {
+      objective: {
+        id: "plant-sunflowers",
+        kind: "plant-count",
+        target: 3,
+        label: "种 3 朵向日葵",
+        plantId: "sunflower"
+      },
+      modifier: {
+        id: "busy-garden",
+        name: "花园忙",
+        shortLabel: "向日葵准备快",
+        announcement: "花园忙：向日葵准备快",
+        adjustments: { plantCooldownMultiplier: { sunflower: 0.5 }, zombieSpeedMultiplier: 0.5 }
+      },
+      current: 0,
+      completed: false
+    } as const;
+    const planted = plantAt(
+      selectPlant(createInitialState(LEVEL_ONE, DIFFICULTY.normal, challenge), "sunflower"),
+      PLANTS,
+      0,
+      0
+    );
+    expect(planted.cooldownReadyAt.sunflower).toBe(PLANTS.sunflower.cooldownMs * 0.5);
+
+    const state = {
+      ...createInitialState(LEVEL_ONE, DIFFICULTY.normal, challenge),
+      zombies: [{ id: "z1", zombieId: "basic" as const, lane: 0 as const, x: 8, hp: 70, slowedUntilMs: 0 }]
+    };
+    const next = advanceCombat(state, PLANTS, ZOMBIES, 1000);
+    expect(next.zombies[0].x).toBeGreaterThan(7.9);
+  });
 });
