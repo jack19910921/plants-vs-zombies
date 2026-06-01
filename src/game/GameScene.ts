@@ -26,6 +26,7 @@ import {
   spawnDueZombies,
   updateStatus
 } from "./rules";
+import { createRunChallenge, getModifierAnnouncement } from "./runChallenges";
 import {
   getGrassFleckCount,
   getGrassFleckMotionState,
@@ -74,6 +75,10 @@ export class GameScene extends Phaser.Scene {
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private keys!: Record<string, Phaser.Input.Keyboard.Key>;
   private lastTickMs = 0;
+  private readonly sessionSeed = Math.floor(Math.random() * 1_000_000_000);
+  private runIndex = 0;
+  private modifierAnnouncement: string | null = null;
+  private modifierAnnouncementUntilMs = 0;
 
   constructor() {
     super("GameScene");
@@ -125,6 +130,16 @@ export class GameScene extends Phaser.Scene {
 
   getCurrentDifficultyId(): DifficultyId {
     return this.currentDifficultyId;
+  }
+
+  getCurrentRunChallenge(): GameState["runChallenge"] | null {
+    return this.state.runChallenge ?? null;
+  }
+
+  getCurrentModifierAnnouncement(): string | null {
+    if (!this.modifierAnnouncement) return null;
+    if (this.state.nowMs > this.modifierAnnouncementUntilMs) return null;
+    return this.modifierAnnouncement;
   }
 
   setDifficulty(difficultyId: DifficultyId): void {
@@ -201,7 +216,16 @@ export class GameScene extends Phaser.Scene {
   }
 
   private startCurrentLevel(): void {
-    this.state = { ...createInitialState(this.currentLevel, this.currentDifficulty), status: "playing" };
+    this.runIndex += 1;
+    const runChallenge = createRunChallenge({
+      level: this.currentLevel,
+      difficultyId: this.currentDifficultyId,
+      seed: this.sessionSeed,
+      runIndex: this.runIndex
+    });
+    this.modifierAnnouncement = getModifierAnnouncement(runChallenge.modifier);
+    this.modifierAnnouncementUntilMs = 4200;
+    this.state = { ...createInitialState(this.currentLevel, this.currentDifficulty, runChallenge), status: "playing" };
     this.lastTickMs = 0;
   }
 
