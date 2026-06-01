@@ -46,6 +46,52 @@ export interface DifficultyConfig {
   sunMultiplier: number;
 }
 
+export type RunModifierId = "sunny-day" | "slow-start" | "little-hero" | "busy-garden";
+export type ChallengeObjectiveId =
+  | "plant-sunflowers"
+  | "defeat-zombies"
+  | "protect-mowers"
+  | "save-sun"
+  | "slow-hit-count";
+export type ChallengeObjectiveKind =
+  | "plant-count"
+  | "defeat-count"
+  | "mower-protection"
+  | "sun-reserve"
+  | "slow-hit-count";
+
+export interface RunModifierAdjustments {
+  baseSunIntervalMultiplier?: number;
+  firstWaveDelayMs?: number;
+  startingSunDelta?: number;
+  mowerLaneLimit?: number;
+  plantCooldownMultiplier?: Partial<Record<PlantId, number>>;
+  zombieSpeedMultiplier?: number;
+}
+
+export interface RunModifier {
+  id: RunModifierId;
+  name: string;
+  shortLabel: string;
+  announcement: string;
+  adjustments: RunModifierAdjustments;
+}
+
+export interface ChallengeObjective {
+  id: ChallengeObjectiveId;
+  kind: ChallengeObjectiveKind;
+  target: number;
+  label: string;
+  plantId?: PlantId;
+}
+
+export interface RunChallengeState {
+  objective: ChallengeObjective;
+  modifier: RunModifier;
+  current: number;
+  completed: boolean;
+}
+
 export interface PlantEntity {
   id: string;
   plantId: PlantId;
@@ -189,4 +235,5 @@ export interface GameState {
   nextHeroShotAtMs: number;
   nextBaseSunAtMs: number;
   mowerLanes: LaneIndex[];
+  runChallenge?: RunChallengeState;
 }
