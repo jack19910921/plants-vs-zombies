@@ -21,6 +21,48 @@
 - Modify `src/ui/domOverlay.ts`: render objective chip, modifier announcement, objective nudges, and terminal objective result.
 - Modify `src/ui/domOverlay.test.ts`: markup coverage for new HUD and terminal states.
 - Modify `src/styles.css`: responsive HUD grid for objective chip, short-label behavior, and terminal objective result chip.
+- Create `prototypes/ui/run-challenges.html`: UI-first static layout checkpoint before production implementation.
+
+## Task 0: UI Mock And Layout Check
+
+**Files:**
+- Create: `prototypes/ui/run-challenges.html`
+
+- [x] **Step 1: Create a static iPad-first UI mock**
+
+Create `prototypes/ui/run-challenges.html` as a standalone HTML prototype. It should show:
+
+- A live-play iPad landscape frame with a compact top HUD row: sun, compact wave, objective chip, difficulty, pause, sound, motion.
+- A tutorial strip state for modifier announcement: `阳光日：阳光来得快`.
+- A tutorial strip state for objective nudge: `还差 1 朵向日葵`.
+- A clear board center with no task panel covering the playfield.
+- A terminal modal sample with summary chips plus `小任务完成`.
+
+The prototype is a design checkpoint only. It should not import production TypeScript or become part of the game runtime.
+
+- [x] **Step 2: Open and inspect the prototype**
+
+Open `prototypes/ui/run-challenges.html` in a browser or browser automation viewport close to iPad landscape, such as `1180x820`.
+
+Expected:
+
+- The objective chip stays readable.
+- The wave chip uses compact copy.
+- The tutorial strip does not cover important board cells.
+- The terminal objective result reads like a reward sticker, not an error.
+
+- [x] **Step 3: Revise the mock if spacing is off**
+
+If the objective chip competes with controls, reduce the wave label first and keep the objective text short. Do not add a second persistent task row.
+
+- [x] **Step 4: Commit Task 0**
+
+Run:
+
+```bash
+git add docs/superpowers/plans/2026-06-01-kids-run-challenges.md prototypes/ui/run-challenges.html
+git commit -m "docs: add challenge ui checkpoint"
+```
 
 ## Task 1: Run Challenge Model And Selection
 

@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>本局小任务 UI Checkpoint</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='%23ffd34f' d='M32 4l7 19h20L43 35l6 20-17-12-17 12 6-20L5 23h20z'/%3E%3C/svg%3E"
+    />
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #263238;
+        --paper: #fff8df;
+        --paper-strong: #fff0b8;
+        --wood: #eebf7a;
+        --wood-line: #c78545;
+        --brown: #5c4330;
+        --grass: #8bd4bd;
+        --grass-dark: #315f3a;
+        --sun: #ffd34f;
+        --leaf: #2f9c5d;
+        --ice: #8fe7ff;
+        --shadow: rgba(66, 43, 24, 0.24);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+      }
+
+      body {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 18px;
+        background:
+          linear-gradient(90deg, rgba(255, 255, 255, 0.18) 1px, transparent 1px) 0 0 / 48px 100%,
+          var(--wood);
+        color: var(--ink);
+        font-family:
+          "PingFang SC",
+          "Hiragino Sans GB",
+          "Microsoft YaHei",
+          system-ui,
+          sans-serif;
+      }
+
+      .page {
+        width: min(1180px, 100%);
+        display: grid;
+        gap: 14px;
+      }
+
+      .note {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        color: #3a4b44;
+        font-size: 15px;
+        font-weight: 800;
+      }
+
+      .note strong {
+        color: #174a36;
+        font-size: 20px;
+        font-weight: 900;
+      }
+
+      .frames {
+        display: grid;
+        gap: 18px;
+      }
+
+      .frame {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        min-height: 540px;
+        overflow: hidden;
+        border: 5px solid #7b5737;
+        border-radius: 8px;
+        background:
+          repeating-linear-gradient(90deg, var(--wood), var(--wood) 82px, var(--wood-line) 83px, var(--wood) 88px);
+        box-shadow: 0 18px 38px rgba(65, 42, 21, 0.28);
+      }
+
+      .board-shell {
+        position: absolute;
+        left: 11.5%;
+        top: 18%;
+        width: 76.5%;
+        height: 55%;
+        padding: 10px;
+        border: 4px solid rgba(92, 67, 48, 0.68);
+        border-radius: 8px;
+        background: #f1cc86;
+        box-shadow: 0 14px 0 rgba(92, 67, 48, 0.12);
+      }
+
+      .board {
+        width: 100%;
+        height: 100%;
+        display: grid;
+        grid-template-columns: repeat(9, 1fr);
+        grid-template-rows: repeat(5, 1fr);
+        gap: 5px;
+      }
+
+      .cell {
+        position: relative;
+        overflow: hidden;
+        border: 2px solid rgba(49, 95, 58, 0.2);
+        border-radius: 8px;
+        background:
+          linear-gradient(160deg, rgba(255, 255, 255, 0.28), transparent 42%),
+          var(--grass);
+      }
+
+      .cell:nth-child(3n) {
+        background:
+          linear-gradient(160deg, rgba(255, 255, 255, 0.24), transparent 44%),
+          #b8e07d;
+      }
+
+      .cell:nth-child(5n) {
+        background:
+          linear-gradient(160deg, rgba(255, 255, 255, 0.24), transparent 44%),
+          #91d4ee;
+      }
+
+      .base {
+        position: absolute;
+        left: 3.3%;
+        top: 30%;
+        width: 7.5%;
+        height: 35%;
+        display: grid;
+        place-items: center;
+        border: 3px solid var(--brown);
+        border-radius: 8px;
+        background: var(--paper-strong);
+        box-shadow: 0 8px 0 rgba(92, 67, 48, 0.16);
+        font-size: 14px;
+        font-weight: 900;
+        writing-mode: vertical-rl;
+      }
+
+      .toy {
+        position: absolute;
+        display: grid;
+        place-items: center;
+        width: 42px;
+        height: 42px;
+        border: 3px solid rgba(38, 50, 56, 0.62);
+        border-radius: 50%;
+        background: var(--leaf);
+        color: white;
+        font-size: 18px;
+        font-weight: 900;
+        box-shadow: 0 8px 0 rgba(38, 50, 56, 0.12);
+      }
+
+      .toy.sunflower {
+        left: 31%;
+        top: 38%;
+        background: var(--sun);
+        color: #5c4330;
+      }
+
+      .toy.pea {
+        left: 42%;
+        top: 51%;
+      }
+
+      .toy.ice {
+        left: 37%;
+        top: 63%;
+        background: var(--ice);
+        color: #315f3a;
+      }
+
+      .toy.zombie {
+        right: 21%;
+        top: 50%;
+        background: #aeb7bb;
+        color: #263238;
+      }
+
+      .hud {
+        position: absolute;
+        inset: 8px 10px 7px;
+        display: grid;
+        grid-template-rows: 40px minmax(0, 1fr) 80px;
+        gap: 5px;
+        pointer-events: none;
+      }
+
+      .hud-top {
+        display: grid;
+        grid-template-columns: 82px minmax(92px, 0.85fr) minmax(138px, 1.25fr) 104px 52px 50px 54px;
+        gap: 5px;
+      }
+
+      .chip,
+      .plant-card,
+      .modal {
+        border: 2px solid var(--brown);
+        border-radius: 6px;
+        background: var(--paper);
+        box-shadow: 0 3px 0 rgba(92, 67, 48, 0.18);
+      }
+
+      .chip {
+        min-width: 0;
+        min-height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 6px;
+        overflow: hidden;
+        color: var(--ink);
+        font-size: 13px;
+        font-weight: 900;
+        line-height: 1;
+        text-align: center;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .sun-chip {
+        background: #fff2bc;
+      }
+
+      .sun-dot {
+        width: 18px;
+        height: 18px;
+        margin-right: 4px;
+        border-radius: 50%;
+        background:
+          radial-gradient(circle at 32% 28%, #fff7b7 0 18%, transparent 19%),
+          radial-gradient(circle, #ffd86a 0 56%, #f6a735 57% 100%);
+        box-shadow: 0 2px 0 rgba(92, 67, 48, 0.16);
+      }
+
+      .objective-chip {
+        background: #fff0b8;
+      }
+
+      .tiny-chip {
+        font-size: 12px;
+      }
+
+      .tutorial-strip {
+        align-self: start;
+        justify-self: center;
+        min-height: 28px;
+        max-width: min(530px, calc(100vw - 150px));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 3px 10px;
+        border: 2px solid rgba(92, 67, 48, 0.76);
+        border-radius: 8px;
+        background: rgba(255, 248, 223, 0.94);
+        box-shadow: 0 3px 0 rgba(92, 67, 48, 0.14);
+        font-size: 12px;
+        font-weight: 900;
+        line-height: 1.1;
+        text-align: center;
+      }
+
+      .feedback-pill {
+        min-height: 20px;
+        display: inline-flex;
+        align-items: center;
+        padding: 1px 7px;
+        border-radius: 999px;
+        background: var(--sun);
+        color: var(--brown);
+        white-space: nowrap;
+      }
+
+      .plant-tray {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 7px;
+      }
+
+      .plant-card {
+        min-height: 74px;
+        display: grid;
+        grid-template-rows: 30px 19px 16px;
+        align-items: center;
+        justify-items: center;
+        padding: 4px;
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .plant-icon {
+        width: 30px;
+        height: 30px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: #58bd6d;
+        color: white;
+      }
+
+      .plant-card:nth-child(1) .plant-icon {
+        background: var(--sun);
+        color: var(--brown);
+      }
+
+      .plant-card:nth-child(3) .plant-icon {
+        background: #b8774c;
+      }
+
+      .plant-card:nth-child(4) .plant-icon {
+        background: var(--ice);
+        color: var(--grass-dark);
+      }
+
+      .plant-card:nth-child(5) .plant-icon {
+        background: #c98c55;
+      }
+
+      .cost {
+        color: #5f6d73;
+        font-size: 11px;
+      }
+
+      .modal-layer {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        background: rgba(38, 50, 56, 0.16);
+      }
+
+      .modal {
+        width: min(520px, calc(100% - 44px));
+        padding: 22px 18px;
+        text-align: center;
+      }
+
+      .modal h2 {
+        margin: 0 0 6px;
+        color: #174a36;
+        font-size: 32px;
+        font-weight: 900;
+        letter-spacing: 0;
+      }
+
+      .modal p {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 800;
+      }
+
+      .modal-summary {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 7px;
+        margin: 14px 0;
+      }
+
+      .modal-summary span {
+        min-height: 34px;
+        display: grid;
+        place-items: center;
+        border: 2px solid rgba(92, 67, 48, 0.6);
+        border-radius: 6px;
+        background: #fffdf0;
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .modal-summary .objective-result {
+        grid-column: 1 / -1;
+        background: var(--sun);
+        color: var(--brown);
+      }
+
+      .next-button {
+        width: 124px;
+        margin: 0 auto;
+        background: var(--paper-strong);
+      }
+
+      .caption {
+        position: absolute;
+        left: 12px;
+        bottom: 96px;
+        padding: 5px 8px;
+        border-radius: 6px;
+        background: rgba(255, 248, 223, 0.9);
+        color: #4b5b54;
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      @media (max-width: 760px) {
+        body {
+          padding: 10px;
+        }
+
+        .note {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .frame {
+          min-height: 480px;
+        }
+
+        .hud {
+          grid-template-rows: 84px minmax(0, 1fr) 76px;
+        }
+
+        .hud-top {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          grid-template-rows: repeat(2, 38px);
+        }
+
+        .objective-chip {
+          grid-column: 1 / -1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header class="note">
+        <strong>本局小任务 UI Checkpoint</strong>
+        <span>目标：先确认 iPad 横屏 HUD 容量，再接规则逻辑。</span>
+      </header>
+
+      <section class="frames" aria-label="UI 状态示例">
+        <article class="frame" aria-label="开局变化提示">
+          <div class="board-shell">
+            <div class="board" aria-hidden="true">
+              <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
+              <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
+              <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
+              <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
+              <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
+            </div>
+          </div>
+          <div class="base">基地</div>
+          <div class="toy sunflower">花</div>
+          <div class="toy pea">豌</div>
+          <div class="toy zombie">桶</div>
+
+          <div class="hud">
+            <div class="hud-top">
+              <div class="chip sun-chip"><span class="sun-dot"></span>225</div>
+              <div class="chip wave-chip">第 2/10 波</div>
+              <div class="chip objective-chip">目标：种 3 朵向日葵</div>
+              <div class="chip tiny-chip">轻松/普通</div>
+              <div class="chip">暂停</div>
+              <div class="chip">音开</div>
+              <div class="chip">动效</div>
+            </div>
+            <div class="tutorial-strip"><span>点植物卡，再点草坪格子种植。</span><span class="feedback-pill">阳光日：阳光来得快</span></div>
+            <div class="plant-tray">
+              <div class="plant-card"><span class="plant-icon">花</span><span>向日葵</span><span class="cost">☀50</span></div>
+              <div class="plant-card"><span class="plant-icon">豌</span><span>豌豆</span><span class="cost">☀100</span></div>
+              <div class="plant-card"><span class="plant-icon">坚</span><span>坚果</span><span class="cost">☀50</span></div>
+              <div class="plant-card"><span class="plant-icon">冰</span><span>寒冰</span><span class="cost">☀175</span></div>
+              <div class="plant-card"><span class="plant-icon">雷</span><span>土豆雷</span><span class="cost">☀25</span></div>
+            </div>
+          </div>
+          <div class="caption">状态 A：开局几秒显示“今日变化”，之后让位给目标提醒。</div>
+        </article>
+
+        <article class="frame" aria-label="目标进度提醒">
+          <div class="board-shell">
+            <div class="board" aria-hidden="true">
+              <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
+              <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
+              <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
+              <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
+              <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
+            </div>
+          </div>
+          <div class="base">基地</div>
+          <div class="toy sunflower">花</div>
+          <div class="toy pea">豌</div>
+          <div class="toy ice">冰</div>
+          <div class="toy zombie">路</div>
+
+          <div class="hud">
+            <div class="hud-top">
+              <div class="chip sun-chip"><span class="sun-dot"></span>150</div>
+              <div class="chip wave-chip">第 5/10 波</div>
+              <div class="chip objective-chip">目标：种 3 朵向日葵</div>
+              <div class="chip tiny-chip">轻松/普通</div>
+              <div class="chip">暂停</div>
+              <div class="chip">音开</div>
+              <div class="chip">柔和</div>
+            </div>
+            <div class="tutorial-strip"><span>点植物卡，再点草坪格子种植。</span><span class="feedback-pill">还差 1 朵向日葵</span></div>
+            <div class="plant-tray">
+              <div class="plant-card"><span class="plant-icon">花</span><span>向日葵</span><span class="cost">☀50</span></div>
+              <div class="plant-card"><span class="plant-icon">豌</span><span>豌豆</span><span class="cost">☀100</span></div>
+              <div class="plant-card"><span class="plant-icon">坚</span><span>坚果</span><span class="cost">☀50</span></div>
+              <div class="plant-card"><span class="plant-icon">冰</span><span>寒冰</span><span class="cost">☀175</span></div>
+              <div class="plant-card"><span class="plant-icon">雷</span><span>土豆雷</span><span class="cost">☀25</span></div>
+            </div>
+          </div>
+          <div class="caption">状态 B：正常游玩时只留一个短目标 chip 和一个临时提醒。</div>
+        </article>
+
+        <article class="frame" aria-label="终局任务结果">
+          <div class="board-shell">
+            <div class="board" aria-hidden="true">
+              <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
+              <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
+              <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
+              <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
+              <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
+            </div>
+          </div>
+          <div class="modal-layer">
+            <section class="modal">
+              <h2>守住啦！</h2>
+              <p>获得本关植物奖章。</p>
+              <div class="modal-summary">
+                <span>守住 8/8 波</span>
+                <span>剩余植物 6</span>
+                <span>阳光 125</span>
+                <span class="objective-result">小任务完成</span>
+              </div>
+              <div class="chip next-button">下一关</div>
+            </section>
+          </div>
+          <div class="caption">状态 C：小任务结果并入现有终局统计，不新增奖励收藏页。</div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>
