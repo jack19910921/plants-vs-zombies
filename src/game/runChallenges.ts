@@ -139,14 +139,25 @@ export function updateChallengeForEvent(
 
 export function syncChallengeProgressFromState(
   challenge: RunChallengeState | undefined,
-  state: Pick<GameState, "sun" | "mowerLanes">
+  state: Pick<GameState, "sun" | "mowerLanes"> & Partial<Pick<GameState, "status">>
 ): RunChallengeState | undefined {
   if (!challenge) return undefined;
+  const isTerminal = state.status === "victory" || state.status === "failure";
   if (challenge.objective.kind === "mower-protection") {
-    return completeByTarget(challenge, state.mowerLanes.length);
+    const nextCurrent = Math.max(0, state.mowerLanes.length);
+    return {
+      ...challenge,
+      current: nextCurrent,
+      completed: isTerminal && nextCurrent >= challenge.objective.target
+    };
   }
   if (challenge.objective.kind === "sun-reserve") {
-    return completeByTarget(challenge, state.sun);
+    const nextCurrent = Math.max(0, state.sun);
+    return {
+      ...challenge,
+      current: nextCurrent,
+      completed: isTerminal && nextCurrent >= challenge.objective.target
+    };
   }
   return challenge;
 }

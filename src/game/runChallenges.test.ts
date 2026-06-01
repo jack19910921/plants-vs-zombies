@@ -124,7 +124,9 @@ describe("run challenge progress", () => {
       completed: false
     } as const;
     const syncedMower = syncChallengeProgressFromState(mower, { sun: 75, mowerLanes: [2] });
-    expect(syncedMower).toMatchObject({ current: 1, completed: true });
+    expect(syncedMower).toMatchObject({ current: 1, completed: false });
+    const terminalMower = syncChallengeProgressFromState(mower, { sun: 75, mowerLanes: [2], status: "victory" });
+    expect(terminalMower).toMatchObject({ current: 1, completed: true });
 
     const sun = {
       ...challenge,
@@ -133,6 +135,8 @@ describe("run challenge progress", () => {
       completed: false
     } as const;
     const syncedSun = syncChallengeProgressFromState(sun, { sun: 125, mowerLanes: [] });
-    expect(syncedSun).toMatchObject({ current: 125, completed: true });
+    expect(syncedSun).toMatchObject({ current: 125, completed: false });
+    const terminalSun = syncChallengeProgressFromState(sun, { sun: 125, mowerLanes: [], status: "victory" });
+    expect(terminalSun).toMatchObject({ current: 125, completed: true });
   });
 });

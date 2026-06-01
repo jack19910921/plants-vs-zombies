@@ -574,7 +574,7 @@ describe("game rules", () => {
     } as const;
     expect(createInitialState(LEVEL_ONE, DIFFICULTY.normal, mowerChallenge).runChallenge).toMatchObject({
       current: LEVEL_ONE.mowerLanes.length,
-      completed: true
+      completed: false
     });
 
     const sunChallenge = {
@@ -590,6 +590,21 @@ describe("game rules", () => {
       completed: false
     } as const;
     expect(createInitialState(LEVEL_ONE, DIFFICULTY.normal, sunChallenge).runChallenge).toMatchObject({
+      current: 250,
+      completed: false
+    });
+
+    const terminalSun = updateStatus(
+      {
+        ...createInitialState(LEVEL_ONE, DIFFICULTY.normal, sunChallenge),
+        status: "playing",
+        nowMs: LEVEL_ONE.durationMs,
+        spawnedWaveIndexes: LEVEL_ONE.waves.map((_, index) => index),
+        zombies: []
+      },
+      LEVEL_ONE
+    );
+    expect(terminalSun.runChallenge).toMatchObject({
       current: 250,
       completed: true
     });

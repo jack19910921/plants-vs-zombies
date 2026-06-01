@@ -205,24 +205,32 @@ export function spawnDueZombies(
 
 export function updateStatus(state: GameState, level: LevelConfig): GameState {
   if (state.zombies.some((zombie) => zombie.x <= 0)) {
-    return {
+    const failedState = {
       ...state,
-      status: "failure",
+      status: "failure" as const,
       events:
         state.status === "failure"
           ? state.events
           : [...state.events, makeEvent({ type: "level-ended", status: "failure", atMs: state.nowMs })]
     };
+    return {
+      ...failedState,
+      runChallenge: syncChallengeProgressFromState(failedState.runChallenge, failedState)
+    };
   }
   const allWavesSpawned = state.spawnedWaveIndexes.length === level.waves.length;
   if (allWavesSpawned && state.zombies.length === 0 && state.nowMs >= level.durationMs) {
-    return {
+    const victoryState = {
       ...state,
-      status: "victory",
+      status: "victory" as const,
       events:
         state.status === "victory"
           ? state.events
           : [...state.events, makeEvent({ type: "level-ended", status: "victory", atMs: state.nowMs })]
+    };
+    return {
+      ...victoryState,
+      runChallenge: syncChallengeProgressFromState(victoryState.runChallenge, victoryState)
     };
   }
   return state;
