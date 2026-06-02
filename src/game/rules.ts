@@ -12,6 +12,7 @@ import type {
   RunChallengeState,
   ZombieConfig
 } from "./types";
+import { DEFAULT_SCENE_THEME_ID, getSceneTheme, type SceneThemeConfig } from "./sceneThemes";
 import { syncChallengeProgressFromState, updateChallengeForEvent } from "./runChallenges";
 
 let entityCounter = 0;
@@ -49,7 +50,8 @@ function applyZombieHp(maxHp: number, difficulty: DifficultyConfig): number {
 export function createInitialState(
   level: LevelConfig,
   difficulty: DifficultyConfig = NORMAL_DIFFICULTY,
-  runChallenge?: RunChallengeState
+  runChallenge?: RunChallengeState,
+  sceneTheme: SceneThemeConfig = getSceneTheme(DEFAULT_SCENE_THEME_ID)
 ): GameState {
   const baseSunIntervalMs = Math.max(
     1000,
@@ -59,7 +61,9 @@ export function createInitialState(
   const mowerLanes = mowerLaneLimit ? level.mowerLanes.slice(0, mowerLaneLimit) : [...level.mowerLanes];
   const sun = Math.max(
     0,
-    applySunMultiplier(level.startingSun, difficulty) + (runChallenge?.modifier.adjustments.startingSunDelta ?? 0)
+    applySunMultiplier(level.startingSun, difficulty) +
+      (sceneTheme.adjustments.startingSunDelta ?? 0) +
+      (runChallenge?.modifier.adjustments.startingSunDelta ?? 0)
   );
 
   const initialRunChallenge = syncChallengeProgressFromState(runChallenge, { sun, mowerLanes });
@@ -86,6 +90,8 @@ export function createInitialState(
     nextBaseSunAtMs: baseSunIntervalMs,
     baseSunIntervalMs,
     mowerLanes,
+    sceneThemeId: sceneTheme.id,
+    sceneAdjustments: { ...sceneTheme.adjustments },
     runChallenge: initialRunChallenge
   };
 }
@@ -167,7 +173,8 @@ export function spawnDueZombies(
   zombieConfigs: Record<string, ZombieConfig>,
   difficulty: DifficultyConfig = NORMAL_DIFFICULTY
 ): GameState {
-  const firstWaveDelayMs = state.runChallenge?.modifier.adjustments.firstWaveDelayMs ?? 0;
+  const firstWaveDelayMs =
+    (state.sceneAdjustments.firstWaveDelayMs ?? 0) + (state.runChallenge?.modifier.adjustments.firstWaveDelayMs ?? 0);
   const newZombies = level.waves
     .map((wave, index) => ({ wave, index, spawnAtMs: wave.atMs + (index === 0 ? firstWaveDelayMs : 0) }))
     .filter(({ index, spawnAtMs }) => spawnAtMs <= state.nowMs && !state.spawnedWaveIndexes.includes(index));
@@ -417,6 +424,7 @@ export function advanceCombat(
   }
 
   zombies = zombies.filter((zombie) => zombie.hp > 0);
+  const sceneSpeedMultiplier = state.sceneAdjustments.zombieSpeedMultiplier ?? 1;
   const runSpeedMultiplier = state.runChallenge?.modifier.adjustments.zombieSpeedMultiplier ?? 1;
   zombies = zombies.map((zombie) => {
     const config = zombieConfigs[zombie.zombieId];
@@ -449,6 +457,7 @@ export function advanceCombat(
         zombie.x -
         config.speedCellsPerSecond *
           difficulty.zombieSpeedMultiplier *
+          sceneSpeedMultiplier *
           runSpeedMultiplier *
           slowMultiplier *
           deltaSeconds

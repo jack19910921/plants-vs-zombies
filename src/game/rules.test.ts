@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DIFFICULTY, LEVEL_ONE, PLANTS, ZOMBIES } from "./config";
+import { getSceneTheme } from "./sceneThemes";
 import {
   advanceCombat,
   createInitialState,
@@ -59,6 +60,21 @@ describe("game rules", () => {
     expect(easy.sun % 25).toBe(0);
   });
 
+  it("stores the selected scene on initial state", () => {
+    const state = createInitialState(LEVEL_ONE, DIFFICULTY.normal, undefined, getSceneTheme("dewy-garden"));
+
+    expect(state.sceneThemeId).toBe("dewy-garden");
+    expect(state.sceneAdjustments).toMatchObject({ firstWaveDelayMs: 3500 });
+  });
+
+  it("applies scene starting sun adjustments after difficulty", () => {
+    const sunny = createInitialState(LEVEL_ONE, DIFFICULTY.normal, undefined, getSceneTheme("sunny-lawn"));
+    const starlight = createInitialState(LEVEL_ONE, DIFFICULTY.normal, undefined, getSceneTheme("starlight-farm"));
+
+    expect(starlight.sun).toBe(sunny.sun - 25);
+    expect(starlight.sun).toBeGreaterThanOrEqual(0);
+  });
+
   it("spawns each wave entry once", () => {
     const state = { ...createInitialState(LEVEL_ONE), nowMs: 20000 };
     const first = spawnDueZombies(state, LEVEL_ONE, ZOMBIES);
@@ -92,6 +108,18 @@ describe("game rules", () => {
         })
       ])
     );
+  });
+
+  it("delays the first wave from the selected scene", () => {
+    const dewy = getSceneTheme("dewy-garden");
+    const beforeFirstWave = {
+      ...createInitialState(LEVEL_ONE, DIFFICULTY.normal, undefined, dewy),
+      nowMs: LEVEL_ONE.waves[0].atMs + dewy.adjustments.firstWaveDelayMs! - 1
+    };
+    const atFirstWave = { ...beforeFirstWave, nowMs: beforeFirstWave.nowMs + 1 };
+
+    expect(spawnDueZombies(beforeFirstWave, LEVEL_ONE, ZOMBIES).zombies).toHaveLength(0);
+    expect(spawnDueZombies(atFirstWave, LEVEL_ONE, ZOMBIES).zombies).toHaveLength(1);
   });
 
   it("sets failure when a zombie reaches the base", () => {
@@ -199,6 +227,37 @@ describe("game rules", () => {
     const easy = advanceCombat(base, PLANTS, ZOMBIES, 1000, DIFFICULTY.easy);
 
     expect(easy.zombies[0].x).toBeGreaterThan(normal.zombies[0].x);
+  });
+
+  it("multiplies scene and run challenge zombie speed adjustments", () => {
+    const starlight = getSceneTheme("starlight-farm");
+    const base = {
+      ...createInitialState(LEVEL_ONE, DIFFICULTY.normal, undefined, starlight),
+      zombies: [{ id: "zombie-1", zombieId: "basic" as const, lane: 2 as const, x: 8, hp: 70, slowedUntilMs: 0 }]
+    };
+    const runAdjusted = {
+      ...base,
+      runChallenge: {
+        objective: { id: "defeat-zombies", kind: "defeat-count", target: 5, label: "打倒 5 个僵尸" },
+        modifier: {
+          id: "little-hero",
+          name: "小勇士",
+          shortLabel: "敌人慢一点",
+          announcement: "小勇士：敌人慢一点，小车少一点",
+          adjustments: { zombieSpeedMultiplier: 0.88 }
+        },
+        current: 0,
+        completed: false
+      }
+    } as const;
+
+    const sceneOnly = advanceCombat(base, PLANTS, ZOMBIES, 1000, DIFFICULTY.normal);
+    const sceneAndRun = advanceCombat(runAdjusted, PLANTS, ZOMBIES, 1000, DIFFICULTY.normal);
+
+    expect(sceneOnly.zombies[0].x).toBeGreaterThan(
+      advanceCombat({ ...base, sceneAdjustments: {} }, PLANTS, ZOMBIES, 1000, DIFFICULTY.normal).zombies[0].x
+    );
+    expect(sceneAndRun.zombies[0].x).toBeGreaterThan(sceneOnly.zombies[0].x);
   });
 
   it("creates projectiles from peashooters when a zombie is ahead", () => {
