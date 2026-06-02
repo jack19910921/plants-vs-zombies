@@ -27,6 +27,7 @@ import {
   updateStatus
 } from "./rules";
 import { createRunChallenge, getModifierAnnouncement } from "./runChallenges";
+import { DEFAULT_SCENE_THEME_ID, getSceneTheme, type SceneThemeConfig } from "./sceneThemes";
 import {
   getGrassFleckCount,
   getGrassFleckMotionState,
@@ -51,6 +52,7 @@ import type {
   LevelConfig,
   PlantEntity,
   PlantId,
+  SceneThemeId,
   ZombieEntity
 } from "./types";
 
@@ -71,7 +73,13 @@ export class GameScene extends Phaser.Scene {
 
   private currentLevelIndex = 0;
   private currentDifficultyId: DifficultyId = "normal";
-  private state: GameState = createInitialState(LEVELS[0], DIFFICULTY.normal);
+  private selectedSceneThemeId: SceneThemeId = DEFAULT_SCENE_THEME_ID;
+  private state: GameState = createInitialState(
+    LEVELS[0],
+    DIFFICULTY.normal,
+    undefined,
+    getSceneTheme(DEFAULT_SCENE_THEME_ID)
+  );
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private keys!: Record<string, Phaser.Input.Keyboard.Key>;
   private lastTickMs = 0;
@@ -79,6 +87,8 @@ export class GameScene extends Phaser.Scene {
   private runIndex = 0;
   private modifierAnnouncement: string | null = null;
   private modifierAnnouncementUntilMs = 0;
+  private sceneAnnouncement: string | null = null;
+  private sceneAnnouncementUntilMs = 0;
 
   constructor() {
     super("GameScene");
@@ -100,11 +110,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   create(): void {
-    this.startCurrentLevel();
     this.cursors = this.input.keyboard!.createCursorKeys();
     this.keys = this.input.keyboard!.addKeys("W,A,S,D,SPACE,ESC") as Record<string, Phaser.Input.Keyboard.Key>;
     this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => this.handlePointer(pointer));
     this.drawStaticBoard();
+    this.uiEvents.emit("state-changed", this.state);
   }
 
   update(time: number): void {
@@ -132,22 +142,60 @@ export class GameScene extends Phaser.Scene {
     return this.currentDifficultyId;
   }
 
+  getCurrentStatus(): GameState["status"] {
+    return this.state.status;
+  }
+
+  getCurrentSceneTheme(): SceneThemeConfig {
+    return getSceneTheme(this.selectedSceneThemeId);
+  }
+
   getCurrentRunChallenge(): GameState["runChallenge"] | null {
     return this.state.runChallenge ?? null;
   }
 
   getCurrentModifierAnnouncement(): string | null {
-    if (!this.modifierAnnouncement) return null;
-    if (this.state.nowMs > this.modifierAnnouncementUntilMs) return null;
-    return this.modifierAnnouncement;
+    if (this.modifierAnnouncement && this.state.nowMs <= this.modifierAnnouncementUntilMs) return this.modifierAnnouncement;
+    if (this.sceneAnnouncement && this.state.nowMs <= this.sceneAnnouncementUntilMs) return this.sceneAnnouncement;
+    return null;
   }
 
   setDifficulty(difficultyId: DifficultyId): void {
     if (!DIFFICULTY[difficultyId] || difficultyId === this.currentDifficultyId) return;
     this.uiEvents.emit("sound-requested", "button");
     this.currentDifficultyId = difficultyId;
+    if (this.state.status === "menu") {
+      this.state = {
+        ...createInitialState(this.currentLevel, this.currentDifficulty, undefined, this.getCurrentSceneTheme()),
+        status: "menu"
+      };
+      this.uiEvents.emit("state-changed", this.state);
+      return;
+    }
     this.startCurrentLevel();
-    this.redrawDynamicWorld();
+    this.redrawFullWorld();
+    this.uiEvents.emit("state-changed", this.state);
+  }
+
+  setSelectedSceneTheme(sceneThemeId: SceneThemeId): void {
+    if (sceneThemeId === this.selectedSceneThemeId) return;
+    this.selectedSceneThemeId = sceneThemeId;
+    if (this.state.status === "menu") {
+      this.state = {
+        ...createInitialState(this.currentLevel, this.currentDifficulty, undefined, this.getCurrentSceneTheme()),
+        status: "menu"
+      };
+    }
+    this.uiEvents.emit("sound-requested", "button");
+    this.redrawFullWorld();
+    this.uiEvents.emit("state-changed", this.state);
+  }
+
+  startSelectedScene(): void {
+    if (this.state.status !== "menu") return;
+    this.uiEvents.emit("sound-requested", "button");
+    this.startCurrentLevel();
+    this.redrawFullWorld();
     this.uiEvents.emit("state-changed", this.state);
   }
 
@@ -225,7 +273,12 @@ export class GameScene extends Phaser.Scene {
     });
     this.modifierAnnouncement = getModifierAnnouncement(runChallenge.modifier);
     this.modifierAnnouncementUntilMs = 4200;
-    this.state = { ...createInitialState(this.currentLevel, this.currentDifficulty, runChallenge), status: "playing" };
+    this.sceneAnnouncement = this.getCurrentSceneTheme().startAnnouncement;
+    this.sceneAnnouncementUntilMs = 6200;
+    this.state = {
+      ...createInitialState(this.currentLevel, this.currentDifficulty, runChallenge, this.getCurrentSceneTheme()),
+      status: "playing"
+    };
     this.lastTickMs = 0;
   }
 
@@ -242,6 +295,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private handlePointer(pointer: Phaser.Input.Pointer): void {
+    if (this.state.status !== "playing") return;
     const column = Math.floor(((pointer.x - BOARD.x) / BOARD.width) * BOARD.columns);
     const lane = Math.floor(((pointer.y - BOARD.y) / BOARD.height) * BOARD.lanes);
     if (column < 0 || column > 8 || lane < 0 || lane > 4) {
@@ -249,6 +303,13 @@ export class GameScene extends Phaser.Scene {
       return;
     }
     this.plantAtCell(lane as LaneIndex, column as ColumnIndex);
+  }
+
+  private redrawFullWorld(): void {
+    if (!this.children?.removeAll) return;
+    this.children.removeAll();
+    this.drawStaticBoard();
+    if (this.state.status === "playing") this.redrawDynamicWorld();
   }
 
   private drawStaticBoard(): void {
