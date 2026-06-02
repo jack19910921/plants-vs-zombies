@@ -3,6 +3,7 @@ import { getPlantAssetPresentation } from "../game/assetPresentation";
 import { PLANT_TEXTURES, SUN_TOKEN_TEXTURE } from "../game/assets";
 import { PLANTS } from "../game/config";
 import { getChallengeHudLabel, getChallengeNudgeText, getChallengeResultLabel } from "../game/runChallenges";
+import { DEFAULT_SCENE_THEME_ID, SCENE_THEMES } from "../game/sceneThemes";
 import type {
   ColumnIndex,
   CombatEvent,
@@ -12,7 +13,8 @@ import type {
   LevelConfig,
   PlantId,
   PlantingFailureReason,
-  RunChallengeState
+  RunChallengeState,
+  SceneThemeId
 } from "../game/types";
 import { getPlantMiniatureProfile } from "../game/worldPresentation";
 
@@ -52,6 +54,7 @@ interface OverlayRenderState {
   inputMode?: "keyboard" | "touch";
   runChallenge?: RunChallengeState | null;
   modifierAnnouncement?: string | null;
+  selectedSceneThemeId?: SceneThemeId;
 }
 
 export interface DomOverlayOptions {
@@ -185,7 +188,43 @@ function getBoardTouchGridMarkup(): string {
   return `<div class="board-touch-grid" aria-label="草坪种植格">${cells.join("")}</div>`;
 }
 
+function getScenePickerMarkup(state: OverlayRenderState): string {
+  const selectedSceneThemeId = state.selectedSceneThemeId ?? DEFAULT_SCENE_THEME_ID;
+  const sceneCards = SCENE_THEMES.map((theme) => {
+    const selected = theme.id === selectedSceneThemeId ? " is-selected" : "";
+    return `<button class="scene-card scene-card--${theme.id}${selected}" data-scene-theme="${theme.id}" style="--scene-card-bg: ${theme.presentation.cardGradient}; --scene-card-accent: ${theme.presentation.cardAccent}; --scene-card-ink: ${theme.presentation.cardInk}">
+      <span class="scene-card-art"></span>
+      <strong>${theme.name}</strong>
+      <span>${theme.pickerHint}</span>
+    </button>`;
+  }).join("");
+  const selectedTheme = SCENE_THEMES.find((theme) => theme.id === selectedSceneThemeId) ?? SCENE_THEMES[0];
+  const difficultyButtons = difficultyOptions
+    .map((option) => {
+      const selected = (state.difficultyId ?? "normal") === option.id ? " is-selected" : "";
+      return `<button data-difficulty="${option.id}" class="difficulty-option${selected}">${option.label}</button>`;
+    })
+    .join("");
+
+  return `<div class="scene-picker">
+    <div class="scene-picker-top">
+      <div>
+        <h1>今天去哪里守护？</h1>
+        <p>${selectedTheme.hudHint}</p>
+      </div>
+      <div class="difficulty-toggle">${difficultyButtons}</div>
+    </div>
+    <div class="scene-card-grid">${sceneCards}</div>
+    <div class="scene-picker-bottom">
+      <span>${selectedTheme.startAnnouncement}</span>
+      <button class="chip scene-start-button" data-action="start-scene">开始守护</button>
+    </div>
+  </div>`;
+}
+
 export function createDomOverlayMarkup(state: OverlayRenderState): string {
+  if (state.status === "menu") return getScenePickerMarkup(state);
+
   const allowedPlantIds = new Set(state.allowedPlantIds ?? plantOrder);
   const cards = plantOrder
     .map((plantId) => {
@@ -329,6 +368,7 @@ export function createDomOverlay(root: Element, scene: GameScene, options: DomOv
     const challengeScene = scene as GameScene & {
       getCurrentRunChallenge?: () => RunChallengeState | null;
       getCurrentModifierAnnouncement?: () => string | null;
+      getCurrentSceneTheme?: () => { id: SceneThemeId };
     };
     if (!recentFeedback) {
       const achievementFeedback = getNextAchievementFeedback(state, shownAchievements);
@@ -364,7 +404,8 @@ export function createDomOverlay(root: Element, scene: GameScene, options: DomOv
       recentEvents: state.events,
       inputMode: getInputMode(),
       runChallenge: challengeScene.getCurrentRunChallenge?.() ?? null,
-      modifierAnnouncement: challengeScene.getCurrentModifierAnnouncement?.() ?? null
+      modifierAnnouncement: challengeScene.getCurrentModifierAnnouncement?.() ?? null,
+      selectedSceneThemeId: challengeScene.getCurrentSceneTheme?.().id ?? DEFAULT_SCENE_THEME_ID
     });
     if (nextMarkup === lastMarkup) return;
     root.innerHTML = nextMarkup;
@@ -379,6 +420,14 @@ export function createDomOverlay(root: Element, scene: GameScene, options: DomOv
   });
   root.addEventListener("pointerdown", (event) => {
     const target = event.target as HTMLElement;
+    const sceneButton = target.closest("[data-scene-theme]") as HTMLElement | null;
+    if (sceneButton) {
+      event.preventDefault();
+      event.stopPropagation();
+      const sceneActions = scene as GameScene & { setSelectedSceneTheme?: (sceneThemeId: SceneThemeId) => void };
+      sceneActions.setSelectedSceneTheme?.(sceneButton.dataset.sceneTheme as SceneThemeId);
+      return;
+    }
     const plantButton = target.closest("[data-plant]") as HTMLElement | null;
     if (plantButton) {
       event.preventDefault();
@@ -399,6 +448,11 @@ export function createDomOverlay(root: Element, scene: GameScene, options: DomOv
   root.addEventListener("click", (event) => {
     const target = event.target as HTMLElement;
     const actionButton = target.closest("[data-action]") as HTMLElement | null;
+    if (actionButton?.dataset.action === "start-scene") {
+      const sceneActions = scene as GameScene & { startSelectedScene?: () => void };
+      sceneActions.startSelectedScene?.();
+      return;
+    }
     if (actionButton?.dataset.action === "pause") {
       scene.togglePause();
       return;

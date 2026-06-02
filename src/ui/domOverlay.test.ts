@@ -805,4 +805,125 @@ describe("dom overlay", () => {
     expect(html).toContain("小任务完成");
     expect(html).toContain("objective-result");
   });
+
+  it("renders a scene picker in menu state", () => {
+    const html = createDomOverlayMarkup({
+      sun: 250,
+      waveText: "第 1 波 / 8",
+      status: "menu",
+      selectedPlantId: null,
+      cooldownReadyAt: {
+        sunflower: 0,
+        peashooter: 0,
+        wallnut: 0,
+        snowpea: 0,
+        potatomine: 0
+      },
+      nowMs: 0,
+      selectedSceneThemeId: "sunny-lawn"
+    });
+
+    expect(html).toContain("今天去哪里守护");
+    expect(html).toContain('data-scene-theme="sunny-lawn"');
+    expect(html).toContain('data-scene-theme="dewy-garden"');
+    expect(html).toContain('data-scene-theme="starlight-farm"');
+    expect(html).toContain("阳光草坪");
+    expect(html).toContain("露珠菜园");
+    expect(html).toContain("星光农圃");
+    expect(html).toContain('data-action="start-scene"');
+    expect(html).toContain("开始守护");
+    expect(html).toContain('data-difficulty="easy"');
+  });
+
+  it("marks the selected scene card", () => {
+    const html = createDomOverlayMarkup({
+      sun: 250,
+      waveText: "第 1 波 / 8",
+      status: "menu",
+      selectedPlantId: null,
+      cooldownReadyAt: {
+        sunflower: 0,
+        peashooter: 0,
+        wallnut: 0,
+        snowpea: 0,
+        potatomine: 0
+      },
+      nowMs: 0,
+      selectedSceneThemeId: "starlight-farm"
+    });
+
+    expect(html).toContain('class="scene-card scene-card--starlight-farm is-selected"');
+    expect(html).toContain("星光慢，阳光少点");
+  });
+
+  it("selects scene cards from pointer input", () => {
+    let pointerHandler: ((event: Event) => void) | null = null;
+    const root = {
+      innerHTML: "",
+      addEventListener: vi.fn((eventName: string, handler: (event: Event) => void) => {
+        if (eventName === "pointerdown") pointerHandler = handler;
+      })
+    };
+    const scene = {
+      uiEvents: { on: vi.fn() },
+      setSelectedPlant: vi.fn(),
+      plantAtCell: vi.fn(),
+      togglePause: vi.fn(),
+      restartLevel: vi.fn(),
+      nextLevel: vi.fn(),
+      getCurrentLevel: vi.fn(() => LEVEL_ONE),
+      hasNextLevel: vi.fn(() => false),
+      getCurrentDifficultyId: vi.fn(() => "normal"),
+      setDifficulty: vi.fn(),
+      moveHeroLane: vi.fn(),
+      getCurrentSceneTheme: vi.fn(() => ({ id: "sunny-lawn" })),
+      setSelectedSceneTheme: vi.fn(),
+      startSelectedScene: vi.fn()
+    } as unknown as GameScene;
+    const target = {
+      closest: vi.fn((selector: string) =>
+        selector === "[data-scene-theme]" ? { dataset: { sceneTheme: "dewy-garden" } } : null
+      )
+    } as unknown as HTMLElement;
+    const event = { target, preventDefault: vi.fn(), stopPropagation: vi.fn() } as unknown as Event;
+
+    createDomOverlay(root as unknown as Element, scene);
+    pointerHandler!(event);
+
+    expect((scene as unknown as { setSelectedSceneTheme: ReturnType<typeof vi.fn> }).setSelectedSceneTheme).toHaveBeenCalledWith("dewy-garden");
+    expect(event.preventDefault).toHaveBeenCalled();
+  });
+
+  it("starts the selected scene from the start action", () => {
+    let clickHandler: ((event: Event) => void) | null = null;
+    const root = {
+      innerHTML: "",
+      addEventListener: vi.fn((_eventName: string, handler: (event: Event) => void) => {
+        clickHandler = handler;
+      })
+    };
+    const scene = {
+      uiEvents: { on: vi.fn() },
+      setSelectedPlant: vi.fn(),
+      togglePause: vi.fn(),
+      restartLevel: vi.fn(),
+      nextLevel: vi.fn(),
+      getCurrentLevel: vi.fn(() => LEVEL_ONE),
+      hasNextLevel: vi.fn(() => false),
+      getCurrentDifficultyId: vi.fn(() => "normal"),
+      setDifficulty: vi.fn(),
+      moveHeroLane: vi.fn(),
+      getCurrentSceneTheme: vi.fn(() => ({ id: "sunny-lawn" })),
+      setSelectedSceneTheme: vi.fn(),
+      startSelectedScene: vi.fn()
+    } as unknown as GameScene;
+    const startTarget = {
+      closest: vi.fn((selector: string) => (selector === "[data-action]" ? { dataset: { action: "start-scene" } } : null))
+    } as unknown as HTMLElement;
+
+    createDomOverlay(root as unknown as Element, scene);
+    clickHandler!({ target: startTarget } as unknown as Event);
+
+    expect((scene as unknown as { startSelectedScene: ReturnType<typeof vi.fn> }).startSelectedScene).toHaveBeenCalled();
+  });
 });
