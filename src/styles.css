@@ -466,6 +466,10 @@ button {
   align-items: center;
 }
 
+.scene-picker-top > div:first-child {
+  padding-left: 128px;
+}
+
 .scene-picker h1 {
   margin: 0;
   color: #5c4330;
@@ -528,6 +532,61 @@ button {
   background:
     linear-gradient(90deg, rgba(255, 255, 255, 0.16) 1px, transparent 1px) 0 0 / 24px 100%,
     rgba(255, 255, 255, 0.12);
+}
+
+.scene-card-art::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.scene-card--sunny-lawn .scene-card-art::after {
+  top: 12%;
+  left: 50%;
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 38% 34%, #fff8df 0 9px, transparent 10px),
+    radial-gradient(circle, #ffd34f 0 34%, #f6a423 35% 58%, transparent 60%);
+  box-shadow:
+    -86px 36px 0 -20px rgba(255, 211, 79, 0.42),
+    86px 26px 0 -24px rgba(255, 248, 223, 0.48),
+    0 0 0 10px rgba(255, 211, 79, 0.18);
+  transform: translateX(-50%);
+}
+
+.scene-card--dewy-garden .scene-card-art::after {
+  top: 10%;
+  left: 50%;
+  width: 76px;
+  height: 92px;
+  border-radius: 52% 48% 58% 42%;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.9) 0 10px, transparent 11px),
+    linear-gradient(145deg, rgba(232, 251, 255, 0.96), rgba(96, 196, 177, 0.62));
+  box-shadow:
+    -108px 42px 0 -24px rgba(232, 251, 255, 0.68),
+    102px 28px 0 -28px rgba(232, 251, 255, 0.72),
+    0 14px 0 -5px rgba(45, 107, 95, 0.2);
+  transform: translateX(-50%) rotate(8deg);
+}
+
+.scene-card--starlight-farm .scene-card-art::after {
+  top: 11%;
+  left: 50%;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 64% 28%, #fff8df 0 4px, transparent 5px),
+    radial-gradient(circle at 28% 62%, #fff1a3 0 5px, transparent 6px),
+    radial-gradient(circle at 45% 42%, rgba(255, 241, 163, 0.86) 0 28px, transparent 29px);
+  box-shadow:
+    -118px 28px 0 -38px rgba(255, 248, 223, 0.74),
+    116px 40px 0 -40px rgba(189, 239, 255, 0.72),
+    0 0 0 14px rgba(255, 248, 223, 0.06);
+  transform: translateX(-50%);
 }
 
 .scene-card strong {
@@ -909,6 +968,10 @@ button {
   .scene-picker-top {
     grid-template-columns: minmax(0, 1fr) 104px;
     gap: 8px;
+  }
+
+  .scene-picker-top > div:first-child {
+    padding-left: 0;
   }
 
   .scene-picker h1 {

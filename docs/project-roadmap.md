@@ -23,6 +23,7 @@ Completed:
 - M11g grass animation polish adds subtle 3D board depth, moving shimmer, grass flecks, and better contact shadows without new assets.
 - M12 terminal summary adds compact victory/failure stats for wave progress, remaining plants, and sun.
 - Final acceptance closeout adds a gentle motion setting and a small bucket enemy ice-resistance behavior.
+- Opening scene picker adds three visibly distinct offline scenes with iPad-first cards, light scene-specific rhythm, and no backend or account system.
 - Automated rule/UI tests and browser visual checks used before commits.
 
 Known constraints:
@@ -461,6 +462,20 @@ Delivered:
 - Added bucket enemy ice resistance so armored enemies have a clearer behavior difference.
 - Updated the private preview checklist for final验收.
 
+### M13: Scene Picker And Scene Identity
+
+Status: complete.
+
+Goal: let children choose a clearly distinct play setting before starting a run.
+
+Delivered:
+
+- Opening scene picker with `阳光草坪`, `露珠菜园`, and `星光农圃`.
+- Default scene selection and one-tap start flow.
+- Scene-specific procedural board/tabletop visuals that can later be replaced with image2 scene art.
+- Conservative scene rhythm adjustments layered with difficulty and run modifiers.
+- iPad landscape verification for picker readability and touch-grid alignment.
+
 ## Backlog By Domain
 
 Gameplay:
@@ -514,5 +529,6 @@ Pause for user验收.
 Reason:
 
 - M0-M12 and the final closeout now cover foundation, onboarding, audio, progression, mobile controls, packaging, asset replacement, grass board polish, terminal summaries, gentle motion, and one extra enemy behavior distinction.
+- M13 adds clearly separated scene choices while preserving the pure offline, lightweight play loop.
 - Remaining items are future enhancements rather than acceptance blockers.
 - After验收, choose the next slice from family feedback instead of guessing.

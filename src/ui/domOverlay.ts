@@ -222,6 +222,11 @@ function getScenePickerMarkup(state: OverlayRenderState): string {
   </div>`;
 }
 
+function getSceneName(sceneThemeId?: SceneThemeId): string | null {
+  if (!sceneThemeId) return null;
+  return SCENE_THEMES.find((theme) => theme.id === sceneThemeId)?.name ?? null;
+}
+
 export function createDomOverlayMarkup(state: OverlayRenderState): string {
   if (state.status === "menu") return getScenePickerMarkup(state);
 
@@ -249,7 +254,9 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
   const soundEnabled = state.soundEnabled ?? true;
   const reducedMotion = state.reducedMotion ?? false;
   const difficultyId = state.difficultyId ?? "normal";
-  const waveLabel = state.levelName ? `${state.levelName} · ${state.waveText}` : state.waveText;
+  const sceneName = getSceneName(state.selectedSceneThemeId);
+  const waveTitle = sceneName ?? state.levelName;
+  const waveLabel = waveTitle ? `${waveTitle} · ${state.waveText}` : state.waveText;
   const objectiveMarkup = state.runChallenge
     ? `<div class="chip objective-chip">${getChallengeHudLabel(state.runChallenge)}</div>`
     : "";
@@ -405,7 +412,7 @@ export function createDomOverlay(root: Element, scene: GameScene, options: DomOv
       inputMode: getInputMode(),
       runChallenge: challengeScene.getCurrentRunChallenge?.() ?? null,
       modifierAnnouncement: challengeScene.getCurrentModifierAnnouncement?.() ?? null,
-      selectedSceneThemeId: challengeScene.getCurrentSceneTheme?.().id ?? DEFAULT_SCENE_THEME_ID
+      selectedSceneThemeId: state.sceneThemeId ?? challengeScene.getCurrentSceneTheme?.().id ?? DEFAULT_SCENE_THEME_ID
     });
     if (nextMarkup === lastMarkup) return;
     root.innerHTML = nextMarkup;

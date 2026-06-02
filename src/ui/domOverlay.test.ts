@@ -101,6 +101,27 @@ describe("dom overlay", () => {
     expect(html).toContain("薄雾菜园 · 第 1 波 / 9");
   });
 
+  it("uses the selected scene name in the wave title", () => {
+    const html = createDomOverlayMarkup({
+      sun: 150,
+      levelName: "阳光草坪",
+      waveText: "第 1 波 / 8",
+      status: "playing",
+      selectedPlantId: null,
+      cooldownReadyAt: {
+        sunflower: 0,
+        peashooter: 0,
+        wallnut: 0,
+        snowpea: 0,
+        potatomine: 0
+      },
+      nowMs: 0,
+      selectedSceneThemeId: "dewy-garden"
+    });
+
+    expect(html).toContain("露珠菜园 · 第 1 波 / 8");
+  });
+
   it("renders difficulty options and selected difficulty", () => {
     const html = createDomOverlayMarkup({
       sun: 150,

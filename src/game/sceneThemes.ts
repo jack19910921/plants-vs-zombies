@@ -91,7 +91,7 @@ export const SCENE_THEMES: SceneThemeConfig[] = [
       fleckAltColor: 0xbdefff,
       cardGradient: "linear-gradient(180deg, #596184 0 42%, #78b67c 42%)",
       cardAccent: "#fff1a3",
-      cardInk: "#fff8df",
+      cardInk: "#4b3f5f",
       decoration: "star-glints"
     }
   }
