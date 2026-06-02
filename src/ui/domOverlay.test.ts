@@ -823,6 +823,10 @@ describe("dom overlay", () => {
       selectedSceneThemeId: "sunny-lawn"
     });
 
+    expect(html).toContain('class="scene-picker"');
+    expect(html).toContain('class="scene-card-grid"');
+    expect(html).toContain('class="scene-picker-bottom"');
+    expect(html).toContain("--scene-card-bg:");
     expect(html).toContain("今天去哪里守护");
     expect(html).toContain('data-scene-theme="sunny-lawn"');
     expect(html).toContain('data-scene-theme="dewy-garden"');
