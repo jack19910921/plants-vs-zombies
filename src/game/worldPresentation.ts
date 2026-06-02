@@ -1,4 +1,4 @@
-import type { PlantId, ZombieId } from "./types";
+import type { PlantId, SceneDecorationKind, ZombieId } from "./types";
 
 export interface PlantMiniatureProfile {
   imageWidth: number;
@@ -147,6 +147,14 @@ export interface GrassFleckMotionState {
   alpha: number;
   driftX: number;
   driftY: number;
+  rotationDeg: number;
+}
+
+export interface SceneDecorationState {
+  xRatio: number;
+  yRatio: number;
+  size: number;
+  alpha: number;
   rotationDeg: number;
 }
 
@@ -430,6 +438,49 @@ export function getGrassFleckMotionState(nowMs: number, index: number): GrassFle
     driftX: drift * 8,
     driftY: Math.sin(nowMs / 1180 + safeIndex * 0.52) * 3,
     rotationDeg: -16 + ((safeIndex * 29) % 32) + Math.sin(phase) * 5
+  };
+}
+
+export function getSceneDecorationCount(kind: SceneDecorationKind): number {
+  if (kind === "sun-rays") return 8;
+  if (kind === "dew-beads") return 16;
+  return 14;
+}
+
+export function getSceneDecorationState(kind: SceneDecorationKind, nowMs: number, index: number): SceneDecorationState {
+  const safeIndex = Math.max(0, index);
+  const count = getSceneDecorationCount(kind);
+  const phase = nowMs / (kind === "sun-rays" ? 1500 : kind === "dew-beads" ? 980 : 1180) + safeIndex * 0.71;
+  const shimmer = 0.5 + Math.sin(phase) * 0.5;
+  const xRatio = clamp(0.08 + (((safeIndex * 31) % 86) / 100), 0.02, 0.98);
+  const yRatio = clamp(0.08 + (((safeIndex * 47) % 82) / 100), 0.04, 0.96);
+
+  if (kind === "sun-rays") {
+    return {
+      xRatio: clamp(0.12 + (safeIndex / Math.max(1, count - 1)) * 0.76, 0, 1),
+      yRatio: clamp(0.08 + Math.sin(phase) * 0.035, 0, 1),
+      size: 26 + shimmer * 16,
+      alpha: 0.08 + shimmer * 0.14,
+      rotationDeg: -18 + safeIndex * 5
+    };
+  }
+
+  if (kind === "dew-beads") {
+    return {
+      xRatio,
+      yRatio,
+      size: 5 + (safeIndex % 4) * 2 + shimmer * 2,
+      alpha: 0.2 + shimmer * 0.28,
+      rotationDeg: nowMs / 28 + safeIndex * 31
+    };
+  }
+
+  return {
+    xRatio,
+    yRatio,
+    size: 8 + (safeIndex % 3) * 4 + shimmer * 5,
+    alpha: 0.16 + shimmer * 0.34,
+    rotationDeg: nowMs / 18 + safeIndex * 37
   };
 }
 

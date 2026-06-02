@@ -38,6 +38,8 @@ import {
   getPlantMiniatureState,
   getProjectileParticleState,
   getProjectilePresentation,
+  getSceneDecorationCount,
+  getSceneDecorationState,
   getSunPickupPresentation,
   getZombieMiniatureProfile,
   getZombieMiniatureState,
@@ -313,9 +315,13 @@ export class GameScene extends Phaser.Scene {
   }
 
   private drawStaticBoard(): void {
-    this.drawTabletop();
+    const sceneTheme = this.getCurrentSceneTheme();
+    const presentation = sceneTheme.presentation;
+    this.drawTabletop(presentation);
     this.add.rectangle(648, 338, 1106, 438, 0x5c4330, 0.18);
-    this.add.rectangle(640, 326, 1092, 430, 0x7aa86b, 0.28).setStrokeStyle(5, 0x68482e, 0.92);
+    this.add
+      .rectangle(640, 326, 1092, 430, presentation.boardMatColor, 0.36)
+      .setStrokeStyle(5, presentation.boardFrameColor, 0.92);
     this.add.rectangle(640, 326, 1066, 404, 0xf1cc86, 0.96).setStrokeStyle(3, 0x8a633d, 0.72);
     const boardArt = this.add.image(BOARD.x + BOARD.width / 2, BOARD.y + BOARD.height / 2, "garden-board");
     const boardCrop = getSourceCropPixels(getBoardAssetPresentation().crop, boardArt.width, boardArt.height);
@@ -327,10 +333,12 @@ export class GameScene extends Phaser.Scene {
       .setCrop(boardCrop.x, boardCrop.y, boardCrop.width, boardCrop.height)
       .setScale(boardScaleX, boardScaleY)
       .setPosition(BOARD.x + BOARD.width / 2 - cropCenterOffsetX, BOARD.y + BOARD.height / 2 - cropCenterOffsetY)
-      .setAlpha(0.98);
+      .setAlpha(presentation.boardArtAlpha);
+    this.add.rectangle(BOARD.x + BOARD.width / 2, BOARD.y + BOARD.height / 2, BOARD.width, BOARD.height, presentation.tileWashColor, 0.14);
+    this.add.rectangle(BOARD.x + BOARD.width / 2, BOARD.y + BOARD.height / 2, BOARD.width - 26, BOARD.height - 22, presentation.laneWashColor, 0.045);
     this.add.rectangle(BOARD.x + BOARD.width / 2, BOARD.y + BOARD.height + 10, BOARD.width - 26, 20, 0x163622, 0.08);
-    this.add.rectangle(BOARD.x + BOARD.width / 2, BOARD.y + 18, BOARD.width - 38, 16, 0xfff8df, 0.06);
-    this.add.ellipse(250, 148, 86, 20, 0xffffff, 0.12);
+    this.add.rectangle(BOARD.x + BOARD.width / 2, BOARD.y + 18, BOARD.width - 38, 16, presentation.tileHighlightColor, 0.08);
+    this.add.ellipse(250, 148, 86, 20, presentation.tileHighlightColor, 0.14);
     this.add.ellipse(1040, 510, 120, 24, 0x5c4330, 0.1);
     const laneHeight = BOARD.height / BOARD.lanes;
     const columnWidth = BOARD.width / BOARD.columns;
@@ -338,35 +346,64 @@ export class GameScene extends Phaser.Scene {
       const y = BOARD.y + lane * laneHeight + laneHeight / 2;
       const laneDepth = lane / Math.max(1, BOARD.lanes - 1);
       this.add
-        .rectangle(BOARD.x + BOARD.width / 2, y, BOARD.width, laneHeight - 8, 0xffffff, 0.026 + laneDepth * 0.012)
-        .setStrokeStyle(2, 0x315f3a, 0.16 + laneDepth * 0.04);
-      this.add.rectangle(BOARD.x + BOARD.width / 2, y - 28, BOARD.width - 24, 7, 0xfff8df, 0.08);
-      this.add.rectangle(BOARD.x + BOARD.width / 2, y + 30, BOARD.width - 22, 9, 0x174a36, 0.055 + laneDepth * 0.035);
-      this.add.rectangle(BOARD.x + BOARD.width / 2, y + 36, BOARD.width - 44, 3, 0x0f2b1f, 0.04 + laneDepth * 0.02);
+        .rectangle(BOARD.x + BOARD.width / 2, y, BOARD.width, laneHeight - 8, presentation.laneWashColor, 0.03 + laneDepth * 0.015)
+        .setStrokeStyle(2, presentation.tileShadowColor, 0.16 + laneDepth * 0.04);
+      this.add.rectangle(BOARD.x + BOARD.width / 2, y - 28, BOARD.width - 24, 7, presentation.tileHighlightColor, 0.1);
+      this.add.rectangle(BOARD.x + BOARD.width / 2, y + 30, BOARD.width - 22, 9, presentation.tileShadowColor, 0.055 + laneDepth * 0.035);
+      this.add.rectangle(BOARD.x + BOARD.width / 2, y + 36, BOARD.width - 44, 3, presentation.tileShadowColor, 0.04 + laneDepth * 0.02);
     }
     for (let column = 1; column < BOARD.columns; column += 1) {
       const x = BOARD.x + column * columnWidth;
-      this.add.line(x - 1, BOARD.y + BOARD.height / 2, 0, 0, 0, BOARD.height, 0x174a36, 0.1).setLineWidth(3);
-      this.add.line(x + 2, BOARD.y + BOARD.height / 2, 0, 0, 0, BOARD.height, 0xfff8df, 0.045).setLineWidth(1);
+      this.add.line(x - 1, BOARD.y + BOARD.height / 2, 0, 0, 0, BOARD.height, presentation.tileShadowColor, 0.1).setLineWidth(3);
+      this.add.line(x + 2, BOARD.y + BOARD.height / 2, 0, 0, 0, BOARD.height, presentation.tileHighlightColor, 0.055).setLineWidth(1);
     }
     this.drawTrayPebbles();
     this.add.ellipse(92, 498, 92, 20, 0x5c4330, 0.16);
     this.add.image(88, 340, "base-sign").setDisplaySize(94, 308);
   }
 
-  private drawTabletop(): void {
-    this.add.rectangle(640, 360, 1280, 720, 0xeab674);
+  private drawTabletop(presentation: SceneThemeConfig["presentation"]): void {
+    this.add.rectangle(640, 360, 1280, 720, presentation.tabletopBaseColor);
     for (let plank = 0; plank < 16; plank += 1) {
       const x = plank * 88 + 44;
-      const color = [0xe8ad68, 0xf0c07b, 0xe4a45f, 0xf3c889][plank % 4];
+      const color = presentation.tabletopPlankColors[plank % presentation.tabletopPlankColors.length];
       this.add.rectangle(x, 360, 88, 720, color, 0.42);
-      this.add.line(x + 44, 360, 0, -360, 0, 360, 0x7a4d2e, 0.13).setLineWidth(2);
-      this.add.rectangle(x - 18, 128 + (plank % 5) * 118, 42, 3, 0xfff0b8, 0.16).setAngle((plank % 3) * 4 - 4);
-      this.add.rectangle(x + 14, 184 + (plank % 4) * 126, 58, 3, 0x7a4d2e, 0.08).setAngle((plank % 2) * 5 - 2);
+      this.add.line(x + 44, 360, 0, -360, 0, 360, presentation.tabletopShadowColor, 0.13).setLineWidth(2);
+      this.add.rectangle(x - 18, 128 + (plank % 5) * 118, 42, 3, presentation.tileHighlightColor, 0.16).setAngle((plank % 3) * 4 - 4);
+      this.add.rectangle(x + 14, 184 + (plank % 4) * 126, 58, 3, presentation.tabletopShadowColor, 0.08).setAngle((plank % 2) * 5 - 2);
     }
-    this.add.rectangle(640, 360, 1280, 720, 0x5c4330, 0.04);
-    this.add.ellipse(100, 650, 360, 70, 0x6d4b2b, 0.08);
-    this.add.ellipse(1170, 70, 320, 64, 0xffffff, 0.08);
+    this.add.rectangle(640, 360, 1280, 720, presentation.tabletopShadowColor, 0.04);
+    this.add.ellipse(100, 650, 360, 70, presentation.tabletopShadowColor, 0.08);
+    this.add.ellipse(1170, 70, 320, 64, presentation.tileHighlightColor, 0.08);
+    this.drawSceneTableDecorations(presentation);
+  }
+
+  private drawSceneTableDecorations(presentation: SceneThemeConfig["presentation"]): void {
+    const decoration = presentation.decoration;
+    if (decoration === "sun-rays") {
+      for (let index = 0; index < getSceneDecorationCount(decoration); index += 1) {
+        const ray = getSceneDecorationState(decoration, this.state.nowMs, index);
+        this.add
+          .rectangle(130 + index * 160, 70 + ray.yRatio * 42, ray.size * 2.4, 6, presentation.tileHighlightColor, ray.alpha)
+          .setAngle(ray.rotationDeg);
+      }
+      return;
+    }
+    if (decoration === "dew-beads") {
+      for (let index = 0; index < getSceneDecorationCount(decoration); index += 1) {
+        const bead = getSceneDecorationState(decoration, this.state.nowMs, index);
+        this.add
+          .circle(90 + bead.xRatio * 1120, 64 + bead.yRatio * 560, bead.size, presentation.fleckColor, bead.alpha)
+          .setStrokeStyle(1, 0xffffff, bead.alpha * 0.7);
+      }
+      return;
+    }
+    for (let index = 0; index < getSceneDecorationCount(decoration); index += 1) {
+      const star = getSceneDecorationState(decoration, this.state.nowMs, index);
+      this.add
+        .star(80 + star.xRatio * 1140, 58 + star.yRatio * 560, 5, 2, star.size, presentation.fleckColor, star.alpha)
+        .setAngle(star.rotationDeg);
+    }
   }
 
   private drawTrayPebbles(): void {
@@ -408,21 +445,22 @@ export class GameScene extends Phaser.Scene {
   }
 
   private drawGrassMotionLayer(laneHeight: number, columnWidth: number): void {
+    const presentation = this.getCurrentSceneTheme().presentation;
     const graphics = this.add.graphics();
     graphics.setData("dynamic", true);
 
-    graphics.fillStyle(0x0f2b1f, 0.05);
+    graphics.fillStyle(presentation.tileShadowColor, 0.05);
     graphics.fillRect(BOARD.x + 12, BOARD.y + BOARD.height - 24, BOARD.width - 24, 18);
-    graphics.fillStyle(0xfff8df, 0.04);
+    graphics.fillStyle(presentation.tileHighlightColor, 0.04);
     graphics.fillRect(BOARD.x + 18, BOARD.y + 13, BOARD.width - 36, 8);
 
     for (let lane = 0; lane < BOARD.lanes; lane += 1) {
       const laneTop = BOARD.y + lane * laneHeight;
       const laneCenterY = laneTop + laneHeight / 2;
       const laneDepth = lane / Math.max(1, BOARD.lanes - 1);
-      graphics.fillStyle(0xfff8df, 0.035 + (1 - laneDepth) * 0.025);
+      graphics.fillStyle(presentation.tileHighlightColor, 0.035 + (1 - laneDepth) * 0.025);
       graphics.fillRect(BOARD.x + 18, laneTop + 8, BOARD.width - 36, 5);
-      graphics.fillStyle(0x0f2b1f, 0.05 + laneDepth * 0.045);
+      graphics.fillStyle(presentation.tileShadowColor, 0.05 + laneDepth * 0.045);
       graphics.fillRect(BOARD.x + 18, laneTop + laneHeight - 13, BOARD.width - 36, 8);
       graphics.lineStyle(2, 0xffffff, 0.03);
       graphics.strokeLineShape(new Phaser.Geom.Line(BOARD.x + 16, laneCenterY - 22, BOARD.x + BOARD.width - 16, laneCenterY - 22));
@@ -430,9 +468,9 @@ export class GameScene extends Phaser.Scene {
 
     for (let column = 1; column < BOARD.columns; column += 1) {
       const x = BOARD.x + column * columnWidth;
-      graphics.fillStyle(0x0f2b1f, 0.04);
+      graphics.fillStyle(presentation.tileShadowColor, 0.04);
       graphics.fillRect(x - 2, BOARD.y + 14, 3, BOARD.height - 28);
-      graphics.fillStyle(0xfff8df, 0.035);
+      graphics.fillStyle(presentation.tileHighlightColor, 0.035);
       graphics.fillRect(x + 2, BOARD.y + 18, 1, BOARD.height - 36);
     }
 
@@ -444,13 +482,13 @@ export class GameScene extends Phaser.Scene {
         const cellCenterX = cellX + columnWidth / 2;
         const cellCenterY = cellY + laneHeight / 2;
 
-        graphics.fillStyle(0xbde26c, tile.cellWashAlpha);
+        graphics.fillStyle(presentation.tileWashColor, tile.cellWashAlpha);
         graphics.fillRect(cellX + 5, cellY + 7, columnWidth - 10, laneHeight - 14);
-        graphics.fillStyle(0xfff8df, tile.topHighlightAlpha);
+        graphics.fillStyle(presentation.tileHighlightColor, tile.topHighlightAlpha);
         graphics.fillRect(cellX + 10, cellY + 11, columnWidth - 20, 3);
-        graphics.fillStyle(0x174a36, tile.bottomShadowAlpha);
+        graphics.fillStyle(presentation.tileShadowColor, tile.bottomShadowAlpha);
         graphics.fillRect(cellX + 8, cellY + laneHeight - 15, columnWidth - 16, 5);
-        graphics.lineStyle(1, 0x315f3a, tile.ridgeAlpha);
+        graphics.lineStyle(1, presentation.tileShadowColor, tile.ridgeAlpha);
         graphics.strokeRect(cellX + 7, cellY + 8, columnWidth - 14, laneHeight - 16);
 
         const shimmerX = cellCenterX + tile.shimmerXRatio * columnWidth;
@@ -458,7 +496,7 @@ export class GameScene extends Phaser.Scene {
         const shimmerAngle = -Math.PI / 3.2;
         const shimmerDx = Math.cos(shimmerAngle) * shimmerLength * 0.5;
         const shimmerDy = Math.sin(shimmerAngle) * shimmerLength * 0.5;
-        graphics.lineStyle(Math.max(5, columnWidth * tile.shimmerWidthRatio), 0xfff8df, tile.shimmerAlpha);
+        graphics.lineStyle(Math.max(5, columnWidth * tile.shimmerWidthRatio), presentation.tileHighlightColor, tile.shimmerAlpha);
         graphics.strokeLineShape(
           new Phaser.Geom.Line(
             shimmerX - shimmerDx,
@@ -471,9 +509,9 @@ export class GameScene extends Phaser.Scene {
         if ((lane + column) % 2 === 0) {
           const bladeX = cellX + columnWidth * (0.22 + ((lane * 2 + column) % 4) * 0.14);
           const bladeY = cellY + laneHeight * 0.74 + tile.bladeYOffset;
-          graphics.lineStyle(2, 0xaee06e, tile.bladeAlpha);
+          graphics.lineStyle(2, presentation.fleckAltColor, tile.bladeAlpha);
           graphics.strokeLineShape(new Phaser.Geom.Line(bladeX, bladeY, bladeX + tile.bladeLeanX, bladeY - 12));
-          graphics.lineStyle(1, 0xfff8df, tile.bladeAlpha * 0.28);
+          graphics.lineStyle(1, presentation.tileHighlightColor, tile.bladeAlpha * 0.28);
           graphics.strokeLineShape(new Phaser.Geom.Line(bladeX + 3, bladeY - 2, bladeX + tile.bladeLeanX * 0.62, bladeY - 10));
         }
       }
@@ -486,8 +524,33 @@ export class GameScene extends Phaser.Scene {
       const angle = Phaser.Math.DegToRad(fleck.rotationDeg);
       const dx = Math.cos(angle) * fleck.width;
       const dy = Math.sin(angle) * fleck.width * 0.45;
-      graphics.lineStyle(Math.max(1, fleck.height), index % 3 === 0 ? 0xfff8df : 0xc6ec82, fleck.alpha);
+      graphics.lineStyle(
+        Math.max(1, fleck.height),
+        index % 3 === 0 ? presentation.fleckColor : presentation.fleckAltColor,
+        fleck.alpha
+      );
       graphics.strokeLineShape(new Phaser.Geom.Line(x - dx, y - dy, x + dx, y + dy));
+    }
+
+    for (let index = 0; index < getSceneDecorationCount(presentation.decoration); index += 1) {
+      const decoration = getSceneDecorationState(presentation.decoration, this.state.nowMs, index);
+      const x = BOARD.x + decoration.xRatio * BOARD.width;
+      const y = BOARD.y + decoration.yRatio * BOARD.height;
+      if (presentation.decoration === "dew-beads") {
+        graphics.fillStyle(presentation.fleckColor, decoration.alpha * 0.7);
+        graphics.fillCircle(x, y, decoration.size);
+        graphics.fillStyle(0xffffff, decoration.alpha * 0.42);
+        graphics.fillCircle(x - decoration.size * 0.25, y - decoration.size * 0.25, Math.max(1, decoration.size * 0.32));
+      } else if (presentation.decoration === "star-glints") {
+        graphics.lineStyle(2, presentation.fleckColor, decoration.alpha);
+        graphics.strokeLineShape(new Phaser.Geom.Line(x - decoration.size, y, x + decoration.size, y));
+        graphics.strokeLineShape(new Phaser.Geom.Line(x, y - decoration.size, x, y + decoration.size));
+      } else {
+        graphics.lineStyle(5, presentation.tileHighlightColor, decoration.alpha * 0.55);
+        graphics.strokeLineShape(
+          new Phaser.Geom.Line(x - decoration.size, y - decoration.size * 0.22, x + decoration.size, y + decoration.size * 0.22)
+        );
+      }
     }
   }
 

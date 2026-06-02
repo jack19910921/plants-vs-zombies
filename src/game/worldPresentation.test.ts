@@ -9,6 +9,8 @@ import {
   getPlantMiniatureState,
   getProjectileParticleState,
   getProjectilePresentation,
+  getSceneDecorationCount,
+  getSceneDecorationState,
   getSunPickupPresentation,
   getZombieMiniatureProfile,
   getZombieMiniatureState
@@ -231,6 +233,30 @@ describe("world presentation helpers", () => {
       expect(fleck.alpha).toBeLessThanOrEqual(0.12);
       expect(fleck.width).toBeGreaterThan(fleck.height);
     }
+  });
+
+  it("provides distinct lightweight scene decoration counts", () => {
+    expect(getSceneDecorationCount("sun-rays")).toBeGreaterThanOrEqual(6);
+    expect(getSceneDecorationCount("dew-beads")).toBeGreaterThanOrEqual(12);
+    expect(getSceneDecorationCount("star-glints")).toBeGreaterThanOrEqual(10);
+    expect(getSceneDecorationCount("dew-beads")).toBeGreaterThan(getSceneDecorationCount("sun-rays"));
+  });
+
+  it("keeps scene decorations bounded inside the board area", () => {
+    (["sun-rays", "dew-beads", "star-glints"] as const).forEach((kind) => {
+      for (let index = 0; index < getSceneDecorationCount(kind); index += 1) {
+        const decoration = getSceneDecorationState(kind, 1200, index);
+
+        expect(decoration.xRatio).toBeGreaterThanOrEqual(0);
+        expect(decoration.xRatio).toBeLessThanOrEqual(1);
+        expect(decoration.yRatio).toBeGreaterThanOrEqual(0);
+        expect(decoration.yRatio).toBeLessThanOrEqual(1);
+        expect(decoration.alpha).toBeGreaterThanOrEqual(0);
+        expect(decoration.alpha).toBeLessThanOrEqual(0.62);
+        expect(decoration.size).toBeGreaterThan(0);
+        expect(decoration.size).toBeLessThanOrEqual(42);
+      }
+    });
   });
 
   it("keeps full health figures clean", () => {
