@@ -46,6 +46,35 @@ export interface DifficultyConfig {
   sunMultiplier: number;
 }
 
+export type SceneThemeId = "sunny-lawn" | "dewy-garden" | "starlight-farm";
+
+export interface SceneRuleAdjustments {
+  firstWaveDelayMs?: number;
+  startingSunDelta?: number;
+  zombieSpeedMultiplier?: number;
+}
+
+export type SceneDecorationKind = "sun-rays" | "dew-beads" | "star-glints";
+
+export interface ScenePresentationConfig {
+  tabletopBaseColor: number;
+  tabletopPlankColors: number[];
+  tabletopShadowColor: number;
+  boardMatColor: number;
+  boardFrameColor: number;
+  boardArtAlpha: number;
+  laneWashColor: number;
+  tileWashColor: number;
+  tileHighlightColor: number;
+  tileShadowColor: number;
+  fleckColor: number;
+  fleckAltColor: number;
+  cardGradient: string;
+  cardAccent: string;
+  cardInk: string;
+  decoration: SceneDecorationKind;
+}
+
 export type RunModifierId = "sunny-day" | "slow-start" | "little-hero" | "busy-garden";
 export type ChallengeObjectiveId =
   | "plant-sunflowers"
@@ -236,5 +265,7 @@ export interface GameState {
   nextBaseSunAtMs: number;
   baseSunIntervalMs: number;
   mowerLanes: LaneIndex[];
+  sceneThemeId: SceneThemeId;
+  sceneAdjustments: SceneRuleAdjustments;
   runChallenge?: RunChallengeState;
 }
