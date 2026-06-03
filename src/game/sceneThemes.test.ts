@@ -36,6 +36,7 @@ describe("scene themes", () => {
     );
     expect(new Set(SCENE_THEMES.map((theme) => theme.presentation.tabletopBaseColor)).size).toBe(3);
     expect(new Set(SCENE_THEMES.map((theme) => theme.presentation.cardGradient)).size).toBe(3);
+    expect(new Set(SCENE_THEMES.map((theme) => theme.presentation.boardInsetColor)).size).toBe(3);
   });
 
   it("keeps image2 scene boards clear enough for iPad play", () => {

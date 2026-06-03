@@ -26,6 +26,7 @@ const threeStage = new ThreeStage(document.querySelector("#three-root")!);
 const audio = createGameAudioController();
 let reducedMotion = false;
 document.documentElement.dataset.motion = "full";
+document.documentElement.dataset.scene = scene.getCurrentSceneTheme().id;
 createDomOverlay(document.querySelector("#ui-root")!, scene, {
   soundEnabled: audio.getSettings().enabled,
   onToggleSound: (enabled) => {
@@ -57,6 +58,8 @@ window.addEventListener(
 let seenThreeEventIds = new Set<string>();
 let seenAudioEventIds = new Set<string>();
 scene.uiEvents.on("state-changed", (state: GameState) => {
+  document.documentElement.dataset.scene = state.sceneThemeId;
+  threeStage.setSceneTheme(state.sceneThemeId);
   state.events.forEach((event) => {
     if (!reducedMotion && !seenThreeEventIds.has(event.id) && event.type === "sun-produced") {
       threeStage.pulseSunCollection();

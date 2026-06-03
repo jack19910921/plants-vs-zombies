@@ -87,6 +87,10 @@ export function getChallengeHudLabel(challenge: RunChallengeState): string {
   return `目标：${challenge.objective.label}`;
 }
 
+export function getChallengeShortHudLabel(challenge: RunChallengeState): string {
+  return challenge.objective.label;
+}
+
 export function getModifierAnnouncement(modifier: RunModifier): string {
   return modifier.announcement;
 }

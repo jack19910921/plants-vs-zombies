@@ -2,7 +2,12 @@ import type { GameScene } from "../game/GameScene";
 import { getPlantAssetPresentation } from "../game/assetPresentation";
 import { SUN_TOKEN_TEXTURE, getBoardTextureForScene, getPlantTextureForScene } from "../game/assets";
 import { PLANTS } from "../game/config";
-import { getChallengeHudLabel, getChallengeNudgeText, getChallengeResultLabel } from "../game/runChallenges";
+import {
+  getChallengeHudLabel,
+  getChallengeNudgeText,
+  getChallengeResultLabel,
+  getChallengeShortHudLabel
+} from "../game/runChallenges";
 import { DEFAULT_SCENE_THEME_ID, SCENE_THEMES } from "../game/sceneThemes";
 import type {
   ColumnIndex,
@@ -190,6 +195,14 @@ function getBoardTouchGridMarkup(): string {
 
 function getScenePickerMarkup(state: OverlayRenderState): string {
   const selectedSceneThemeId = state.selectedSceneThemeId ?? DEFAULT_SCENE_THEME_ID;
+  const selectedTheme = SCENE_THEMES.find((theme) => theme.id === selectedSceneThemeId) ?? SCENE_THEMES[0];
+  const pageStyle = [
+    `--scene-page-base: ${toCssHex(selectedTheme.presentation.tabletopBaseColor)}`,
+    `--scene-page-alt: ${toCssHex(selectedTheme.presentation.tabletopPlankColors[1] ?? selectedTheme.presentation.tabletopBaseColor)}`,
+    `--scene-page-shadow: ${toCssHex(selectedTheme.presentation.tabletopShadowColor)}`,
+    `--scene-page-accent: ${selectedTheme.presentation.cardAccent}`,
+    `--scene-page-ink: ${selectedTheme.presentation.cardInk}`
+  ].join("; ");
   const sceneCards = SCENE_THEMES.map((theme) => {
     const selected = theme.id === selectedSceneThemeId ? " is-selected" : "";
     return `<button class="scene-card scene-card--${theme.id}${selected}" data-scene-theme="${theme.id}" style="--scene-card-bg: ${theme.presentation.cardGradient}; --scene-card-image: url('${getBoardTextureForScene(theme.id)}'); --scene-card-accent: ${theme.presentation.cardAccent}; --scene-card-ink: ${theme.presentation.cardInk}">
@@ -198,7 +211,6 @@ function getScenePickerMarkup(state: OverlayRenderState): string {
       <span>${theme.pickerHint}</span>
     </button>`;
   }).join("");
-  const selectedTheme = SCENE_THEMES.find((theme) => theme.id === selectedSceneThemeId) ?? SCENE_THEMES[0];
   const difficultyButtons = difficultyOptions
     .map((option) => {
       const selected = (state.difficultyId ?? "normal") === option.id ? " is-selected" : "";
@@ -206,11 +218,10 @@ function getScenePickerMarkup(state: OverlayRenderState): string {
     })
     .join("");
 
-  return `<div class="scene-picker">
+  return `<div class="scene-picker scene-picker--${selectedTheme.id}" style="${pageStyle}">
     <div class="scene-picker-top">
       <div>
         <h1>今天去哪里守护？</h1>
-        <p>${selectedTheme.hudHint}</p>
       </div>
       <div class="difficulty-toggle">${difficultyButtons}</div>
     </div>
@@ -240,10 +251,11 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
       const selected = state.selectedPlantId === plantId ? " is-selected" : "";
       const lockedClass = locked ? " is-locked" : "";
       const cardStyle = getPlantCardStyle(plantId, selectedSceneThemeId);
+      const sunIconClass = `sun-icon sun-icon--small sun-icon--${selectedSceneThemeId}`;
       return `<button class="plant-card plant-card--${plantId}${selected}${lockedClass}" data-plant="${plantId}" style="${cardStyle}" ${disabled}>
         <span class="plant-art"></span>
         <strong>${plant.name}</strong>
-        <span class="plant-cost">${locked ? "未开放" : `<span class="sun-icon sun-icon--small"></span>${plant.cost}`}</span>
+        <span class="plant-cost">${locked ? "未开放" : `<span class="${sunIconClass}"></span>${plant.cost}`}</span>
       </button>`;
     })
     .join("");
@@ -258,8 +270,14 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
   const sceneName = getSceneName(state.selectedSceneThemeId);
   const waveTitle = sceneName ?? state.levelName;
   const waveLabel = waveTitle ? `${waveTitle} · ${state.waveText}` : state.waveText;
+  const selectedTheme = SCENE_THEMES.find((theme) => theme.id === selectedSceneThemeId) ?? SCENE_THEMES[0];
+  const sceneAccentStyle = [
+    `--scene-page-accent: ${selectedTheme.presentation.cardAccent}`,
+    `--scene-page-ink: ${selectedTheme.presentation.cardInk}`
+  ].join("; ");
+  const hudStyle = [`--sun-art: url('${SUN_TOKEN_TEXTURE}')`, sceneAccentStyle].join("; ");
   const objectiveMarkup = state.runChallenge
-    ? `<div class="chip objective-chip">${getChallengeHudLabel(state.runChallenge)}</div>`
+    ? `<div class="chip objective-chip" data-short-label="${getChallengeShortHudLabel(state.runChallenge)}">${getChallengeHudLabel(state.runChallenge)}</div>`
     : "";
   const difficultyButtons = difficultyOptions
     .map((option) => {
@@ -294,12 +312,13 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
   const modalButtonText = state.status === "paused" ? "继续" : terminalAction === "next-level" ? "下一关" : "再玩一次";
   const modalSummary = getTerminalSummaryMarkup(state);
 
-  return `<div class="hud" style="--sun-art: url('${SUN_TOKEN_TEXTURE}')">
+  return `<div class="hud" style="${hudStyle}">
     <div class="hud-top">
-      <div class="chip sun-chip"><span class="sun-icon"></span><span>${state.sun}</span></div>
+      <div class="chip sun-chip"><span class="sun-icon sun-icon--${selectedSceneThemeId}"></span><span>${state.sun}</span></div>
       <div class="chip wave-chip" data-short-label="${state.compactWaveText ?? state.waveText}">${waveLabel}</div>
       ${objectiveMarkup}
       <div class="difficulty-toggle">${difficultyButtons}</div>
+      <button class="chip scene-menu-button" data-action="menu">换场景</button>
       <button class="chip" data-action="pause">暂停</button>
       <button class="chip sound-toggle" data-action="sound" data-short-label="${soundEnabled ? "音开" : "音关"}" aria-label="${soundEnabled ? "声音开启" : "声音关闭"}">${soundEnabled ? "声音开" : "声音关"}</button>
       <button class="chip motion-toggle" data-action="motion" data-short-label="${reducedMotion ? "柔和" : "动效"}" aria-label="${reducedMotion ? "动效柔和" : "动效正常"}">${reducedMotion ? "动效柔和" : "动效正常"}</button>
@@ -312,12 +331,15 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
     </div>
     <div class="plant-tray">${cards}</div>
   </div>
-  <div class="${modalClass}">
+  <div class="${modalClass}" style="${sceneAccentStyle}">
     <section class="modal">
       <h2>${modalTitle}</h2>
       <p>${modalBody}</p>
       ${modalSummary}
-      <button class="chip" data-action="${modalButtonAction}">${modalButtonText}</button>
+      <div class="modal-actions">
+        <button class="chip" data-action="${modalButtonAction}">${modalButtonText}</button>
+        <button class="chip modal-scene-button" data-action="menu">换场景</button>
+      </div>
     </section>
   </div>`;
 }
@@ -463,6 +485,10 @@ export function createDomOverlay(root: Element, scene: GameScene, options: DomOv
     }
     if (actionButton?.dataset.action === "pause") {
       scene.togglePause();
+      return;
+    }
+    if (actionButton?.dataset.action === "menu") {
+      scene.returnToMenu();
       return;
     }
     if (actionButton?.dataset.action === "lane-up") {

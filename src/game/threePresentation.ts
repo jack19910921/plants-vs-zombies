@@ -1,4 +1,17 @@
+import type { SceneThemeId } from "./types";
+
 export type SeedPacketFlipMode = "select" | "plant";
+
+export type SceneOrnamentKind = "sun-token" | "dew-drop" | "star-token";
+
+export interface SceneOrnamentPresentation {
+  kind: SceneOrnamentKind;
+  haloColor: number;
+  haloOpacity: number;
+  accentColor: number;
+  coreColor: number;
+  emissiveColor: number;
+}
 
 export interface SeedPacketFlipState {
   visible: boolean;
@@ -113,6 +126,37 @@ const STATUS_BADGE_PARTICLE_MS = 1180;
 const STATUS_BADGE_PARTICLE_DELAY_MS = 58;
 const PLANTING_SPARK_MS = 620;
 const PLANTING_SPARK_DELAY_MS = 26;
+
+const SCENE_ORNAMENT_PRESENTATION: Record<SceneThemeId, SceneOrnamentPresentation> = {
+  "sunny-lawn": {
+    kind: "sun-token",
+    haloColor: 0xffd34f,
+    haloOpacity: 0.22,
+    accentColor: 0xffd34f,
+    coreColor: 0xfff1a3,
+    emissiveColor: 0xffc547
+  },
+  "dewy-garden": {
+    kind: "dew-drop",
+    haloColor: 0x9fd7ef,
+    haloOpacity: 0.24,
+    accentColor: 0x9fd7ef,
+    coreColor: 0xdaf8ff,
+    emissiveColor: 0x72cde2
+  },
+  "starlight-farm": {
+    kind: "star-token",
+    haloColor: 0xbdefff,
+    haloOpacity: 0.26,
+    accentColor: 0xbdefff,
+    coreColor: 0xfff1a3,
+    emissiveColor: 0x9f7cff
+  }
+};
+
+export function getSceneOrnamentPresentation(sceneThemeId: SceneThemeId): SceneOrnamentPresentation {
+  return { ...SCENE_ORNAMENT_PRESENTATION[sceneThemeId] };
+}
 
 const TOY_GARDEN_PROP_PROFILES: ToyGardenPropProfile[] = [
   {

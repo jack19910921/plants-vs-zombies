@@ -220,6 +220,20 @@ export class GameScene extends Phaser.Scene {
     this.uiEvents.emit("state-changed", this.state);
   }
 
+  returnToMenu(): void {
+    if (this.state.status === "menu") return;
+    this.uiEvents.emit("sound-requested", "button");
+    this.modifierAnnouncement = null;
+    this.sceneAnnouncement = null;
+    this.state = {
+      ...createInitialState(this.currentLevel, this.currentDifficulty, undefined, this.getCurrentSceneTheme()),
+      status: "menu"
+    };
+    this.lastTickMs = 0;
+    this.redrawFullWorld();
+    this.uiEvents.emit("state-changed", this.state);
+  }
+
   setSelectedPlant(plantId: PlantId): void {
     if (!this.currentLevel.allowedPlants.includes(plantId)) {
       this.uiEvents.emit("feedback-changed", { type: "planting", reason: "locked" });
@@ -341,7 +355,9 @@ export class GameScene extends Phaser.Scene {
     this.add
       .rectangle(640, 326, 1092, 430, presentation.boardMatColor, 0.36)
       .setStrokeStyle(5, presentation.boardFrameColor, 0.92);
-    this.add.rectangle(640, 326, 1066, 404, 0xf1cc86, 0.96).setStrokeStyle(3, 0x8a633d, 0.72);
+    this.add
+      .rectangle(640, 326, 1066, 404, presentation.boardInsetColor, 0.96)
+      .setStrokeStyle(3, presentation.boardFrameColor, 0.72);
     const boardArt = this.add.image(
       BOARD.x + BOARD.width / 2,
       BOARD.y + BOARD.height / 2,

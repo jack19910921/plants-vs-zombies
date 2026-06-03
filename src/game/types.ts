@@ -62,6 +62,7 @@ export interface ScenePresentationConfig {
   tabletopShadowColor: number;
   boardMatColor: number;
   boardFrameColor: number;
+  boardInsetColor: number;
   boardArtAlpha: number;
   laneWashColor: number;
   tileWashColor: number;

@@ -3,6 +3,7 @@ import {
   getGardenToolState,
   getPlantingSparkState,
   getPotatoMineShockwaveState,
+  getSceneOrnamentPresentation,
   getSeedPacketFlipState,
   getStatusBadgeState,
   getSunTrailParticleState,
@@ -214,5 +215,18 @@ describe("three presentation helpers", () => {
       expect(prop.scale).toBeGreaterThan(0);
       expect(prop.scale).toBeLessThanOrEqual(1);
     });
+  });
+
+  it("uses a distinct Three ornament for each scene theme", () => {
+    expect(getSceneOrnamentPresentation("sunny-lawn").kind).toBe("sun-token");
+    expect(getSceneOrnamentPresentation("dewy-garden").kind).toBe("dew-drop");
+    expect(getSceneOrnamentPresentation("starlight-farm").kind).toBe("star-token");
+    expect(
+      new Set([
+        getSceneOrnamentPresentation("sunny-lawn").accentColor,
+        getSceneOrnamentPresentation("dewy-garden").accentColor,
+        getSceneOrnamentPresentation("starlight-farm").accentColor
+      ]).size
+    ).toBe(3);
   });
 });

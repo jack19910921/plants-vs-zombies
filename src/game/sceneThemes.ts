@@ -28,6 +28,7 @@ export const SCENE_THEMES: SceneThemeConfig[] = [
       tabletopShadowColor: 0x5c4330,
       boardMatColor: 0x7aa86b,
       boardFrameColor: 0x68482e,
+      boardInsetColor: 0xf1cc86,
       boardArtAlpha: 0.98,
       laneWashColor: 0xffffff,
       tileWashColor: 0xbde26c,
@@ -55,6 +56,7 @@ export const SCENE_THEMES: SceneThemeConfig[] = [
       tabletopShadowColor: 0x45655f,
       boardMatColor: 0x83b99f,
       boardFrameColor: 0x3f6f67,
+      boardInsetColor: 0xcfe5b8,
       boardArtAlpha: 0.93,
       laneWashColor: 0xdaf8ff,
       tileWashColor: 0x8ed7a4,
@@ -82,6 +84,7 @@ export const SCENE_THEMES: SceneThemeConfig[] = [
       tabletopShadowColor: 0x263238,
       boardMatColor: 0x627f62,
       boardFrameColor: 0x38435f,
+      boardInsetColor: 0x596184,
       boardArtAlpha: 0.91,
       laneWashColor: 0xdff2ff,
       tileWashColor: 0x78b67c,
@@ -90,7 +93,7 @@ export const SCENE_THEMES: SceneThemeConfig[] = [
       fleckColor: 0xfff1a3,
       fleckAltColor: 0xbdefff,
       cardGradient: "linear-gradient(180deg, #596184 0 42%, #78b67c 42%)",
-      cardAccent: "#fff1a3",
+      cardAccent: "#bdefff",
       cardInk: "#4b3f5f",
       decoration: "star-glints"
     }

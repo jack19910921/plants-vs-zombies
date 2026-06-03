@@ -5,6 +5,7 @@ import {
   getChallengeHudLabel,
   getChallengeNudgeText,
   getChallengeResultLabel,
+  getChallengeShortHudLabel,
   getModifierAnnouncement,
   syncChallengeProgressFromState,
   updateChallengeForEvent
@@ -67,6 +68,7 @@ describe("run challenges", () => {
     });
 
     expect(getChallengeHudLabel(challenge)).toMatch(/^目标：/);
+    expect(getChallengeShortHudLabel(challenge)).toBe(challenge.objective.label);
     expect(getModifierAnnouncement(challenge.modifier)).toContain("：");
     expect(getChallengeNudgeText(challenge)).not.toHaveLength(0);
     expect(getChallengeResultLabel({ ...challenge, completed: true })).toBe("小任务完成");

@@ -49,4 +49,17 @@ describe("GameScene menu and run challenges", () => {
     });
     expect(scene.getCurrentModifierAnnouncement()).toContain("：");
   });
+
+  it("returns from a run to the scene picker while keeping the selected scene", async () => {
+    const { GameScene } = await import("./GameScene");
+    const scene = new GameScene();
+
+    scene.setSelectedSceneTheme("dewy-garden");
+    scene.startSelectedScene();
+    scene.returnToMenu();
+
+    expect(scene.getCurrentStatus()).toBe("menu");
+    expect(scene.getCurrentSceneTheme().id).toBe("dewy-garden");
+    expect(scene.getCurrentRunChallenge()).toBeNull();
+  });
 });

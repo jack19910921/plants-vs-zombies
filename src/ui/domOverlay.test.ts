@@ -772,6 +772,7 @@ describe("dom overlay", () => {
     expect(html).toContain('class="chip wave-chip"');
     expect(html).toContain('data-short-label="第 2/10 波"');
     expect(html).toContain('class="chip objective-chip"');
+    expect(html).toContain('data-short-label="种 3 朵向日葵"');
     expect(html).toContain("目标：种 3 朵向日葵");
     expect(html).toContain("阳光日：阳光来得快");
     expect(html).not.toContain("还差 1 朵向日葵");
@@ -847,6 +848,8 @@ describe("dom overlay", () => {
 
     expect(html).toContain("小任务完成");
     expect(html).toContain("objective-result");
+    expect(html).toContain('class="chip modal-scene-button" data-action="menu"');
+    expect(html).toContain("换场景");
   });
 
   it("renders a scene picker in menu state", () => {
@@ -866,9 +869,12 @@ describe("dom overlay", () => {
       selectedSceneThemeId: "sunny-lawn"
     });
 
-    expect(html).toContain('class="scene-picker"');
+    expect(html).toContain('class="scene-picker scene-picker--sunny-lawn"');
+    expect(html).not.toContain("<p>标准草坪</p>");
     expect(html).toContain('class="scene-card-grid"');
     expect(html).toContain('class="scene-picker-bottom"');
+    expect(html).toContain("--scene-page-base:");
+    expect(html).toContain("--scene-page-accent:");
     expect(html).toContain("--scene-card-bg:");
     expect(html).toContain("--scene-card-image:");
     expect(html).toContain("image2-garden-board.png");
@@ -884,6 +890,29 @@ describe("dom overlay", () => {
     expect(html).toContain('data-action="start-scene"');
     expect(html).toContain("开始守护");
     expect(html).toContain('data-difficulty="easy"');
+  });
+
+  it("uses scene-themed sun icons and offers scene switching during play", () => {
+    const html = createDomOverlayMarkup({
+      sun: 250,
+      waveText: "第 1 波 / 8",
+      status: "playing",
+      selectedPlantId: null,
+      cooldownReadyAt: {
+        sunflower: 0,
+        peashooter: 0,
+        wallnut: 0,
+        snowpea: 0,
+        potatomine: 0
+      },
+      nowMs: 0,
+      selectedSceneThemeId: "dewy-garden"
+    });
+
+    expect(html).toContain('data-action="menu"');
+    expect(html).toContain("换场景");
+    expect(html).toContain('class="sun-icon sun-icon--dewy-garden"');
+    expect(html).toContain('class="sun-icon sun-icon--small sun-icon--dewy-garden"');
   });
 
   it("marks the selected scene card", () => {
@@ -976,5 +1005,36 @@ describe("dom overlay", () => {
     clickHandler!({ target: startTarget } as unknown as Event);
 
     expect((scene as unknown as { startSelectedScene: ReturnType<typeof vi.fn> }).startSelectedScene).toHaveBeenCalled();
+  });
+
+  it("returns to the scene picker from the HUD scene action", () => {
+    let clickHandler: ((event: Event) => void) | null = null;
+    const root = {
+      innerHTML: "",
+      addEventListener: vi.fn((_eventName: string, handler: (event: Event) => void) => {
+        clickHandler = handler;
+      })
+    };
+    const scene = {
+      uiEvents: { on: vi.fn() },
+      setSelectedPlant: vi.fn(),
+      togglePause: vi.fn(),
+      restartLevel: vi.fn(),
+      nextLevel: vi.fn(),
+      getCurrentLevel: vi.fn(() => LEVEL_ONE),
+      hasNextLevel: vi.fn(() => false),
+      getCurrentDifficultyId: vi.fn(() => "normal"),
+      setDifficulty: vi.fn(),
+      moveHeroLane: vi.fn(),
+      returnToMenu: vi.fn()
+    } as unknown as GameScene;
+    const menuTarget = {
+      closest: vi.fn((selector: string) => (selector === "[data-action]" ? { dataset: { action: "menu" } } : null))
+    } as unknown as HTMLElement;
+
+    createDomOverlay(root as unknown as Element, scene);
+    clickHandler!({ target: menuTarget } as unknown as Event);
+
+    expect((scene as unknown as { returnToMenu: ReturnType<typeof vi.fn> }).returnToMenu).toHaveBeenCalled();
   });
 });

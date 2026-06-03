@@ -4,6 +4,7 @@ import {
   getGardenToolState,
   getPlantingSparkState,
   getPotatoMineShockwaveState,
+  getSceneOrnamentPresentation,
   getSeedPacketFlipState,
   getStatusBadgeState,
   getSunTrailParticleState,
@@ -14,6 +15,7 @@ import {
   type ToyGardenMaterialFamily,
   type ToyGardenPropProfile
 } from "./threePresentation";
+import type { SceneThemeId } from "./types";
 
 export class ThreeStage {
   private readonly renderer: THREE.WebGLRenderer;
@@ -42,6 +44,11 @@ export class ThreeStage {
   private readonly waveWarningStakeMaterials: THREE.MeshStandardMaterial[] = [];
   private readonly waveWarningBeaconMaterials: THREE.MeshStandardMaterial[] = [];
   private readonly textureLoader = new THREE.TextureLoader();
+  private coinHaloMaterial?: THREE.MeshBasicMaterial;
+  private coinToken?: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>;
+  private coinDew?: THREE.Mesh<THREE.SphereGeometry, THREE.MeshStandardMaterial>;
+  private coinStar?: THREE.Mesh<THREE.ShapeGeometry, THREE.MeshStandardMaterial>;
+  private coinRing?: THREE.Mesh<THREE.TorusGeometry, THREE.MeshStandardMaterial>;
   private frameId = 0;
   private sunPulseStartedAt = -Infinity;
   private wavePulseStartedAt = -Infinity;
@@ -52,6 +59,7 @@ export class ThreeStage {
   private plantingSparkStartedAt = -Infinity;
   private seedPacketMode: SeedPacketFlipMode = "select";
   private statusBadgeMode: StatusBadgeMode | null = null;
+  private currentSceneThemeId: SceneThemeId | null = null;
 
   constructor(private readonly root: HTMLElement) {
     this.renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, preserveDrawingBuffer: true });
@@ -100,6 +108,35 @@ export class ThreeStage {
 
   pulseSunCollection(): void {
     this.sunPulseStartedAt = performance.now();
+  }
+
+  setSceneTheme(sceneThemeId: SceneThemeId): void {
+    if (sceneThemeId === this.currentSceneThemeId) return;
+    this.currentSceneThemeId = sceneThemeId;
+    const presentation = getSceneOrnamentPresentation(sceneThemeId);
+
+    if (this.coinHaloMaterial) {
+      this.coinHaloMaterial.color.setHex(presentation.haloColor);
+      this.coinHaloMaterial.opacity = presentation.haloOpacity;
+    }
+    if (this.coinToken) {
+      this.coinToken.visible = presentation.kind === "sun-token";
+    }
+    if (this.coinDew) {
+      this.coinDew.visible = presentation.kind === "dew-drop";
+      this.coinDew.material.color.setHex(presentation.coreColor);
+      this.coinDew.material.emissive.setHex(presentation.emissiveColor);
+    }
+    if (this.coinStar) {
+      this.coinStar.visible = presentation.kind === "star-token";
+      this.coinStar.material.color.setHex(presentation.coreColor);
+      this.coinStar.material.emissive.setHex(presentation.emissiveColor);
+    }
+    if (this.coinRing) {
+      this.coinRing.visible = presentation.kind !== "sun-token";
+      this.coinRing.material.color.setHex(presentation.accentColor);
+      this.coinRing.material.emissive.setHex(presentation.emissiveColor);
+    }
   }
 
   pulseWaveAlert(): void {
@@ -280,19 +317,61 @@ export class ThreeStage {
   }
 
   private buildCoin(): void {
+    this.coinHaloMaterial = new THREE.MeshBasicMaterial({
+      color: 0xffd34f,
+      transparent: true,
+      opacity: 0.22,
+      depthWrite: false,
+      side: THREE.DoubleSide
+    });
     const halo = new THREE.Mesh(
       new THREE.CircleGeometry(0.82, 48),
-      new THREE.MeshBasicMaterial({
-        color: 0xffd34f,
-        transparent: true,
-        opacity: 0.22,
-        depthWrite: false,
-        side: THREE.DoubleSide
-      })
+      this.coinHaloMaterial
     );
     halo.position.z = -0.03;
-    const token = this.createTexturePlane(SUN_TOKEN_TEXTURE, 1.48, 1.5);
-    this.coin.add(halo, token);
+    this.coinToken = this.createTexturePlane(SUN_TOKEN_TEXTURE, 1.48, 1.5);
+    this.coinDew = new THREE.Mesh(
+      new THREE.SphereGeometry(0.56, 32, 20),
+      new THREE.MeshStandardMaterial({
+        color: 0xdaf8ff,
+        emissive: 0x72cde2,
+        emissiveIntensity: 0.48,
+        metalness: 0.04,
+        roughness: 0.18,
+        transparent: true,
+        opacity: 0.92
+      })
+    );
+    this.coinDew.scale.set(0.82, 1.08, 0.5);
+    this.coinDew.position.y = -0.02;
+    this.coinStar = new THREE.Mesh(
+      this.createStarGeometry(),
+      new THREE.MeshStandardMaterial({
+        color: 0xfff1a3,
+        emissive: 0x9f7cff,
+        emissiveIntensity: 0.56,
+        metalness: 0.08,
+        roughness: 0.32,
+        transparent: true,
+        opacity: 0.96
+      })
+    );
+    this.coinStar.scale.setScalar(0.56);
+    this.coinStar.position.z = 0.05;
+    this.coinRing = new THREE.Mesh(
+      new THREE.TorusGeometry(0.58, 0.035, 10, 56),
+      new THREE.MeshStandardMaterial({
+        color: 0xbdefff,
+        emissive: 0x9f7cff,
+        emissiveIntensity: 0.46,
+        metalness: 0.12,
+        roughness: 0.24,
+        transparent: true,
+        opacity: 0.88
+      })
+    );
+    this.coin.add(halo, this.coinToken, this.coinDew, this.coinStar, this.coinRing);
+    this.setSceneTheme("sunny-lawn");
   }
 
   private buildBurst(): void {
@@ -636,10 +715,15 @@ export class ThreeStage {
     const pulseAge = (now - this.sunPulseStartedAt) / 620;
     const pulse = pulseAge >= 0 && pulseAge <= 1 ? 1 - pulseAge : 0;
     const pulseEase = pulse * pulse;
-    this.coin.rotation.y = Math.sin(seconds * 1.7) * 0.65;
+    const ornamentKind = this.currentSceneThemeId
+      ? getSceneOrnamentPresentation(this.currentSceneThemeId).kind
+      : "sun-token";
+    this.coin.rotation.y = Math.sin(seconds * 1.7) * (ornamentKind === "dew-drop" ? 0.38 : 0.65);
     this.coin.rotation.z = seconds * 0.35 + pulseEase * 0.45;
     this.coin.position.y = Math.sin(seconds * 2.2) * 0.08 + pulseEase * 0.1;
     this.coin.scale.setScalar(1 + pulseEase * 0.24);
+    if (this.coinRing?.visible) this.coinRing.rotation.z = -seconds * 0.74;
+    if (this.coinStar?.visible) this.coinStar.rotation.z = seconds * 0.42;
     this.animateToyGardenProps(seconds);
     this.animateBurst(pulseAge);
     this.animateSunTrail(now);
