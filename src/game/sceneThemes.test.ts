@@ -37,4 +37,9 @@ describe("scene themes", () => {
     expect(new Set(SCENE_THEMES.map((theme) => theme.presentation.tabletopBaseColor)).size).toBe(3);
     expect(new Set(SCENE_THEMES.map((theme) => theme.presentation.cardGradient)).size).toBe(3);
   });
+
+  it("keeps image2 scene boards clear enough for iPad play", () => {
+    expect(getSceneTheme("dewy-garden").presentation.boardArtAlpha).toBeGreaterThanOrEqual(0.92);
+    expect(getSceneTheme("starlight-farm").presentation.boardArtAlpha).toBeGreaterThanOrEqual(0.9);
+  });
 });
