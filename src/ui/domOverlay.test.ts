@@ -210,6 +210,28 @@ describe("dom overlay", () => {
     expect(html).toContain("--plant-size: contain");
   });
 
+  it("uses scene-specific plant card art when a scene provides it", () => {
+    const html = createDomOverlayMarkup({
+      sun: 150,
+      waveText: "第 1 波 / 8",
+      status: "playing",
+      selectedPlantId: null,
+      cooldownReadyAt: {
+        sunflower: 0,
+        peashooter: 0,
+        wallnut: 0,
+        snowpea: 0,
+        potatomine: 0
+      },
+      nowMs: 0,
+      selectedSceneThemeId: "dewy-garden"
+    });
+
+    expect(html).toContain("image2-dewy-peashooter.png");
+    expect(html).toContain("image2-dewy-wallnut.png");
+    expect(html).toContain("image2-sunflower.png");
+  });
+
   it("keeps profile styling on locked cards", () => {
     const html = createDomOverlayMarkup({
       sun: 150,

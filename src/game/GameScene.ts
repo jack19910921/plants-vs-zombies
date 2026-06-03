@@ -12,8 +12,14 @@ import {
   LAWN_MOWER_TEXTURE,
   PLANT_TEXTURES,
   PROJECTILE_TEXTURES,
+  SCENE_BOARD_TEXTURES,
+  SCENE_PLANT_TEXTURES,
+  SCENE_ZOMBIE_TEXTURES,
   SUN_TOKEN_TEXTURE,
-  ZOMBIE_TEXTURES
+  ZOMBIE_TEXTURES,
+  getBoardTextureKeyForScene,
+  getPlantTextureKeyForScene,
+  getZombieTextureKeyForScene
 } from "./assets";
 import { DIFFICULTY, LEVELS, PLANTS, ZOMBIES } from "./config";
 import {
@@ -101,6 +107,14 @@ export class GameScene extends Phaser.Scene {
       this.load.image(`plant-${plantId}`, url);
     });
     this.load.image("garden-board", BOARD_TEXTURE);
+    Object.entries(SCENE_BOARD_TEXTURES).forEach(([sceneThemeId, url]) => {
+      this.load.image(getBoardTextureKeyForScene(sceneThemeId as SceneThemeId), url);
+    });
+    Object.entries(SCENE_PLANT_TEXTURES).forEach(([sceneThemeId, plants]) => {
+      Object.entries(plants).forEach(([plantId, url]) => {
+        this.load.image(getPlantTextureKeyForScene(sceneThemeId as SceneThemeId, plantId as PlantId), url);
+      });
+    });
     this.load.image("base-sign", BASE_SIGN_TEXTURE);
     this.load.image("sun-token", SUN_TOKEN_TEXTURE);
     this.load.image("lawn-mower", LAWN_MOWER_TEXTURE);
@@ -108,6 +122,11 @@ export class GameScene extends Phaser.Scene {
     this.load.image("projectile-ice", PROJECTILE_TEXTURES.ice);
     Object.entries(ZOMBIE_TEXTURES).forEach(([zombieId, url]) => {
       this.load.image(`zombie-${zombieId}`, url);
+    });
+    Object.entries(SCENE_ZOMBIE_TEXTURES).forEach(([sceneThemeId, zombies]) => {
+      Object.entries(zombies).forEach(([zombieId, url]) => {
+        this.load.image(getZombieTextureKeyForScene(sceneThemeId as SceneThemeId, zombieId as ZombieEntity["zombieId"]), url);
+      });
     });
   }
 
@@ -323,7 +342,11 @@ export class GameScene extends Phaser.Scene {
       .rectangle(640, 326, 1092, 430, presentation.boardMatColor, 0.36)
       .setStrokeStyle(5, presentation.boardFrameColor, 0.92);
     this.add.rectangle(640, 326, 1066, 404, 0xf1cc86, 0.96).setStrokeStyle(3, 0x8a633d, 0.72);
-    const boardArt = this.add.image(BOARD.x + BOARD.width / 2, BOARD.y + BOARD.height / 2, "garden-board");
+    const boardArt = this.add.image(
+      BOARD.x + BOARD.width / 2,
+      BOARD.y + BOARD.height / 2,
+      getBoardTextureKeyForScene(sceneTheme.id)
+    );
     const boardCrop = getSourceCropPixels(getBoardAssetPresentation().crop, boardArt.width, boardArt.height);
     const boardScaleX = BOARD.width / boardCrop.width;
     const boardScaleY = BOARD.height / boardCrop.height;
@@ -627,7 +650,7 @@ export class GameScene extends Phaser.Scene {
     this.add
       .ellipse(x + 5, imageY - hero.imageHeight * 0.48, hero.imageWidth + 10, hero.imageHeight + 8, 0x1d3f2c, 0.16)
       .setData("dynamic", true);
-    const heroImage = this.add.image(x, imageY, hero.imageKey);
+    const heroImage = this.add.image(x, imageY, getPlantTextureKeyForScene(this.state.sceneThemeId, "peashooter"));
     this.applyTextureCrop(heroImage, assetProfile.crop)
       .setOrigin(assetProfile.fieldAnchorX, assetProfile.fieldAnchorY)
       .setDisplaySize(hero.imageWidth, hero.imageHeight)
@@ -705,7 +728,7 @@ export class GameScene extends Phaser.Scene {
         0.18
       )
       .setData("dynamic", true);
-    const plantImage = this.add.image(imageX, imageY, `plant-${plant.plantId}`);
+    const plantImage = this.add.image(imageX, imageY, getPlantTextureKeyForScene(this.state.sceneThemeId, plant.plantId));
     this.applyTextureCrop(plantImage, assetProfile.crop)
       .setOrigin(assetProfile.fieldAnchorX, assetProfile.fieldAnchorY)
       .setDisplaySize(imageWidth, imageHeight)
@@ -919,7 +942,7 @@ export class GameScene extends Phaser.Scene {
     const zombieImage = this.add.image(
       bodyX + assetProfile.fieldOffsetX,
       bodyY + assetProfile.fieldOffsetY,
-      `zombie-${zombie.zombieId}`
+      getZombieTextureKeyForScene(this.state.sceneThemeId, zombie.zombieId)
     );
     this.applyTextureCrop(zombieImage, assetProfile.crop)
       .setDisplaySize(profile.imageWidth * miniature.scaleX, profile.imageHeight * miniature.scaleY)

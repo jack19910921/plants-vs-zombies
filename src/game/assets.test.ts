@@ -2,11 +2,20 @@ import { describe, expect, it } from "vitest";
 import {
   BASE_SIGN_TEXTURE,
   BOARD_TEXTURE,
+  SCENE_BOARD_TEXTURES,
+  SCENE_PLANT_TEXTURES,
+  SCENE_ZOMBIE_TEXTURES,
   LAWN_MOWER_TEXTURE,
   PLANT_TEXTURES,
   PROJECTILE_TEXTURES,
   SUN_TOKEN_TEXTURE,
-  ZOMBIE_TEXTURES
+  ZOMBIE_TEXTURES,
+  getBoardTextureKeyForScene,
+  getBoardTextureForScene,
+  getPlantTextureKeyForScene,
+  getPlantTextureForScene,
+  getZombieTextureKeyForScene,
+  getZombieTextureForScene
 } from "./assets";
 import type { PlantId, ZombieId } from "./types";
 
@@ -47,5 +56,38 @@ describe("asset texture registry", () => {
     expect(SUN_TOKEN_TEXTURE).toContain("image2-sun-token.png");
     expect(BASE_SIGN_TEXTURE).toContain("image2-base-sign.png");
     expect(LAWN_MOWER_TEXTURE).toContain("image2-lawn-mower.png");
+  });
+
+  it("exposes scene-specific image2 board textures", () => {
+    expect(SCENE_BOARD_TEXTURES["dewy-garden"]).toContain("image2-dewy-board.png");
+    expect(SCENE_BOARD_TEXTURES["starlight-farm"]).toContain("image2-starlight-board.png");
+    expect(getBoardTextureForScene("sunny-lawn")).toBe(BOARD_TEXTURE);
+    expect(getBoardTextureForScene("dewy-garden")).toBe(SCENE_BOARD_TEXTURES["dewy-garden"]);
+  });
+
+  it("exposes scene-specific image2 plant textures with sunny fallbacks", () => {
+    expect(SCENE_PLANT_TEXTURES["dewy-garden"]?.peashooter).toContain("image2-dewy-peashooter.png");
+    expect(SCENE_PLANT_TEXTURES["dewy-garden"]?.wallnut).toContain("image2-dewy-wallnut.png");
+    expect(SCENE_PLANT_TEXTURES["starlight-farm"]?.sunflower).toContain("image2-starlight-sunflower.png");
+    expect(SCENE_PLANT_TEXTURES["starlight-farm"]?.peashooter).toContain("image2-starlight-peashooter.png");
+    expect(getPlantTextureForScene("sunny-lawn", "peashooter")).toBe(PLANT_TEXTURES.peashooter);
+    expect(getPlantTextureForScene("dewy-garden", "sunflower")).toBe(PLANT_TEXTURES.sunflower);
+  });
+
+  it("exposes scene-specific image2 zombie textures with sunny fallbacks", () => {
+    expect(SCENE_ZOMBIE_TEXTURES["dewy-garden"]?.basic).toContain("image2-dewy-zombie-basic.png");
+    expect(SCENE_ZOMBIE_TEXTURES["starlight-farm"]?.basic).toContain("image2-starlight-zombie-basic.png");
+    expect(SCENE_ZOMBIE_TEXTURES["starlight-farm"]?.bucket).toContain("image2-starlight-zombie-bucket.png");
+    expect(getZombieTextureForScene("sunny-lawn", "basic")).toBe(ZOMBIE_TEXTURES.basic);
+    expect(getZombieTextureForScene("dewy-garden", "bucket")).toBe(ZOMBIE_TEXTURES.bucket);
+  });
+
+  it("resolves Phaser texture keys from the selected scene", () => {
+    expect(getBoardTextureKeyForScene("sunny-lawn")).toBe("garden-board");
+    expect(getBoardTextureKeyForScene("dewy-garden")).toBe("scene-board-dewy-garden");
+    expect(getPlantTextureKeyForScene("starlight-farm", "sunflower")).toBe("plant-starlight-farm-sunflower");
+    expect(getPlantTextureKeyForScene("starlight-farm", "wallnut")).toBe("plant-wallnut");
+    expect(getZombieTextureKeyForScene("starlight-farm", "bucket")).toBe("zombie-starlight-farm-bucket");
+    expect(getZombieTextureKeyForScene("dewy-garden", "bucket")).toBe("zombie-bucket");
   });
 });

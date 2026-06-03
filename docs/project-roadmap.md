@@ -23,7 +23,7 @@ Completed:
 - M11g grass animation polish adds subtle 3D board depth, moving shimmer, grass flecks, and better contact shadows without new assets.
 - M12 terminal summary adds compact victory/failure stats for wave progress, remaining plants, and sun.
 - Final acceptance closeout adds a gentle motion setting and a small bucket enemy ice-resistance behavior.
-- Opening scene picker adds three visibly distinct offline scenes with iPad-first cards, light scene-specific rhythm, and no backend or account system.
+- Opening scene picker adds three visibly distinct offline scenes with iPad-first cards, light scene-specific rhythm, image2 scene art overrides, and no backend or account system.
 - Automated rule/UI tests and browser visual checks used before commits.
 
 Known constraints:
@@ -472,7 +472,7 @@ Delivered:
 
 - Opening scene picker with `阳光草坪`, `露珠菜园`, and `星光农圃`.
 - Default scene selection and one-tap start flow.
-- Scene-specific procedural board/tabletop visuals that can later be replaced with image2 scene art.
+- Scene-specific board/tabletop visuals, now including user-provided image2 overrides for Dewy Garden and Starlight Farm boards, plants, and enemies.
 - Conservative scene rhythm adjustments layered with difficulty and run modifiers.
 - iPad landscape verification for picker readability and touch-grid alignment.
 

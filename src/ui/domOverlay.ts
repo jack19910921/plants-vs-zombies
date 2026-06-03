@@ -1,6 +1,6 @@
 import type { GameScene } from "../game/GameScene";
 import { getPlantAssetPresentation } from "../game/assetPresentation";
-import { PLANT_TEXTURES, SUN_TOKEN_TEXTURE } from "../game/assets";
+import { SUN_TOKEN_TEXTURE, getPlantTextureForScene } from "../game/assets";
 import { PLANTS } from "../game/config";
 import { getChallengeHudLabel, getChallengeNudgeText, getChallengeResultLabel } from "../game/runChallenges";
 import { DEFAULT_SCENE_THEME_ID, SCENE_THEMES } from "../game/sceneThemes";
@@ -91,14 +91,14 @@ function toCssHex(color: number): string {
   return `#${color.toString(16).padStart(6, "0")}`;
 }
 
-function getPlantCardStyle(plantId: PlantId): string {
+function getPlantCardStyle(plantId: PlantId, sceneThemeId: SceneThemeId = DEFAULT_SCENE_THEME_ID): string {
   const profile = getPlantMiniatureProfile(plantId);
   const assetProfile = getPlantAssetPresentation(plantId);
   return [
     `--plant-rim: ${toCssHex(profile.rimColor)}`,
     `--plant-base: ${toCssHex(profile.baseColor)}`,
     `--plant-stem: ${toCssHex(profile.stemColor)}`,
-    `--plant-art: url('${PLANT_TEXTURES[plantId]}')`,
+    `--plant-art: url('${getPlantTextureForScene(sceneThemeId, plantId)}')`,
     `--plant-position: ${assetProfile.cssObjectPosition}`,
     `--plant-size: ${assetProfile.cssBackgroundSize}`,
     `--plant-filter: ${assetProfile.cssFilter}`
@@ -231,6 +231,7 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
   if (state.status === "menu") return getScenePickerMarkup(state);
 
   const allowedPlantIds = new Set(state.allowedPlantIds ?? plantOrder);
+  const selectedSceneThemeId = state.selectedSceneThemeId ?? DEFAULT_SCENE_THEME_ID;
   const cards = plantOrder
     .map((plantId) => {
       const plant = PLANTS[plantId];
@@ -238,7 +239,7 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
       const disabled = locked || state.nowMs < state.cooldownReadyAt[plantId] ? "disabled" : "";
       const selected = state.selectedPlantId === plantId ? " is-selected" : "";
       const lockedClass = locked ? " is-locked" : "";
-      const cardStyle = getPlantCardStyle(plantId);
+      const cardStyle = getPlantCardStyle(plantId, selectedSceneThemeId);
       return `<button class="plant-card plant-card--${plantId}${selected}${lockedClass}" data-plant="${plantId}" style="${cardStyle}" ${disabled}>
         <span class="plant-art"></span>
         <strong>${plant.name}</strong>
