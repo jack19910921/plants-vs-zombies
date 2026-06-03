@@ -1,6 +1,6 @@
 import type { GameScene } from "../game/GameScene";
 import { getPlantAssetPresentation } from "../game/assetPresentation";
-import { SUN_TOKEN_TEXTURE, getPlantTextureForScene } from "../game/assets";
+import { SUN_TOKEN_TEXTURE, getBoardTextureForScene, getPlantTextureForScene } from "../game/assets";
 import { PLANTS } from "../game/config";
 import { getChallengeHudLabel, getChallengeNudgeText, getChallengeResultLabel } from "../game/runChallenges";
 import { DEFAULT_SCENE_THEME_ID, SCENE_THEMES } from "../game/sceneThemes";
@@ -192,7 +192,7 @@ function getScenePickerMarkup(state: OverlayRenderState): string {
   const selectedSceneThemeId = state.selectedSceneThemeId ?? DEFAULT_SCENE_THEME_ID;
   const sceneCards = SCENE_THEMES.map((theme) => {
     const selected = theme.id === selectedSceneThemeId ? " is-selected" : "";
-    return `<button class="scene-card scene-card--${theme.id}${selected}" data-scene-theme="${theme.id}" style="--scene-card-bg: ${theme.presentation.cardGradient}; --scene-card-accent: ${theme.presentation.cardAccent}; --scene-card-ink: ${theme.presentation.cardInk}">
+    return `<button class="scene-card scene-card--${theme.id}${selected}" data-scene-theme="${theme.id}" style="--scene-card-bg: ${theme.presentation.cardGradient}; --scene-card-image: url('${getBoardTextureForScene(theme.id)}'); --scene-card-accent: ${theme.presentation.cardAccent}; --scene-card-ink: ${theme.presentation.cardInk}">
       <span class="scene-card-art"></span>
       <strong>${theme.name}</strong>
       <span>${theme.pickerHint}</span>

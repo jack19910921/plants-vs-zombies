@@ -870,6 +870,10 @@ describe("dom overlay", () => {
     expect(html).toContain('class="scene-card-grid"');
     expect(html).toContain('class="scene-picker-bottom"');
     expect(html).toContain("--scene-card-bg:");
+    expect(html).toContain("--scene-card-image:");
+    expect(html).toContain("image2-garden-board.png");
+    expect(html).toContain("image2-dewy-board.png");
+    expect(html).toContain("image2-starlight-board.png");
     expect(html).toContain("今天去哪里守护");
     expect(html).toContain('data-scene-theme="sunny-lawn"');
     expect(html).toContain('data-scene-theme="dewy-garden"');
