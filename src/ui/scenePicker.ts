@@ -1,4 +1,3 @@
-import { getSceneThumbnailForScene } from "../game/sceneThumbnails";
 import { DEFAULT_SCENE_THEME_ID, SCENE_THEMES } from "../game/sceneThemes";
 import type { DifficultyId, SceneThemeId } from "../game/types";
 
@@ -17,6 +16,10 @@ function toCssHex(color: number): string {
   return `#${color.toString(16).padStart(6, "0")}`;
 }
 
+function getSceneCardBoardMarkup(): string {
+  return Array.from({ length: 45 }, (_, index) => `<span class="scene-card-tile scene-card-tile--${index % 4}"></span>`).join("");
+}
+
 export function createScenePickerMarkup(state: ScenePickerRenderState): string {
   const selectedSceneThemeId = state.selectedSceneThemeId ?? DEFAULT_SCENE_THEME_ID;
   const selectedTheme = SCENE_THEMES.find((theme) => theme.id === selectedSceneThemeId) ?? SCENE_THEMES[0];
@@ -29,9 +32,8 @@ export function createScenePickerMarkup(state: ScenePickerRenderState): string {
   ].join("; ");
   const sceneCards = SCENE_THEMES.map((theme) => {
     const selected = theme.id === selectedSceneThemeId ? " is-selected" : "";
-    const thumbnail = getSceneThumbnailForScene(theme.id);
     return `<button class="scene-card scene-card--${theme.id}${selected}" data-scene-theme="${theme.id}" style="--scene-card-bg: ${theme.presentation.cardGradient}; --scene-card-accent: ${theme.presentation.cardAccent}; --scene-card-ink: ${theme.presentation.cardInk}">
-      <span class="scene-card-art"><img class="scene-card-thumb" src="${thumbnail}" alt="" loading="eager" decoding="async" draggable="false" /></span>
+      <span class="scene-card-art"><span class="scene-card-board" aria-hidden="true">${getSceneCardBoardMarkup()}</span></span>
       <strong>${theme.name}</strong>
       <span>${theme.pickerHint}</span>
     </button>`;
