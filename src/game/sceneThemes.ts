@@ -36,7 +36,7 @@ export const SCENE_THEMES: SceneThemeConfig[] = [
       tileShadowColor: 0x174a36,
       fleckColor: 0xfff8df,
       fleckAltColor: 0xc6ec82,
-      cardGradient: "linear-gradient(180deg, #fff0a8 0 42%, #96cf66 42%)",
+      cardGradient: "linear-gradient(180deg, #fff0a8 0%, #fff0a8 42%, #96cf66 42%, #96cf66 100%)",
       cardAccent: "#ffd34f",
       cardInk: "#5c4330",
       decoration: "sun-rays"
@@ -64,7 +64,7 @@ export const SCENE_THEMES: SceneThemeConfig[] = [
       tileShadowColor: 0x2d6b5f,
       fleckColor: 0xdaf8ff,
       fleckAltColor: 0x9be4c4,
-      cardGradient: "linear-gradient(180deg, #c9f2ec 0 42%, #8bd6a2 42%)",
+      cardGradient: "linear-gradient(180deg, #c9f2ec 0%, #c9f2ec 42%, #8bd6a2 42%, #8bd6a2 100%)",
       cardAccent: "#9fd7ef",
       cardInk: "#31595c",
       decoration: "dew-beads"
@@ -92,7 +92,7 @@ export const SCENE_THEMES: SceneThemeConfig[] = [
       tileShadowColor: 0x263238,
       fleckColor: 0xfff1a3,
       fleckAltColor: 0xbdefff,
-      cardGradient: "linear-gradient(180deg, #596184 0 42%, #78b67c 42%)",
+      cardGradient: "linear-gradient(180deg, #596184 0%, #596184 42%, #78b67c 42%, #78b67c 100%)",
       cardAccent: "#bdefff",
       cardInk: "#4b3f5f",
       decoration: "star-glints"

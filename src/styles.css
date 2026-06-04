@@ -667,7 +667,7 @@ button {
 .scene-card.is-selected {
   border-color: var(--scene-card-accent, #2f6b40);
   box-shadow:
-    0 0 0 5px color-mix(in srgb, var(--scene-card-accent, #ffd34f) 58%, transparent),
+    0 0 0 5px rgba(255, 211, 79, 0.46),
     0 6px 0 rgba(92, 67, 48, 0.18);
 }
 
@@ -680,102 +680,25 @@ button {
 }
 
 .scene-card--sunny-lawn .scene-card-art {
-  background: linear-gradient(180deg, #fff0a8 0 42%, #96cf66 42%);
+  background-color: #96cf66;
+  background-image: linear-gradient(180deg, #fff0a8 0%, #fff0a8 42%, #96cf66 42%, #96cf66 100%);
 }
 
 .scene-card--dewy-garden .scene-card-art {
-  background: linear-gradient(180deg, #c9f2ec 0 42%, #8bd6a2 42%);
+  background-color: #8bd6a2;
+  background-image: linear-gradient(180deg, #c9f2ec 0%, #c9f2ec 42%, #8bd6a2 42%, #8bd6a2 100%);
 }
 
 .scene-card--starlight-farm .scene-card-art {
-  background: linear-gradient(180deg, #596184 0 42%, #78b67c 42%);
+  background-color: #78b67c;
+  background-image: linear-gradient(180deg, #596184 0%, #596184 42%, #78b67c 42%, #78b67c 100%);
 }
 
-.scene-card-board {
-  position: absolute;
-  inset: 20px 18px 16px;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: repeat(9, minmax(0, 1fr));
-  grid-template-rows: repeat(5, minmax(0, 1fr));
-  gap: 2px;
-  padding: 7px;
-  border: 5px solid #7a5132;
-  border-radius: 7px;
-  background: #b7814e;
-  box-shadow:
-    inset 0 0 0 2px rgba(255, 248, 223, 0.32),
-    0 12px 22px rgba(92, 67, 48, 0.18);
-  transform: rotate(-1deg);
-}
-
-.scene-card-tile {
+.scene-card-art-svg {
   display: block;
-  min-width: 0;
-  min-height: 0;
-  border-radius: 2px;
-  background: #8ccb51;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 248, 223, 0.28),
-    inset 0 -1px 0 rgba(38, 50, 56, 0.1);
-}
-
-.scene-card--sunny-lawn .scene-card-tile--0 {
-  background: #83bf43;
-}
-
-.scene-card--sunny-lawn .scene-card-tile--1 {
-  background: #9bd45b;
-}
-
-.scene-card--sunny-lawn .scene-card-tile--2 {
-  background: #78b53d;
-}
-
-.scene-card--sunny-lawn .scene-card-tile--3 {
-  background: #a8dc69;
-}
-
-.scene-card--dewy-garden .scene-card-board {
-  border-color: #3f6f67;
-  background: #a4c68f;
-}
-
-.scene-card--dewy-garden .scene-card-tile--0 {
-  background: #7fcf9b;
-}
-
-.scene-card--dewy-garden .scene-card-tile--1 {
-  background: #9be4c4;
-}
-
-.scene-card--dewy-garden .scene-card-tile--2 {
-  background: #70be91;
-}
-
-.scene-card--dewy-garden .scene-card-tile--3 {
-  background: #b9ecd3;
-}
-
-.scene-card--starlight-farm .scene-card-board {
-  border-color: #38435f;
-  background: #596184;
-}
-
-.scene-card--starlight-farm .scene-card-tile--0 {
-  background: #6ea96f;
-}
-
-.scene-card--starlight-farm .scene-card-tile--1 {
-  background: #82bd85;
-}
-
-.scene-card--starlight-farm .scene-card-tile--2 {
-  background: #5f966c;
-}
-
-.scene-card--starlight-farm .scene-card-tile--3 {
-  background: #91c99a;
+  width: 100%;
+  height: 100%;
+  min-height: 130px;
 }
 
 .scene-card-art::before {
@@ -1382,8 +1305,12 @@ button {
 
   .scene-card.is-selected {
     box-shadow:
-      0 0 0 3px color-mix(in srgb, var(--scene-card-accent, #ffd34f) 62%, transparent),
+      0 0 0 3px rgba(255, 211, 79, 0.5),
       0 3px 0 rgba(92, 67, 48, 0.18);
+  }
+
+  .scene-card-art-svg {
+    min-height: 88px;
   }
 
   .scene-card strong {

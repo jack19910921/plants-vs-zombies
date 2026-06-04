@@ -876,8 +876,10 @@ describe("dom overlay", () => {
     expect(html).toContain("--scene-page-base:");
     expect(html).toContain("--scene-page-accent:");
     expect(html).toContain("--scene-card-bg:");
-    expect(html).toContain('class="scene-card-board"');
-    expect(html.match(/class="scene-card-tile/g)).toHaveLength(135);
+    expect(html).toContain('class="scene-card-art-svg"');
+    expect(html.match(/<svg class="scene-card-art-svg"/g)).toHaveLength(3);
+    expect(html).not.toContain('class="scene-card-board"');
+    expect(html).not.toContain('class="scene-card-tile');
     expect(html).not.toContain("image2-garden-board.png");
     expect(html).not.toContain("image2-dewy-board.png");
     expect(html).not.toContain("image2-starlight-board.png");
