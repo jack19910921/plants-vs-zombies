@@ -101,9 +101,13 @@ function getSceneCardArtMarkup(sceneThemeId: SceneThemeId): string {
       <rect y="92" width="360" height="128" fill="${palette.ground}" />
       <path d="M0 96 C74 86 132 104 210 94 C282 86 326 89 360 98 L360 220 L0 220 Z" fill="${palette.groundAlt}" opacity="0.56" />
       ${getSceneCardDecoration(sceneThemeId)}
+      <ellipse cx="184" cy="188" rx="148" ry="18" fill="#263238" opacity="0.22" />
       <g transform="rotate(-1 180 130)">
+        <rect x="40" y="78" width="292" height="128" rx="8" fill="#263238" opacity="0.2" />
         <rect x="36" y="64" width="292" height="128" rx="8" fill="${palette.boardFrame}" />
+        <rect x="36" y="174" width="292" height="18" rx="8" fill="#263238" opacity="0.28" />
         <rect x="46" y="74" width="272" height="108" rx="5" fill="${palette.boardBase}" />
+        <rect x="46" y="74" width="272" height="22" rx="5" fill="${palette.boardStroke}" opacity="0.14" />
         ${tiles}
         <rect x="46" y="74" width="272" height="108" rx="5" fill="none" stroke="${palette.boardStroke}" stroke-width="3" opacity="0.38" />
       </g>

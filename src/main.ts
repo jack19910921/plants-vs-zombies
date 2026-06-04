@@ -1,6 +1,7 @@
 import type PhaserNamespace from "phaser";
 import type { SoundId } from "./game/audio";
 import { DEFAULT_SCENE_THEME_ID } from "./game/sceneThemes";
+import type { ThreeStage } from "./game/ThreeStage";
 import type { DifficultyId, GameState, SceneThemeId } from "./game/types";
 import "./styles.css";
 import { createScenePickerMarkup } from "./ui/scenePicker";
@@ -12,11 +13,20 @@ const uiRoot = document.querySelector("#ui-root") as HTMLElement;
 let selectedSceneThemeId: SceneThemeId = DEFAULT_SCENE_THEME_ID;
 let selectedDifficultyId: DifficultyId = "normal";
 let isStartingGame = false;
+let menuThreeStage: ThreeStage | null = null;
+let menuThreeIdleHandle: number | null = null;
+let menuThreeIdleHandleKind: "idle" | "timeout" | null = null;
+let menuThreeLoadVersion = 0;
 
 document.documentElement.dataset.motion = "full";
 document.documentElement.dataset.scene = selectedSceneThemeId;
 
 function renderLandingDecoration(): void {
+  if (menuThreeStage) {
+    menuThreeStage.setSceneTheme(selectedSceneThemeId);
+    return;
+  }
+
   threeRoot.innerHTML = `<div class="menu-scene-decoration menu-scene-decoration--${selectedSceneThemeId}" aria-hidden="true">
     <span class="menu-scene-decoration__stem"></span>
     <span class="menu-scene-decoration__leaf menu-scene-decoration__leaf--left"></span>
@@ -33,6 +43,7 @@ function renderLandingMenu(): void {
     isLoading: isStartingGame
   });
   renderLandingDecoration();
+  scheduleMenuThreeStage();
 }
 
 function handleLandingPointerDown(event: PointerEvent): void {
@@ -68,8 +79,70 @@ function detachLandingMenu(): void {
 
 let destroyStartedGame: (() => void) | null = null;
 
+type WindowWithIdleCallback = Window & {
+  requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+  cancelIdleCallback?: (handle: number) => void;
+};
+
+function cancelMenuThreeStageLoad(): void {
+  menuThreeLoadVersion += 1;
+  if (menuThreeIdleHandle === null) return;
+
+  const idleWindow = window as WindowWithIdleCallback;
+  if (menuThreeIdleHandleKind === "idle" && idleWindow.cancelIdleCallback) {
+    idleWindow.cancelIdleCallback(menuThreeIdleHandle);
+  } else {
+    window.clearTimeout(menuThreeIdleHandle);
+  }
+  menuThreeIdleHandle = null;
+  menuThreeIdleHandleKind = null;
+}
+
+function destroyMenuThreeStage(): void {
+  cancelMenuThreeStageLoad();
+  menuThreeStage?.destroy();
+  menuThreeStage = null;
+}
+
+function scheduleMenuThreeStage(): void {
+  if (isStartingGame || menuThreeStage || menuThreeIdleHandle !== null) return;
+
+  const idleWindow = window as WindowWithIdleCallback;
+  const loadVersion = menuThreeLoadVersion;
+  const loadMenuThreeStage = (): void => {
+    menuThreeIdleHandle = null;
+    menuThreeIdleHandleKind = null;
+    if (isStartingGame || menuThreeStage || loadVersion !== menuThreeLoadVersion) return;
+
+    void import("./game/ThreeStage").then(({ ThreeStage: MenuThreeStage }) => {
+      if (isStartingGame || menuThreeStage || loadVersion !== menuThreeLoadVersion) return;
+
+      threeRoot.replaceChildren();
+      menuThreeStage = new MenuThreeStage(threeRoot);
+      menuThreeStage.setSceneTheme(selectedSceneThemeId);
+    }).catch(() => undefined);
+  };
+  const scheduleIdleLoad = (): void => {
+    menuThreeIdleHandle = null;
+    menuThreeIdleHandleKind = null;
+    if (isStartingGame || menuThreeStage || loadVersion !== menuThreeLoadVersion) return;
+
+    if (idleWindow.requestIdleCallback) {
+      menuThreeIdleHandle = idleWindow.requestIdleCallback(loadMenuThreeStage, { timeout: 1800 });
+      menuThreeIdleHandleKind = "idle";
+      return;
+    }
+
+    loadMenuThreeStage();
+  };
+
+  menuThreeIdleHandle = window.setTimeout(scheduleIdleLoad, 1200);
+  menuThreeIdleHandleKind = "timeout";
+}
+
 async function startGame(): Promise<void> {
   isStartingGame = true;
+  destroyMenuThreeStage();
   renderLandingMenu();
 
   try {
