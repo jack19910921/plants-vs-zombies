@@ -29,8 +29,9 @@ export function createScenePickerMarkup(state: ScenePickerRenderState): string {
   ].join("; ");
   const sceneCards = SCENE_THEMES.map((theme) => {
     const selected = theme.id === selectedSceneThemeId ? " is-selected" : "";
-    return `<button class="scene-card scene-card--${theme.id}${selected}" data-scene-theme="${theme.id}" style="--scene-card-bg: ${theme.presentation.cardGradient}; --scene-card-image: url('${getSceneThumbnailForScene(theme.id)}'); --scene-card-accent: ${theme.presentation.cardAccent}; --scene-card-ink: ${theme.presentation.cardInk}">
-      <span class="scene-card-art"></span>
+    const thumbnail = getSceneThumbnailForScene(theme.id);
+    return `<button class="scene-card scene-card--${theme.id}${selected}" data-scene-theme="${theme.id}" style="--scene-card-bg: ${theme.presentation.cardGradient}; --scene-card-accent: ${theme.presentation.cardAccent}; --scene-card-ink: ${theme.presentation.cardInk}">
+      <span class="scene-card-art"><img class="scene-card-thumb" src="${thumbnail}" alt="" loading="eager" decoding="async" draggable="false" /></span>
       <strong>${theme.name}</strong>
       <span>${theme.pickerHint}</span>
     </button>`;

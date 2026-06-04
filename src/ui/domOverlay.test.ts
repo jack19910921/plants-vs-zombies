@@ -876,7 +876,8 @@ describe("dom overlay", () => {
     expect(html).toContain("--scene-page-base:");
     expect(html).toContain("--scene-page-accent:");
     expect(html).toContain("--scene-card-bg:");
-    expect(html).toContain("--scene-card-image:");
+    expect(html).toContain('class="scene-card-thumb"');
+    expect(html).toContain('loading="eager"');
     expect(html).toContain("scene-thumb-sunny-lawn.png");
     expect(html).toContain("scene-thumb-dewy-garden.png");
     expect(html).toContain("scene-thumb-starlight-farm.png");
