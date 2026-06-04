@@ -4,6 +4,7 @@ import {
   BOARD_TEXTURE,
   SCENE_BOARD_TEXTURES,
   SCENE_PLANT_TEXTURES,
+  SCENE_THUMBNAILS,
   SCENE_ZOMBIE_TEXTURES,
   LAWN_MOWER_TEXTURE,
   PLANT_TEXTURES,
@@ -14,6 +15,8 @@ import {
   getBoardTextureForScene,
   getPlantTextureKeyForScene,
   getPlantTextureForScene,
+  getSceneSpecificTextureEntries,
+  getSceneThumbnailForScene,
   getZombieTextureKeyForScene,
   getZombieTextureForScene
 } from "./assets";
@@ -65,6 +68,15 @@ describe("asset texture registry", () => {
     expect(getBoardTextureForScene("dewy-garden")).toBe(SCENE_BOARD_TEXTURES["dewy-garden"]);
   });
 
+  it("exposes lightweight scene picker thumbnails separate from full board textures", () => {
+    expect(SCENE_THUMBNAILS["sunny-lawn"]).toContain("scene-thumb-sunny-lawn.png");
+    expect(SCENE_THUMBNAILS["dewy-garden"]).toContain("scene-thumb-dewy-garden.png");
+    expect(SCENE_THUMBNAILS["starlight-farm"]).toContain("scene-thumb-starlight-farm.png");
+    expect(getSceneThumbnailForScene("dewy-garden")).toBe(SCENE_THUMBNAILS["dewy-garden"]);
+    expect(getSceneThumbnailForScene("dewy-garden")).not.toContain("image2-dewy-board.png");
+    expect(getSceneThumbnailForScene("starlight-farm")).not.toContain("image2-starlight-board.png");
+  });
+
   it("exposes scene-specific image2 plant textures with sunny fallbacks", () => {
     expect(SCENE_PLANT_TEXTURES["dewy-garden"]?.peashooter).toContain("image2-dewy-peashooter.png");
     expect(SCENE_PLANT_TEXTURES["dewy-garden"]?.wallnut).toContain("image2-dewy-wallnut.png");
@@ -89,5 +101,20 @@ describe("asset texture registry", () => {
     expect(getPlantTextureKeyForScene("starlight-farm", "wallnut")).toBe("plant-wallnut");
     expect(getZombieTextureKeyForScene("starlight-farm", "bucket")).toBe("zombie-starlight-farm-bucket");
     expect(getZombieTextureKeyForScene("dewy-garden", "bucket")).toBe("zombie-bucket");
+  });
+
+  it("returns only the selected scene-specific Phaser preload entries", () => {
+    const dewyEntries = getSceneSpecificTextureEntries("dewy-garden");
+    const starlightEntries = getSceneSpecificTextureEntries("starlight-farm");
+
+    expect(dewyEntries.map((entry) => entry.key)).toEqual([
+      "scene-board-dewy-garden",
+      "plant-dewy-garden-peashooter",
+      "plant-dewy-garden-wallnut",
+      "zombie-dewy-garden-basic",
+      "zombie-dewy-garden-cone"
+    ]);
+    expect(dewyEntries.map((entry) => entry.url).join(" ")).not.toContain("image2-starlight-board.png");
+    expect(starlightEntries.map((entry) => entry.url).join(" ")).not.toContain("image2-dewy-board.png");
   });
 });

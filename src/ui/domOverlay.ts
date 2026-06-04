@@ -1,6 +1,6 @@
 import type { GameScene } from "../game/GameScene";
 import { getPlantAssetPresentation } from "../game/assetPresentation";
-import { SUN_TOKEN_TEXTURE, getBoardTextureForScene, getPlantTextureForScene } from "../game/assets";
+import { SUN_TOKEN_TEXTURE, getPlantTextureForScene } from "../game/assets";
 import { PLANTS } from "../game/config";
 import {
   getChallengeHudLabel,
@@ -22,6 +22,7 @@ import type {
   SceneThemeId
 } from "../game/types";
 import { getPlantMiniatureProfile } from "../game/worldPresentation";
+import { SCENE_PICKER_DIFFICULTY_OPTIONS, createScenePickerMarkup } from "./scenePicker";
 
 export interface OverlayPlantingFeedback {
   type: "planting";
@@ -72,11 +73,6 @@ export interface DomOverlayOptions {
 const plantOrder: PlantId[] = ["sunflower", "peashooter", "wallnut", "snowpea", "potatomine"];
 const GAME_VIEWPORT = { width: 1280, height: 720 };
 const BOARD_TOUCH_GRID = { x: 148, y: 132, width: 980, height: 388, lanes: 5, columns: 9 };
-const difficultyOptions: Array<{ id: DifficultyId; label: string }> = [
-  { id: "easy", label: "轻松" },
-  { id: "normal", label: "普通" }
-];
-
 const plantingFeedbackText: Record<OverlayPlantingFeedback["reason"], string> = {
   "no-selection": "先选一张植物卡片。",
   occupied: "这个格子已经有植物啦。",
@@ -193,53 +189,18 @@ function getBoardTouchGridMarkup(): string {
   return `<div class="board-touch-grid" aria-label="草坪种植格">${cells.join("")}</div>`;
 }
 
-function getScenePickerMarkup(state: OverlayRenderState): string {
-  const selectedSceneThemeId = state.selectedSceneThemeId ?? DEFAULT_SCENE_THEME_ID;
-  const selectedTheme = SCENE_THEMES.find((theme) => theme.id === selectedSceneThemeId) ?? SCENE_THEMES[0];
-  const pageStyle = [
-    `--scene-page-base: ${toCssHex(selectedTheme.presentation.tabletopBaseColor)}`,
-    `--scene-page-alt: ${toCssHex(selectedTheme.presentation.tabletopPlankColors[1] ?? selectedTheme.presentation.tabletopBaseColor)}`,
-    `--scene-page-shadow: ${toCssHex(selectedTheme.presentation.tabletopShadowColor)}`,
-    `--scene-page-accent: ${selectedTheme.presentation.cardAccent}`,
-    `--scene-page-ink: ${selectedTheme.presentation.cardInk}`
-  ].join("; ");
-  const sceneCards = SCENE_THEMES.map((theme) => {
-    const selected = theme.id === selectedSceneThemeId ? " is-selected" : "";
-    return `<button class="scene-card scene-card--${theme.id}${selected}" data-scene-theme="${theme.id}" style="--scene-card-bg: ${theme.presentation.cardGradient}; --scene-card-image: url('${getBoardTextureForScene(theme.id)}'); --scene-card-accent: ${theme.presentation.cardAccent}; --scene-card-ink: ${theme.presentation.cardInk}">
-      <span class="scene-card-art"></span>
-      <strong>${theme.name}</strong>
-      <span>${theme.pickerHint}</span>
-    </button>`;
-  }).join("");
-  const difficultyButtons = difficultyOptions
-    .map((option) => {
-      const selected = (state.difficultyId ?? "normal") === option.id ? " is-selected" : "";
-      return `<button data-difficulty="${option.id}" class="difficulty-option${selected}">${option.label}</button>`;
-    })
-    .join("");
-
-  return `<div class="scene-picker scene-picker--${selectedTheme.id}" style="${pageStyle}">
-    <div class="scene-picker-top">
-      <div>
-        <h1>今天去哪里守护？</h1>
-      </div>
-      <div class="difficulty-toggle">${difficultyButtons}</div>
-    </div>
-    <div class="scene-card-grid">${sceneCards}</div>
-    <div class="scene-picker-bottom">
-      <span>${selectedTheme.startAnnouncement}</span>
-      <button class="chip scene-start-button" data-action="start-scene">开始守护</button>
-    </div>
-  </div>`;
-}
-
 function getSceneName(sceneThemeId?: SceneThemeId): string | null {
   if (!sceneThemeId) return null;
   return SCENE_THEMES.find((theme) => theme.id === sceneThemeId)?.name ?? null;
 }
 
 export function createDomOverlayMarkup(state: OverlayRenderState): string {
-  if (state.status === "menu") return getScenePickerMarkup(state);
+  if (state.status === "menu") {
+    return createScenePickerMarkup({
+      selectedSceneThemeId: state.selectedSceneThemeId,
+      difficultyId: state.difficultyId
+    });
+  }
 
   const allowedPlantIds = new Set(state.allowedPlantIds ?? plantOrder);
   const selectedSceneThemeId = state.selectedSceneThemeId ?? DEFAULT_SCENE_THEME_ID;
@@ -279,7 +240,7 @@ export function createDomOverlayMarkup(state: OverlayRenderState): string {
   const objectiveMarkup = state.runChallenge
     ? `<div class="chip objective-chip" data-short-label="${getChallengeShortHudLabel(state.runChallenge)}">${getChallengeHudLabel(state.runChallenge)}</div>`
     : "";
-  const difficultyButtons = difficultyOptions
+  const difficultyButtons = SCENE_PICKER_DIFFICULTY_OPTIONS
     .map((option) => {
       const selected = difficultyId === option.id ? " is-selected" : "";
       return `<button data-difficulty="${option.id}" class="difficulty-option${selected}">${option.label}</button>`;

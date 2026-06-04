@@ -99,6 +99,82 @@ button {
   opacity: 0.9;
 }
 
+.menu-scene-decoration {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 5px 0 rgba(92, 67, 48, 0.16));
+}
+
+.menu-scene-decoration__stem {
+  position: absolute;
+  left: 52%;
+  bottom: 12px;
+  width: 13px;
+  height: 45px;
+  border: 3px solid rgba(92, 67, 48, 0.72);
+  border-radius: 999px;
+  background: #6fb35d;
+  transform: translateX(-50%) rotate(-3deg);
+}
+
+.menu-scene-decoration__leaf {
+  position: absolute;
+  bottom: 28px;
+  width: 44px;
+  height: 25px;
+  border: 3px solid rgba(92, 67, 48, 0.72);
+  background: #9bd968;
+}
+
+.menu-scene-decoration__leaf--left {
+  left: 18px;
+  border-radius: 90% 25% 78% 28%;
+  transform: rotate(-20deg);
+}
+
+.menu-scene-decoration__leaf--right {
+  right: 14px;
+  border-radius: 25% 90% 28% 78%;
+  transform: rotate(18deg);
+}
+
+.menu-scene-decoration__tag {
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  width: 60px;
+  height: 19px;
+  border: 3px solid rgba(92, 67, 48, 0.72);
+  border-radius: 7px;
+  background: #fff8df;
+  transform: translateX(-50%) rotate(2deg);
+}
+
+.menu-scene-decoration--dewy-garden .menu-scene-decoration__stem {
+  background: #68bfa4;
+}
+
+.menu-scene-decoration--dewy-garden .menu-scene-decoration__leaf {
+  background: #9be4c4;
+}
+
+.menu-scene-decoration--dewy-garden .menu-scene-decoration__tag {
+  background: #daf8ff;
+}
+
+.menu-scene-decoration--starlight-farm .menu-scene-decoration__stem {
+  background: #6d8f78;
+}
+
+.menu-scene-decoration--starlight-farm .menu-scene-decoration__leaf {
+  background: #bdefff;
+}
+
+.menu-scene-decoration--starlight-farm .menu-scene-decoration__tag {
+  background: #fff1a3;
+}
+
 #ui-root {
   position: fixed;
   inset: 0;
@@ -678,6 +754,10 @@ button {
   width: 100%;
   background: var(--scene-page-accent, #ffd34f);
   color: var(--scene-page-ink, #5c4330);
+}
+
+.scene-start-button[disabled] {
+  opacity: 0.74;
 }
 
 .scene-picker .difficulty-option.is-selected {

@@ -12,13 +12,11 @@ import {
   LAWN_MOWER_TEXTURE,
   PLANT_TEXTURES,
   PROJECTILE_TEXTURES,
-  SCENE_BOARD_TEXTURES,
-  SCENE_PLANT_TEXTURES,
-  SCENE_ZOMBIE_TEXTURES,
   SUN_TOKEN_TEXTURE,
   ZOMBIE_TEXTURES,
   getBoardTextureKeyForScene,
   getPlantTextureKeyForScene,
+  getSceneSpecificTextureEntries,
   getZombieTextureKeyForScene
 } from "./assets";
 import { DIFFICULTY, LEVELS, PLANTS, ZOMBIES } from "./config";
@@ -76,6 +74,12 @@ const BOARD = {
 const SHORT_EFFECT_MS = 360;
 const LONG_EFFECT_MS = 700;
 
+export interface GameSceneOptions {
+  initialSceneThemeId?: SceneThemeId;
+  initialDifficultyId?: DifficultyId;
+  startInSelectedScene?: boolean;
+}
+
 export class GameScene extends Phaser.Scene {
   public readonly uiEvents = new Phaser.Events.EventEmitter();
 
@@ -97,36 +101,41 @@ export class GameScene extends Phaser.Scene {
   private modifierAnnouncementUntilMs = 0;
   private sceneAnnouncement: string | null = null;
   private sceneAnnouncementUntilMs = 0;
+  private readonly loadedSceneThemeIds = new Set<SceneThemeId>();
+  private readonly sceneThemeLoadCallbacks = new Map<SceneThemeId, Array<() => void>>();
 
-  constructor() {
+  constructor(options: GameSceneOptions = {}) {
     super("GameScene");
+    this.currentDifficultyId = DIFFICULTY[options.initialDifficultyId ?? "normal"]
+      ? (options.initialDifficultyId ?? "normal")
+      : "normal";
+    this.selectedSceneThemeId = options.initialSceneThemeId ?? DEFAULT_SCENE_THEME_ID;
+    this.state = {
+      ...createInitialState(this.currentLevel, this.currentDifficulty, undefined, this.getCurrentSceneTheme()),
+      status: "menu"
+    };
+    if (options.startInSelectedScene) {
+      this.startCurrentLevel();
+    }
   }
 
   preload(): void {
     Object.entries(PLANT_TEXTURES).forEach(([plantId, url]) => {
-      this.load.image(`plant-${plantId}`, url);
+      this.queueImageIfMissing(`plant-${plantId}`, url);
     });
-    this.load.image("garden-board", BOARD_TEXTURE);
-    Object.entries(SCENE_BOARD_TEXTURES).forEach(([sceneThemeId, url]) => {
-      this.load.image(getBoardTextureKeyForScene(sceneThemeId as SceneThemeId), url);
-    });
-    Object.entries(SCENE_PLANT_TEXTURES).forEach(([sceneThemeId, plants]) => {
-      Object.entries(plants).forEach(([plantId, url]) => {
-        this.load.image(getPlantTextureKeyForScene(sceneThemeId as SceneThemeId, plantId as PlantId), url);
-      });
-    });
-    this.load.image("base-sign", BASE_SIGN_TEXTURE);
-    this.load.image("sun-token", SUN_TOKEN_TEXTURE);
-    this.load.image("lawn-mower", LAWN_MOWER_TEXTURE);
-    this.load.image("projectile-pea", PROJECTILE_TEXTURES.pea);
-    this.load.image("projectile-ice", PROJECTILE_TEXTURES.ice);
+    this.queueImageIfMissing("garden-board", BOARD_TEXTURE);
+    this.queueSceneThemeTextures(this.selectedSceneThemeId);
+    this.queueImageIfMissing("base-sign", BASE_SIGN_TEXTURE);
+    this.queueImageIfMissing("sun-token", SUN_TOKEN_TEXTURE);
+    this.queueImageIfMissing("lawn-mower", LAWN_MOWER_TEXTURE);
+    this.queueImageIfMissing("projectile-pea", PROJECTILE_TEXTURES.pea);
+    this.queueImageIfMissing("projectile-ice", PROJECTILE_TEXTURES.ice);
     Object.entries(ZOMBIE_TEXTURES).forEach(([zombieId, url]) => {
-      this.load.image(`zombie-${zombieId}`, url);
+      this.queueImageIfMissing(`zombie-${zombieId}`, url);
     });
-    Object.entries(SCENE_ZOMBIE_TEXTURES).forEach(([sceneThemeId, zombies]) => {
-      Object.entries(zombies).forEach(([zombieId, url]) => {
-        this.load.image(getZombieTextureKeyForScene(sceneThemeId as SceneThemeId, zombieId as ZombieEntity["zombieId"]), url);
-      });
+    this.load.once("complete", () => {
+      this.loadedSceneThemeIds.add(DEFAULT_SCENE_THEME_ID);
+      this.loadedSceneThemeIds.add(this.selectedSceneThemeId);
     });
   }
 
@@ -181,6 +190,10 @@ export class GameScene extends Phaser.Scene {
     return null;
   }
 
+  emitCurrentState(): void {
+    this.uiEvents.emit("state-changed", this.state);
+  }
+
   setDifficulty(difficultyId: DifficultyId): void {
     if (!DIFFICULTY[difficultyId] || difficultyId === this.currentDifficultyId) return;
     this.uiEvents.emit("sound-requested", "button");
@@ -208,16 +221,21 @@ export class GameScene extends Phaser.Scene {
       };
     }
     this.uiEvents.emit("sound-requested", "button");
-    this.redrawFullWorld();
     this.uiEvents.emit("state-changed", this.state);
+    this.ensureSceneThemeTextures(sceneThemeId, () => {
+      this.redrawFullWorld();
+      this.uiEvents.emit("state-changed", this.state);
+    });
   }
 
   startSelectedScene(): void {
     if (this.state.status !== "menu") return;
     this.uiEvents.emit("sound-requested", "button");
-    this.startCurrentLevel();
-    this.redrawFullWorld();
-    this.uiEvents.emit("state-changed", this.state);
+    this.ensureSceneThemeTextures(this.selectedSceneThemeId, () => {
+      this.startCurrentLevel();
+      this.redrawFullWorld();
+      this.uiEvents.emit("state-changed", this.state);
+    });
   }
 
   returnToMenu(): void {
@@ -296,6 +314,52 @@ export class GameScene extends Phaser.Scene {
 
   private get currentDifficulty() {
     return DIFFICULTY[this.currentDifficultyId];
+  }
+
+  private queueImageIfMissing(key: string, url: string): boolean {
+    if (this.textures?.exists?.(key)) return false;
+    this.load.image(key, url);
+    return true;
+  }
+
+  private queueSceneThemeTextures(sceneThemeId: SceneThemeId): boolean {
+    return getSceneSpecificTextureEntries(sceneThemeId).reduce(
+      (queued, entry) => this.queueImageIfMissing(entry.key, entry.url) || queued,
+      false
+    );
+  }
+
+  private ensureSceneThemeTextures(sceneThemeId: SceneThemeId, onReady: () => void): void {
+    if (!this.load?.image || !this.load?.start) {
+      onReady();
+      return;
+    }
+    if (this.loadedSceneThemeIds.has(sceneThemeId)) {
+      onReady();
+      return;
+    }
+
+    const existingCallbacks = this.sceneThemeLoadCallbacks.get(sceneThemeId);
+    if (existingCallbacks) {
+      existingCallbacks.push(onReady);
+      return;
+    }
+
+    const queued = this.queueSceneThemeTextures(sceneThemeId);
+    if (!queued) {
+      this.loadedSceneThemeIds.add(sceneThemeId);
+      onReady();
+      return;
+    }
+
+    this.sceneThemeLoadCallbacks.set(sceneThemeId, [onReady]);
+    this.load.once("complete", () => {
+      this.loadedSceneThemeIds.add(sceneThemeId);
+      const callbacks = this.sceneThemeLoadCallbacks.get(sceneThemeId) ?? [];
+      this.sceneThemeLoadCallbacks.delete(sceneThemeId);
+      callbacks.forEach((callback) => callback());
+    });
+    this.load.start();
   }
 
   private startCurrentLevel(): void {

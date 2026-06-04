@@ -1,4 +1,10 @@
 import type { PlantId, SceneThemeId, ZombieId } from "./types";
+export { SCENE_THUMBNAILS, getSceneThumbnailForScene } from "./sceneThumbnails";
+
+export interface TextureAssetEntry {
+  key: string;
+  url: string;
+}
 
 export const PLANT_TEXTURES: Record<PlantId, string> = {
   sunflower: new URL("../assets/generated/m11/image2-sunflower.png", import.meta.url).href,
@@ -74,4 +80,35 @@ export function getPlantTextureKeyForScene(sceneThemeId: SceneThemeId, plantId: 
 
 export function getZombieTextureKeyForScene(sceneThemeId: SceneThemeId, zombieId: ZombieId): string {
   return SCENE_ZOMBIE_TEXTURES[sceneThemeId]?.[zombieId] ? `zombie-${sceneThemeId}-${zombieId}` : `zombie-${zombieId}`;
+}
+
+export function getSceneBoardTextureEntry(sceneThemeId: SceneThemeId): TextureAssetEntry | null {
+  const url = SCENE_BOARD_TEXTURES[sceneThemeId];
+  if (!url) return null;
+  return {
+    key: getBoardTextureKeyForScene(sceneThemeId),
+    url
+  };
+}
+
+export function getScenePlantTextureEntries(sceneThemeId: SceneThemeId): TextureAssetEntry[] {
+  return Object.entries(SCENE_PLANT_TEXTURES[sceneThemeId] ?? {}).map(([plantId, url]) => ({
+    key: getPlantTextureKeyForScene(sceneThemeId, plantId as PlantId),
+    url
+  }));
+}
+
+export function getSceneZombieTextureEntries(sceneThemeId: SceneThemeId): TextureAssetEntry[] {
+  return Object.entries(SCENE_ZOMBIE_TEXTURES[sceneThemeId] ?? {}).map(([zombieId, url]) => ({
+    key: getZombieTextureKeyForScene(sceneThemeId, zombieId as ZombieId),
+    url
+  }));
+}
+
+export function getSceneSpecificTextureEntries(sceneThemeId: SceneThemeId): TextureAssetEntry[] {
+  return [
+    getSceneBoardTextureEntry(sceneThemeId),
+    ...getScenePlantTextureEntries(sceneThemeId),
+    ...getSceneZombieTextureEntries(sceneThemeId)
+  ].filter((entry): entry is TextureAssetEntry => Boolean(entry));
 }
